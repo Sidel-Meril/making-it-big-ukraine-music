@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NUAM — Ukrainian music listeners & signed deals</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --muted: #9aa0a6;
+      --on: #0072b2;
+      --bar: #4575b4;
+      --accent: #d95f02;
+      /* Same yellow as genre pack palette mid (--lpa-color-mid); solid fill, no gradient */
+      --strange-pack-fill: #e6c229;
+      --bubble-stroke: #1a1a1a;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.45;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+    header { max-width: 72rem; margin: 0 auto 1.5rem; }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle { color: var(--muted); font-size: 0.9rem; max-width: 48rem; }
+    section.story-section {
+      max-width: 72rem;
+      margin: 0 auto 2.5rem;
+    }
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 650;
+      margin: 0 0 0.5rem;
+      color: #e8e8e8;
+    }
+    .section-lead {
+      font-size: 0.84rem;
+      color: #c4c4c4;
+      max-width: 48rem;
+      margin: 0 0 1rem;
+      line-height: 1.5;
+    }
+    .callout {
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #181818;
+      padding: 0.85rem 1rem;
+      font-size: 0.82rem;
+      color: #ccc;
+      max-width: 48rem;
+      margin-top: 0.75rem;
+      line-height: 1.5;
+    }
+    .callout strong { color: #eee; }
+    svg { display: block; max-width: 100%; height: auto; }
+    .chart-host {
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #141414;
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    /* Pack: SVG sizes to drawn content, not full box width */
+    .chart-host--intrinsic-pack {
+      width: fit-content;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      overflow-x: auto;
+    }
+    .axis text { fill: var(--muted); font-size: 11px; }
+    .axis line, .axis path { stroke: #444; }
+    .grid line { stroke: #2a2a2a; stroke-opacity: 0.9; }
+    .note {
+      max-width: 72rem;
+      margin: 2rem auto 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .empty-hint { color: var(--muted); font-size: 0.85rem; padding: 1rem; text-align: center; }
+    /* Strange-deal pack: match genres_popularity pack layout, ticks, and label typography */
+    .pack-host {
+      max-width: min(72rem, 100%);
+      margin: 0 auto;
+      padding: 0;
+      min-height: 200px;
+    }
+    .chart-host--intrinsic-pack .pack-host {
+      max-width: none;
+      min-height: 0;
+      margin: 0;
+    }
+    .pack-host svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      vertical-align: top;
+    }
+    .chart-host--intrinsic-pack .pack-host svg {
+      width: auto;
+      max-width: 100%;
+      height: auto;
+    }
+    .pack-host circle.pack-boundary {
+      fill: none;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .pack-host circle.genre-bubble {
+      stroke: var(--bubble-stroke);
+      stroke-width: 1.5px;
+    }
+    .pack-host line.genre-tick-outline {
+      stroke: #0a0a0a;
+      stroke-width: 4.25px;
+      stroke-linecap: round;
+      pointer-events: none;
+      opacity: 0.92;
+    }
+    .pack-host line.genre-tick {
+      stroke: #d0d4dc;
+      stroke-width: 2.5px;
+      stroke-linecap: round;
+      pointer-events: none;
+      opacity: 0.95;
+    }
+    .pack-host text.genre-label {
+      fill: #ddd;
+      font-weight: 600;
+      font-size: 13px;
+      font-family: var(--font);
+      pointer-events: none;
+      paint-order: stroke fill;
+      stroke: #0a0a0a;
+      stroke-width: 0.7px;
+    }
+    .pack-host text.genre-label.genre-label--inside {
+      fill: #000000;
+      font-size: 15px;
+      stroke: rgba(255, 255, 255, 0.88);
+      stroke-width: 0.55px;
+    }
+    .pack-empty {
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .growth-line-pre { stroke: #6497b1; stroke-width: 2.5px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .growth-line-2026 { stroke: #00b070; stroke-width: 2.5px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .growth-dot { fill: #f0f0f0; stroke: #1a1a1a; stroke-width: 1px; }
+    .growth-delta {
+      fill: #c8cdd5;
+      font-size: 11px;
+      font-weight: 600;
+      paint-order: stroke fill;
+      stroke: #121212;
+      stroke-width: 0.35px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Why we study Ukrainian music on Spotify — summed roster listeners keep climbing</h1>
+    <p class="subtitle" id="subtitle"></p>
+  </header>
+
+  <section class="story-section" aria-labelledby="h-growth">
+    <h2 id="h-growth">Roster-wide monthly listeners trend sets the scene</h2>
+    <p class="section-lead" id="growth-lead"></p>
+    <div class="chart-host"><svg id="svg-growth" role="img" aria-label="Summed monthly listeners over time"></svg></div>
+  </section>
+
+  <section class="story-section" aria-labelledby="h-hist">
+    <h2 id="h-hist">Peer-label signings skew toward lower peak listeners (histogram)</h2>
+    <p class="section-lead" id="hist-lead"></p>
+    <div class="chart-host"><svg id="svg-hist" role="img" aria-label="Histogram of peak listeners"></svg></div>
+    <div class="callout" id="anomaly-note"></div>
+  </section>
+
+  <section class="story-section" aria-labelledby="h-pack">
+    <h2 id="h-pack">Genres for “strange deals” (signed on peer label while peak listeners &lt; 1,000)</h2>
+    <p class="section-lead" id="pack-lead"></p>
+    <div class="chart-host chart-host--intrinsic-pack">
+      <div class="pack-host" id="pack-host"></div>
+      <div class="pack-empty" id="pack-empty" style="display: none"></div>
+    </div>
+  </section>
+
+  <section class="story-section" aria-labelledby="h-bars">
+    <h2 id="h-bars">Top labels by roster size among filtered labels — strange count overlaid</h2>
+    <p class="section-lead" id="bars-lead"></p>
+    <div class="chart-host"><svg id="svg-bars" role="img" aria-label="Horizontal bars and strange-deal counts"></svg></div>
+  </section>
+
+  <p class="note">
+    Data: NUAM export · “Signed” = appears on a label that also signs ≥2 top-listener-pool artists (same rule as milestone flower).
+    Regenerate: <code style="color:#ccc">uv run nuam-chart signed-deals --sync-html</code>
+  </p>
+
+  <script src="chart-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    (function () {
+      const raw = window.__NUAM_SIGNED_DEALS_STORY__;
+      if (!raw || !raw.meta) {
+        document.body.insertAdjacentHTML("afterbegin", "<p style='color:#c66;padding:1rem'>chart-data.js missing or invalid.</p>");
+        return;
+      }
+      const meta = raw.meta;
+      const STRANGE = meta.strangeMaxListeners;
+      const LABEL_MIN = meta.labelMinPeakListeners;
+
+      document.getElementById("subtitle").textContent =
+        `Export through ${String(meta.refMonthIso).slice(0, 7)}: full-roster listener totals (first chart), then ${meta.signedArtistCount.toLocaleString()} artists on peer-rated labels — ${meta.strangeArtistCount.toLocaleString()} with peak monthly listeners below ${STRANGE.toLocaleString()} (“strange deals”).`;
+
+      const gStart = meta.ukraineGrowthStartIso || "";
+      const gEnd = meta.ukraineGrowthEndIso || String(meta.refMonthIso).slice(0, 10);
+      const hiYear = meta.ukraineGrowthHighlightYear ?? 2026;
+      document.getElementById("growth-lead").textContent =
+        `January 2024 through the latest month in the file (${gStart.slice(0, 7)}–${gEnd.slice(0, 7)} in this export). Each value is the sum of monthly listener counts across all artist–month rows in NUAM. Callouts show month-to-month change (+ additional listeners vs previous month). Line color is blue before ${hiYear} and green for segments ending in ${hiYear}.`;
+
+      /* —— 0) Ukraine roster listener growth —— */
+      const ug = raw.ukraineListenersGrowth;
+      const GW = 900;
+      const GH = 400;
+      const gm = { top: 52, right: 28, bottom: 52, left: 72 };
+      const giw = GW - gm.left - gm.right;
+      const gih = GH - gm.top - gm.bottom;
+      const svgG = d3.select("#svg-growth").attr("viewBox", `0 0 ${GW} ${GH}`).attr("width", GW).attr("height", GH);
+      const gG = svgG.append("g").attr("transform", `translate(${gm.left},${gm.top})`);
+
+      function fmtListeners(n) {
+        if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
+        if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
+        if (n >= 1e3) return `${(n / 1e3).toFixed(1)}k`;
+        return Math.round(n).toLocaleString();
+      }
+
+      if (!ug || !ug.points || !ug.points.length) {
+        gG.append("text").attr("x", giw / 2).attr("y", gih / 2).attr("text-anchor", "middle").attr("fill", "#888").text("No monthly listener series in export.");
+      } else {
+        const pts = ug.points.map((p) => ({
+          t: new Date(p.monthIso + "T12:00:00"),
+          total: p.total,
+          delta: p.delta,
+          year: p.year,
+        }));
+        const x = d3
+          .scaleTime()
+          .domain(d3.extent(pts, (d) => d.t))
+          .range([0, giw]);
+        const y = d3
+          .scaleLinear()
+          .domain([0, d3.max(pts, (d) => d.total) * 1.04])
+          .nice()
+          .range([gih, 0]);
+
+        gG.append("g")
+          .attr("class", "grid")
+          .attr("transform", `translate(0,${gih})`)
+          .call(d3.axisBottom(x).ticks(Math.min(12, pts.length)).tickSize(-gih).tickFormat(""))
+          .call((ax) => ax.select(".domain").remove());
+
+        const lineGen = d3
+          .line()
+          .x((d) => x(d.t))
+          .y((d) => y(d.total))
+          .curve(d3.curveMonotoneX);
+
+        for (let i = 0; i < pts.length - 1; i++) {
+          const a = pts[i];
+          const b = pts[i + 1];
+          const seg = [a, b];
+          const use2026 = b.year >= hiYear;
+          gG.append("path")
+            .attr("class", use2026 ? "growth-line-2026" : "growth-line-pre")
+            .attr("d", lineGen(seg));
+        }
+
+        gG.selectAll("circle.growth-dot")
+          .data(pts)
+          .join("circle")
+          .attr("class", "growth-dot")
+          .attr("cx", (d) => x(d.t))
+          .attr("cy", (d) => y(d.total))
+          .attr("r", 4)
+          .append("title")
+          .text((d) => {
+            const base = `${d.t.toISOString().slice(0, 7)}: Σ ${fmtListeners(d.total)} listeners`;
+            return d.delta == null ? base : `${base}\nΔ vs prior month: ${d.delta >= 0 ? "+" : ""}${fmtListeners(d.delta)}`;
+          });
+
+        gG.selectAll("text.growth-delta")
+          .data(pts.filter((d) => d.delta != null && Number.isFinite(d.delta)))
+          .join("text")
+          .attr("class", "growth-delta")
+          .attr("text-anchor", "middle")
+          .attr("x", (d) => x(d.t))
+          .attr("y", (d) => y(d.total) - 10)
+          .text((d) => `${d.delta >= 0 ? "+" : ""}${fmtListeners(d.delta)}`);
+
+        gG.append("g")
+          .attr("class", "axis")
+          .attr("transform", `translate(0,${gih})`)
+          .call(d3.axisBottom(x).ticks(Math.min(14, pts.length)).tickFormat(d3.timeFormat("%b %Y")));
+        gG.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(6).tickFormat((v) => fmtListeners(v)));
+
+        gG.append("text")
+          .attr("fill", "#9aa0a6")
+          .attr("x", giw / 2)
+          .attr("y", gih + 40)
+          .attr("text-anchor", "middle")
+          .style("font-size", "11px")
+          .text("Month (calendar)");
+        gG.append("text")
+          .attr("fill", "#9aa0a6")
+          .attr("transform", "rotate(-90)")
+          .attr("x", -gih / 2)
+          .attr("y", -56)
+          .attr("text-anchor", "middle")
+          .style("font-size", "11px")
+          .text("Summed monthly listeners across NUAM roster (count)");
+
+        const t0 = pts[0].t;
+        const t1 = pts[pts.length - 1].t;
+        const net = pts[pts.length - 1].total - pts[0].total;
+        const netPhrase =
+          net >= 0
+            ? `net +${fmtListeners(net)} summed listeners`
+            : `net ${fmtListeners(net)} summed listeners`;
+        const insightTitle = `${netPhrase} from ${d3.timeFormat("%b %Y")(t0)} to ${d3.timeFormat("%b %Y")(t1)} (callouts = change vs prior month)`;
+        svgG
+          .append("text")
+          .attr("x", gm.left)
+          .attr("y", 22)
+          .attr("fill", "#e8e8e8")
+          .style("font-size", "13px")
+          .style("font-weight", "650")
+          .text(insightTitle);
+
+        svgG
+          .append("text")
+          .attr("x", gm.left + giw - 4)
+          .attr("y", 38)
+          .attr("text-anchor", "end")
+          .attr("fill", "#9aa0a6")
+          .style("font-size", "10px")
+          .text(`Green = segment ends in ${hiYear}`);
+      }
+
+      document.getElementById("hist-lead").textContent =
+        `Each artist is counted once; peak = maximum monthly listeners in the export. Orange band: log₁p scale from 0 to log₁p(${STRANGE.toLocaleString()}) — artists whose career-month peak never reached ${STRANGE.toLocaleString()} before appearing on a peer-rated label.`;
+
+      document.getElementById("anomaly-note").innerHTML =
+        "<strong>What the band means.</strong> Labels in NUAM are observed when an artist appears in the roster. Many Ukrainian acts show up on a peer-rated label while monthly listener counts are still in the hundreds. That does not prove the deal closed at that instant, but it shows how often the <em>first NUAM snapshot on such a label</em> sits in a low-listener regime — worth contrasting with majors that appear only after streaming scale.";
+
+      document.getElementById("bars-lead").textContent =
+        `Labels kept only if at least one artist on that label has peak monthly listeners ≥ ${LABEL_MIN.toLocaleString()}. Bars: all signed artists on the label. Orange markers + line: subset with peak &lt; ${STRANGE.toLocaleString()}.`;
+
+      document.getElementById("pack-lead").textContent =
+        "Circle area ∝ summed monthly listeners (same metric as the main genre pack). Bubbles use a single highlight fill (#e6c229, the yellow from the main chart’s blue→yellow→green ramp). The graphic uses a fixed-size SVG (no viewBox); the pack is scaled and centered inside that frame. Outer label type size matches the main chart (13px ring / 15px inside). Radial ticks, ring placement, and overlap hiding follow the same rules.";
+
+      /* —— 1) Histogram —— */
+      const h = raw.histogram;
+      const edges = h.binEdges;
+      const counts = h.counts;
+      const bandEnd = h.strangeBandLogEnd;
+      const W = 720;
+      const H = 340;
+      const margin = { top: 18, right: 14, bottom: 44, left: 52 };
+      const iw = W - margin.left - margin.right;
+      const ih = H - margin.top - margin.bottom;
+      const xMax = edges[edges.length - 1];
+      const yMax = Math.max(1, d3.max(counts) * 1.08);
+      const sx = d3.scaleLinear().domain([0, xMax]).range([0, iw]);
+      const sy = d3.scaleLinear().domain([0, yMax]).range([ih, 0]);
+
+      const svgH = d3.select("#svg-hist").attr("viewBox", `0 0 ${W} ${H}`).attr("width", W).attr("height", H);
+      const gH = svgH.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+      gH.append("rect")
+        .attr("x", sx(0))
+        .attr("width", sx(bandEnd) - sx(0))
+        .attr("y", 0)
+        .attr("height", ih)
+        .attr("fill", "#d95f02")
+        .attr("opacity", 0.22);
+
+      const bw = sx(edges[1]) - sx(edges[0]);
+      gH.selectAll("rect.bar")
+        .data(counts)
+        .join("rect")
+        .attr("class", "bar")
+        .attr("x", (_, i) => sx(edges[i]))
+        .attr("width", Math.max(0.5, bw - 0.5))
+        .attr("y", (d) => sy(d))
+        .attr("height", (d) => ih - sy(d))
+        .attr("fill", "#4575b4")
+        .attr("stroke", "#0d0d0d")
+        .attr("stroke-width", 0.4);
+
+      const xAxis = d3.axisBottom(sx).ticks(8).tickFormat((t) => {
+        const v = Math.expm1(t);
+        if (!Number.isFinite(v) || v < 0) return "";
+        if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;
+        if (v >= 1e3) return `${(v / 1e3).toFixed(0)}k`;
+        return String(Math.round(v));
+      });
+      const yAxis = d3.axisLeft(sy).ticks(5).tickFormat(d3.format("d"));
+      gH.append("g").attr("class", "axis").attr("transform", `translate(0,${ih})`).call(xAxis);
+      gH.append("g").attr("class", "axis").call(yAxis);
+      gH.append("text")
+        .attr("fill", "#9aa0a6")
+        .attr("x", iw / 2)
+        .attr("y", ih + 36)
+        .attr("text-anchor", "middle")
+        .style("font-size", "11px")
+        .text("Peak monthly listeners in export (tick labels use original count, not log)");
+      gH.append("text")
+        .attr("fill", "#9aa0a6")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -ih / 2)
+        .attr("y", -40)
+        .attr("text-anchor", "middle")
+        .style("font-size", "11px")
+        .text("Number of signed artists (count)");
+
+      svgH.append("text")
+        .attr("x", margin.left)
+        .attr("y", 14)
+        .attr("fill", "#e8e8e8")
+        .style("font-size", "13px")
+        .style("font-weight", "650")
+        .text("Many peer-label appearances sit left of the band edge (low peak listeners)");
+
+      /* —— 2) Strange-deal genre pack (same layout / ticks / labels as genres_popularity) —— */
+      const packRaw = raw.strangeGenrePack || { genres: [] };
+      const host = d3.select("#pack-host");
+      const emptyPackEl = document.getElementById("pack-empty");
+      const BUBBLE_FILL =
+        getComputedStyle(document.documentElement).getPropertyValue("--strange-pack-fill").trim() || "#e6c229";
+      const metricLabelPack = "summed monthly listeners";
+
+      function normalizeTopArtistNames(d) {
+        if (Array.isArray(d.topArtistNames)) {
+          return d.topArtistNames
+            .map((x) => String(x).trim())
+            .filter(Boolean)
+            .slice(0, 3);
+        }
+        if (d.topArtistName != null && String(d.topArtistName).trim() !== "") {
+          return [String(d.topArtistName).trim()];
+        }
+        return [];
+      }
+
+      function tipPack(d) {
+        const o = d.data;
+        const lines = [o.name];
+        if (o.topArtistNames && o.topArtistNames.length) {
+          const ranked = o.topArtistNames.map((n, i) => `${i + 1}. ${n}`).join("\n");
+          lines.push(
+            `Top ${o.topArtistNames.length} in this genre (by Σ monthly listeners in file):\n${ranked}`
+          );
+        }
+        lines.push(
+          `${metricLabelPack} (pack): ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+          `Fill = solid highlight (#e6c229); strange-deal artists only (peak listeners < ${STRANGE.toLocaleString()})`,
+          `Listeners / artist row: ${o.lpa != null ? o.lpa.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "—"}`,
+          `Artist–genre rows: ${o.artistCount.toLocaleString()}`,
+          `Σ monthly listeners: ${Math.round(o.listenersSum).toLocaleString()}`
+        );
+        return lines.join("\n");
+      }
+
+      function bubbleAriaLabelPack(d) {
+        const o = d.data;
+        let s = `${o.name}. ${metricLabelPack} (pack) ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}.`;
+        if (o.topArtistNames && o.topArtistNames.length) {
+          const tail = o.topArtistNames.map((n, i) => `${i + 1}) ${n}`).join("; ");
+          s += ` Top ${o.topArtistNames.length} by monthly listeners in file: ${tail}.`;
+        }
+        return s;
+      }
+
+      /** Fixed pixel canvas — no viewBox; pack is scaled/translated to sit inside this box. */
+      const SVG_W = 960;
+      const SVG_H = 960;
+      const BOX_PAD = 36;
+      /** Pack diameter as fraction of usable inner square (larger ⇒ bigger circles); label CSS stays 13px / 15px. */
+      const PACK_LAYOUT_SCALE = 0.72;
+      const RING_OUTSET = 108;
+      const TEXT_RING_PAD = 22;
+      const INSIDE_LABEL_R_RATIO = 0.17;
+
+      function drawStrangePack(children) {
+        host.selectAll("*").remove();
+        emptyPackEl.style.display = "none";
+
+        if (!children.length) {
+          emptyPackEl.textContent =
+            "No genres in the strange-deal subset (or no tagged genres). Regenerate after updating parquet.";
+          emptyPackEl.style.display = "block";
+          return;
+        }
+
+        const availW = SVG_W - 2 * BOX_PAD;
+        const availH = SVG_H - 2 * BOX_PAD;
+        const packLayoutSize = Math.round(Math.min(availW, availH) * PACK_LAYOUT_SCALE);
+
+        const root = d3
+          .hierarchy({ name: "root", children })
+          .sum((d) => (d.children ? 0 : d.value))
+          .sort((a, b) => b.value - a.value);
+
+        d3.pack().size([packLayoutSize, packLayoutSize]).padding(0)(root);
+
+        const svgP = host.append("svg").attr("role", "img").attr("width", SVG_W).attr("height", SVG_H);
+        const g = svgP.append("g").attr("class", "strange-pack-root");
+
+        g.append("circle")
+          .attr("class", "pack-boundary")
+          .attr("cx", root.x)
+          .attr("cy", root.y)
+          .attr("r", root.r);
+
+        const labelRingR = root.r + RING_OUTSET;
+        const textRingR = labelRingR + TEXT_RING_PAD;
+        const leaves = root.leaves();
+
+        const leafGeom = leaves.map((d) => {
+          let vx = d.x - root.x;
+          let vy = d.y - root.y;
+          const len = Math.hypot(vx, vy);
+          if (len < 1e-6) {
+            vx = 1;
+            vy = 0;
+          } else {
+            vx /= len;
+            vy /= len;
+          }
+          const inside = root.r > 1e-6 && d.r / root.r >= INSIDE_LABEL_R_RATIO;
+          return { d, ux: vx, uy: vy, inside };
+        });
+
+        const circles = g
+          .selectAll("circle.genre-bubble")
+          .data(leaves)
+          .join("circle")
+          .attr("class", "genre-bubble")
+          .attr("cx", (d) => d.x)
+          .attr("cy", (d) => d.y)
+          .attr("r", (d) => d.r)
+          .attr("fill", BUBBLE_FILL)
+          .attr("aria-label", (d) => bubbleAriaLabelPack(d));
+        circles.append("title").text((d) => tipPack(d));
+
+        function rectsOverlap(a, b) {
+          return !(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y);
+        }
+
+        const ann = g
+          .selectAll("g.genre-annotation")
+          .data(leafGeom)
+          .join("g")
+          .attr("class", "genre-annotation");
+
+        function tickEndpoints({ d, ux, uy }) {
+          return {
+            x1: d.x + ux * d.r,
+            y1: d.y + uy * d.r,
+            x2: root.x + ux * labelRingR,
+            y2: root.y + uy * labelRingR,
+          };
+        }
+
+        ann
+          .append("line")
+          .attr("class", "genre-tick-outline")
+          .attr("display", ({ inside }) => (inside ? "none" : null))
+          .each(function (geom) {
+            const { x1, y1, x2, y2 } = tickEndpoints(geom);
+            d3.select(this).attr("x1", x1).attr("y1", y1).attr("x2", x2).attr("y2", y2);
+          });
+
+        ann
+          .append("line")
+          .attr("class", "genre-tick")
+          .attr("display", ({ inside }) => (inside ? "none" : null))
+          .each(function (geom) {
+            const { x1, y1, x2, y2 } = tickEndpoints(geom);
+            d3.select(this).attr("x1", x1).attr("y1", y1).attr("x2", x2).attr("y2", y2);
+          });
+
+        ann
+          .append("text")
+          .attr("class", "genre-label")
+          .attr("dominant-baseline", "middle")
+          .each(function ({ d, ux, uy, inside }) {
+            const sel = d3.select(this);
+            sel.classed("genre-label--inside", inside);
+            let lx;
+            let ly;
+            let anchor;
+            if (inside) {
+              lx = d.x;
+              ly = d.y;
+              anchor = "middle";
+            } else {
+              lx = root.x + ux * textRingR;
+              ly = root.y + uy * textRingR;
+              anchor = "middle";
+              if (ux > 0.25) anchor = "start";
+              else if (ux < -0.25) anchor = "end";
+            }
+            sel.attr("x", lx).attr("y", ly).attr("text-anchor", anchor).text(d.data.name);
+          });
+
+        const LABEL_GAP = 5;
+        const order = d3.range(leafGeom.length).sort((i, j) => leafGeom[j].d.value - leafGeom[i].d.value);
+        const kept = [];
+        for (const i of order) {
+          const node = ann.nodes()[i];
+          const te = node.querySelector("text.genre-label");
+          if (!te) continue;
+          let bbox;
+          try {
+            bbox = te.getBBox();
+          } catch {
+            continue;
+          }
+          if (bbox.width <= 0 || bbox.height <= 0) continue;
+          const box = {
+            x: bbox.x - LABEL_GAP,
+            y: bbox.y - LABEL_GAP,
+            width: bbox.width + 2 * LABEL_GAP,
+            height: bbox.height + 2 * LABEL_GAP,
+          };
+          let overlaps = false;
+          for (const k of kept) {
+            if (rectsOverlap(box, k)) {
+              overlaps = true;
+              break;
+            }
+          }
+          if (overlaps) d3.select(node).attr("display", "none");
+          else kept.push(box);
+        }
+
+        /** Center + uniform scale so the whole pack (ticks + labels) fits inside the fixed SVG box. */
+        const bbMargin = 20;
+        try {
+          const bb = g.node().getBBox();
+          if (bb.width > 0 && bb.height > 0) {
+            const s = Math.min(
+              availW / (bb.width + 2 * bbMargin),
+              availH / (bb.height + 2 * bbMargin),
+              1
+            );
+            const tx = BOX_PAD + (availW - bb.width * s) / 2 - bb.x * s;
+            const ty = BOX_PAD + (availH - bb.height * s) / 2 - bb.y * s;
+            g.attr("transform", `translate(${tx},${ty}) scale(${s})`);
+          }
+        } catch {
+          /* leave identity transform */
+        }
+      }
+
+      const strangeChildren = (packRaw.genres || []).map((d) => ({
+        name: d.name,
+        value: Math.max(d.value, 1e-9),
+        artistCount: d.artistCount,
+        listenersSum: d.listenersSum,
+        lpa: d.listenersPerArtist,
+        topArtistNames: normalizeTopArtistNames(d),
+      }));
+      drawStrangePack(strangeChildren);
+
+      /* —— 3) Bars + line —— */
+      const rows = raw.labelBars || [];
+      const WB = 720;
+      const HB = Math.max(220, 28 * rows.length + 80);
+      const mb = { top: 28, right: 36, bottom: 40, left: 168 };
+      const ibw = WB - mb.left - mb.right;
+      const ibh = HB - mb.top - mb.bottom;
+      const svgB = d3.select("#svg-bars").attr("viewBox", `0 0 ${WB} ${HB}`).attr("width", WB).attr("height", HB);
+      const gB = svgB.append("g").attr("transform", `translate(${mb.left},${mb.top})`);
+
+      if (!rows.length) {
+        gB.append("text").attr("fill", "#888").text("No labels after filters.");
+      } else {
+        const display = [...rows].reverse();
+        const xMaxB = d3.max(display, (d) => d.signedCount) || 1;
+        const xb = d3.scaleLinear().domain([0, xMaxB]).nice().range([0, ibw]);
+        const yb = d3
+          .scaleBand()
+          .domain(display.map((d) => d.label))
+          .range([0, ibh])
+          .padding(0.22);
+
+        gB.append("g")
+          .attr("class", "grid")
+          .attr("transform", `translate(0,${ibh})`)
+          .call(
+            d3
+              .axisBottom(xb)
+              .ticks(6)
+              .tickSize(-ibh)
+              .tickFormat("")
+          )
+          .call((g) => g.select(".domain").remove());
+
+        gB.selectAll("rect.sign")
+          .data(display)
+          .join("rect")
+          .attr("class", "sign")
+          .attr("x", 0)
+          .attr("y", (d) => yb(d.label))
+          .attr("height", yb.bandwidth())
+          .attr("width", (d) => xb(d.signedCount))
+          .attr("fill", "#4575b4")
+          .attr("rx", 2)
+          .append("title")
+          .text((d) => `${d.label}\nSigned on label: ${d.signedCount}\nStrange (< ${STRANGE} peak): ${d.strangeCount}`);
+
+        const linePts = display.map((d) => [xb(d.strangeCount), yb(d.label) + yb.bandwidth() / 2]);
+        const ln = d3
+          .line()
+          .x((p) => p[0])
+          .y((p) => p[1])
+          .curve(d3.curveLinear);
+        gB.append("path")
+          .attr("fill", "none")
+          .attr("stroke", "#d95f02")
+          .attr("stroke-width", 2)
+          .attr("d", ln(linePts));
+
+        gB.selectAll("circle.str")
+          .data(display)
+          .join("circle")
+          .attr("class", "str")
+          .attr("cx", (d) => xb(d.strangeCount))
+          .attr("cy", (d) => yb(d.label) + yb.bandwidth() / 2)
+          .attr("r", 5)
+          .attr("fill", "#d95f02")
+          .attr("stroke", "#1a1a1a")
+          .attr("stroke-width", 1)
+          .append("title")
+          .text((d) => `Strange deals on ${d.label}: ${d.strangeCount}`);
+
+        gB.append("g").attr("class", "axis").call(d3.axisLeft(yb));
+        gB.append("g")
+          .attr("class", "axis")
+          .attr("transform", `translate(0,${ibh})`)
+          .call(d3.axisBottom(xb).ticks(6));
+
+        gB.append("text")
+          .attr("x", ibw / 2)
+          .attr("y", ibh + 30)
+          .attr("text-anchor", "middle")
+          .attr("fill", "#9aa0a6")
+          .style("font-size", "11px")
+          .text("Artist count on label (signed artists, count)");
+
+        svgB.append("text")
+          .attr("x", mb.left)
+          .attr("y", 16)
+          .attr("fill", "#e8e8e8")
+          .style("font-size", "13px")
+          .style("font-weight", "650")
+          .text("Blue bar = all signed roster; orange = strange-deal count (same vertical order)");
+      }
+    })();
+  </script>
+</body>
+</html>

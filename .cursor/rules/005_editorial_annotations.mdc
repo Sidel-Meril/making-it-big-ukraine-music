@@ -1,0 +1,27 @@
+---
+description: "Rules for annotations and storytelling in charts"
+globs: "*"
+alwaysApply: false
+---
+
+# Annotation Rules
+
+## WHEN TO USE
+
+- highlight peak or drop
+- explain anomaly
+- mark important event
+
+## HOW TO USE
+
+- MUST be short (<= 10 words)
+- MUST be placed near data point
+- MUST include arrow if needed
+
+## EXAMPLE
+
+GOOD:
+"Drop due to policy change"
+
+BAD:
+"This value decreased significantly because of multiple macroeconomic factors"

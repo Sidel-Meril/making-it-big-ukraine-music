@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NUAM — genre popularity (circle pack)</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --muted: #9aa0a6;
+      --on: #0072b2;
+      --bubble-stroke: #1a1a1a;
+      /* Bubble fill scale: log(LPA) → blue→yellow→green; slider track uses --on like milestone chart */
+      --lpa-color-low: #0a8fe8;
+      --lpa-color-mid: #e6c229;
+      --lpa-color-high: #00d978;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.45;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+    header { max-width: 72rem; margin: 0 auto 1.25rem; }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle { color: var(--muted); font-size: 0.9rem; max-width: 42rem; }
+    .filter-panel {
+      max-width: 72rem;
+      margin: 0 auto 1rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #181818;
+    }
+    .filter-panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .filter-readout {
+      font-size: 0.82rem;
+      color: #ccc;
+      margin-top: 0.35rem;
+      line-height: 1.35;
+    }
+    .listener-dual {
+      position: relative;
+      height: 36px;
+      margin: 0.65rem 0 0.15rem;
+      max-width: 36rem;
+    }
+    .listener-track-bg {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 15px;
+      height: 5px;
+      background: #333;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .listener-track-active {
+      position: absolute;
+      top: 15px;
+      height: 5px;
+      background: var(--on);
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .listener-dual input[type="range"] {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: 6px;
+      height: 24px;
+      margin: 0;
+      background: none;
+      pointer-events: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .listener-dual input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid var(--on);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .listener-dual input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid var(--on);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .listener-dual input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      background: transparent;
+    }
+    .listener-dual input[type="range"]::-moz-range-track {
+      height: 5px;
+      background: transparent;
+    }
+    .listener-dual #lpa-max { z-index: 2; }
+    .listener-dual #lpa-min { z-index: 1; }
+    .legend-wrap {
+      max-width: 72rem;
+      margin: 0 auto 1.5rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #181818;
+    }
+    .legend-wrap .legend-lead {
+      font-size: 0.84rem;
+      color: #c4c4c4;
+      margin: 0 0 0.65rem;
+      max-width: 48rem;
+      line-height: 1.45;
+    }
+    svg { display: block; margin: 0 auto; }
+    .pack-host {
+      max-width: min(72rem, 100%);
+      margin: 0 auto;
+      padding: 0;
+      min-height: 200px;
+    }
+    .pack-host svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      vertical-align: top;
+    }
+    .pack-host circle.pack-boundary {
+      fill: none;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .pack-host circle.genre-bubble {
+      stroke: var(--bubble-stroke);
+      stroke-width: 1.5px;
+    }
+    .color-ramp-wrap {
+      margin-top: 0.5rem;
+      max-width: 22rem;
+    }
+    .color-ramp-bar {
+      height: 12px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--lpa-color-low), var(--lpa-color-mid), var(--lpa-color-high));
+      border: 1px solid #333;
+    }
+    .color-ramp-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+    /* Underlay: dark outline so ticks separate from bubbles and background */
+    .pack-host line.genre-tick-outline {
+      stroke: #0a0a0a;
+      stroke-width: 4.25px;
+      stroke-linecap: round;
+      pointer-events: none;
+      opacity: 0.92;
+    }
+    .pack-host line.genre-tick {
+      stroke: #d0d4dc;
+      stroke-width: 2.5px;
+      stroke-linecap: round;
+      pointer-events: none;
+      opacity: 0.95;
+    }
+    /* Match tile name contrast (#ddd on grid charts); large enough to read at pack scale */
+    .pack-host text.genre-label {
+      fill: #ddd;
+      font-weight: 600;
+      font-size: 13px;
+      font-family: var(--font);
+      pointer-events: none;
+      paint-order: stroke fill;
+      stroke: #0a0a0a;
+      stroke-width: 0.7px;
+    }
+    .pack-host text.genre-label.genre-label--inside {
+      fill: #000000;
+      font-size: 15px;
+      /* Thin halo so black stays legible on darker blue/green fills */
+      stroke: rgba(255, 255, 255, 0.88);
+      stroke-width: 0.55px;
+    }
+    .pack-empty {
+      max-width: 72rem;
+      margin: 0 auto;
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .note {
+      max-width: 72rem;
+      margin: 2rem auto 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Genre popularity — pack tight circles; drag the band to filter by listeners per artist</h1>
+    <p class="subtitle" id="subtitle"></p>
+  </header>
+
+  <div class="filter-panel" id="lpa-filter-panel">
+    <h2>Listeners per artist (log-scaled band)</h2>
+    <p class="filter-readout" style="margin-top:0">
+      The slider sets which genres enter the pack. Circle <strong>areas</strong> still match the export metric (<span id="metric-name"></span>). Band position uses a <strong>logarithmic</strong> scale so both niche tags and blockbusters stay reachable.
+    </p>
+    <div class="listener-dual" id="lpa-dual-wrap">
+      <div class="listener-track-bg" aria-hidden="true"></div>
+      <div class="listener-track-active" id="lpa-track-active" aria-hidden="true"></div>
+      <input type="range" id="lpa-min" min="0" max="1000" value="0" step="1" aria-label="Lower end of listeners-per-artist band" />
+      <input type="range" id="lpa-max" min="0" max="1000" value="1000" step="1" aria-label="Upper end of listeners-per-artist band" />
+    </div>
+    <p class="filter-readout"><span id="lpa-val-labels">Min: — · Max: —</span></p>
+    <p class="filter-readout" id="lpa-summary"></p>
+  </div>
+
+  <div class="legend-wrap">
+    <p class="legend-lead" id="legend-lead"></p>
+    <div class="color-ramp-wrap" id="color-ramp-block">
+      <div class="color-ramp-bar" aria-hidden="true"></div>
+      <div class="color-ramp-labels">
+        <span id="ramp-low">Low listeners/artist (file min)</span>
+        <span id="ramp-high">High (file max)</span>
+      </div>
+    </div>
+  </div>
+  <div class="pack-host" id="pack-host"></div>
+  <div class="pack-empty" id="pack-empty" style="display:none"></div>
+
+  <p class="note">
+    Packing uses D3’s circle-pack (related idea to R <a href="https://www.r-bloggers.com/2017/04/packcircles-version-0-2-0-released/" style="color:#6eb6ff">packcircles</a>). Data: NUAM — <a href="https://www.nuam.club/stat" style="color:#6eb6ff">nuam.club/stat</a>. Regenerate: <code style="color:#ccc">uv run nuam-chart genres-popularity --sync-html</code> (use <code style="color:#ccc">--top 0</code> for all genres).
+  </p>
+
+  <script src="chart-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    (function () {
+      const raw = window.__NUAM_GENRES_PACK_DATA__;
+      const host = d3.select("#pack-host");
+      const emptyEl = document.getElementById("pack-empty");
+
+      if (!raw || !raw.genres || !raw.genres.length) {
+        host.text("Chart data did not load or no genres after filters.");
+        return;
+      }
+
+      const meta = raw.meta || {};
+      const metricLabel =
+        meta.metric === "listeners_per_artist"
+          ? "listeners per artist"
+          : meta.metric === "listeners_sum"
+            ? "summed monthly listeners"
+            : "artist–genre row count";
+      document.getElementById("metric-name").textContent = metricLabel;
+
+      document.getElementById("subtitle").textContent =
+        `${(meta.genreCount != null ? meta.genreCount : raw.genres.length).toLocaleString()} genres in file · pack area = ${metricLabel}. ` +
+        `The band filters by listeners per artist (Σ monthly listeners on tagged rows ÷ artist–genre rows).`;
+
+      document.getElementById("legend-lead").innerHTML =
+        "<strong>Reading the pack.</strong> Band = who appears; bubble <strong>area</strong> = export metric; bubble <strong>fill</strong> = global LPA on a <strong>logarithmic</strong> scale (blue→yellow→green, fixed to whole file), so a doubling in listeners/artist moves hue about as much whether you are niche or mainstream. <strong>Large</strong> bubbles (relative to the current pack) show the genre name <strong>inside</strong> the circle; smaller ones use radial ticks to a shared outer ring. When many genres qualify, outer ring names are dropped where they would overlap (larger bubbles win); hover any circle for the full name.";
+
+      const W = 1380;
+      const H = 1380;
+      const outerPad = 270;
+      const innerSize = W - 2 * outerPad;
+      /** Pixels beyond pack boundary circle (`root.r`) where tick tips land. */
+      const RING_OUTSET = 108;
+      /** Extra pixels past that ring for genre text (same radial ray from pack center). */
+      const TEXT_RING_PAD = 22;
+      /** Leaf radius ≥ this × pack boundary radius → label inside bubble (no outer tick). */
+      const INSIDE_LABEL_R_RATIO = 0.17;
+      const SLIDER_MAX = 1000;
+
+      function normalizeTopArtistNames(d) {
+        if (Array.isArray(d.topArtistNames)) {
+          return d.topArtistNames
+            .map((x) => String(x).trim())
+            .filter(Boolean)
+            .slice(0, 3);
+        }
+        if (d.topArtistName != null && String(d.topArtistName).trim() !== "") {
+          return [String(d.topArtistName).trim()];
+        }
+        return [];
+      }
+
+      const allRows = raw.genres.map((d) => ({
+        name: d.name,
+        value: Math.max(d.value, 1e-9),
+        artistCount: d.artistCount,
+        listenersSum: d.listenersSum,
+        lpa: d.listenersPerArtist,
+        topArtistNames: normalizeTopArtistNames(d),
+      }));
+
+      const lpas = allRows
+        .map((r) => r.lpa)
+        .filter((v) => v != null && Number.isFinite(v) && v > 0);
+      const filterPanel = document.getElementById("lpa-filter-panel");
+      const lpaMinEl = document.getElementById("lpa-min");
+      const lpaMaxEl = document.getElementById("lpa-max");
+      const lpaTrackActive = document.getElementById("lpa-track-active");
+      const lpaDualWrap = document.getElementById("lpa-dual-wrap");
+      const lpaValLabels = document.getElementById("lpa-val-labels");
+      const lpaSummary = document.getElementById("lpa-summary");
+
+      let logMin = 0;
+      let logMax = 1;
+      let linearMin = 1;
+      let linearMax = 1;
+
+      if (lpas.length === 0) {
+        filterPanel.style.display = "none";
+        logMin = 0;
+        logMax = 1;
+      } else {
+        linearMin = Math.min(...lpas);
+        linearMax = Math.max(...lpas);
+        if (linearMax <= linearMin * 1.000001) linearMax = linearMin * 1.05;
+        logMin = Math.log10(Math.max(linearMin, 1));
+        logMax = Math.log10(linearMax);
+        if (logMax <= logMin) logMax = logMin + 1e-6;
+      }
+
+      function tToLpa(t) {
+        const u = Math.max(0, Math.min(1, t / SLIDER_MAX));
+        return Math.pow(10, logMin + (logMax - logMin) * u);
+      }
+
+      function fmtLpa(x) {
+        if (x >= 1e6) return `${(x / 1e6).toFixed(2)}M`;
+        if (x >= 1e3) return `${(x / 1e3).toFixed(1)}k`;
+        return Math.round(x).toLocaleString();
+      }
+
+      const COLOR_LOW =
+        getComputedStyle(document.documentElement).getPropertyValue("--lpa-color-low").trim() || "#0a8fe8";
+      const COLOR_MID =
+        getComputedStyle(document.documentElement).getPropertyValue("--lpa-color-mid").trim() || "#e6c229";
+      const COLOR_HIGH =
+        getComputedStyle(document.documentElement).getPropertyValue("--lpa-color-high").trim() || "#00d978";
+      const _lpaAll = allRows.map((r) => r.lpa).filter((v) => v != null && Number.isFinite(v));
+      let globalLpaFill = () => "#656565";
+      if (_lpaAll.length) {
+        const positives = _lpaAll.filter((v) => v > 0);
+        if (positives.length === 0) {
+          document.getElementById("color-ramp-block").style.display = "none";
+        } else {
+          const gLo = Math.min(...positives);
+          const gHi = Math.max(...positives);
+          if (gHi <= gLo * (1 + 1e-12)) {
+            globalLpaFill = () => COLOR_LOW;
+          } else {
+            const logLo = Math.log10(gLo);
+            const logHi = Math.log10(gHi);
+            const logMid = (logLo + logHi) / 2;
+            const sc = d3
+              .scaleLinear()
+              .domain([logLo, logMid, logHi])
+              .range([COLOR_LOW, COLOR_MID, COLOR_HIGH])
+              .clamp(true);
+            globalLpaFill = (lpa) => {
+              if (lpa == null || !Number.isFinite(lpa)) return "#555555";
+              if (lpa <= 0) return sc(logLo);
+              return sc(Math.log10(Math.max(lpa, gLo)));
+            };
+          }
+          document.getElementById("ramp-low").textContent = `Low (${fmtLpa(gLo)})`;
+          document.getElementById("ramp-high").textContent = `High (${fmtLpa(gHi)})`;
+        }
+      } else {
+        document.getElementById("color-ramp-block").style.display = "none";
+      }
+
+      function getBandLpas() {
+        let lo = +lpaMinEl.value;
+        let hi = +lpaMaxEl.value;
+        if (lo > hi) {
+          hi = lo;
+          lpaMaxEl.value = String(hi);
+        }
+        return { vmin: tToLpa(lo), vmax: tToLpa(hi) };
+      }
+
+      function filterRows(vmin, vmax) {
+        return allRows.filter(
+          (r) =>
+            r.lpa != null &&
+            Number.isFinite(r.lpa) &&
+            r.lpa >= vmin &&
+            r.lpa <= vmax
+        );
+      }
+
+      function tip(d) {
+        const o = d.data;
+        const lines = [o.name];
+        if (o.topArtistNames && o.topArtistNames.length) {
+          const ranked = o.topArtistNames.map((n, i) => `${i + 1}. ${n}`).join("\n");
+          lines.push(
+            `Top ${o.topArtistNames.length} in this genre (by Σ monthly listeners in file):\n${ranked}`
+          );
+        }
+        lines.push(
+          `${metricLabel} (pack): ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+          `Fill = log-scaled listeners/artist vs whole file (blue→yellow→green); large bubbles label inside, others on outer ring`,
+          `Listeners / artist row: ${o.lpa != null ? o.lpa.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "—"}`,
+          `Artist–genre rows: ${o.artistCount.toLocaleString()}`,
+          `Σ monthly listeners: ${Math.round(o.listenersSum).toLocaleString()}`
+        );
+        return lines.join("\n");
+      }
+
+      function bubbleAriaLabel(d) {
+        const o = d.data;
+        let s = `${o.name}. ${metricLabel} (pack) ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}.`;
+        if (o.topArtistNames && o.topArtistNames.length) {
+          const tail = o.topArtistNames.map((n, i) => `${i + 1}) ${n}`).join("; ");
+          s += ` Top ${o.topArtistNames.length} by monthly listeners in file: ${tail}.`;
+        }
+        return s;
+      }
+
+      function drawPack(children) {
+        host.selectAll("*").remove();
+        emptyEl.style.display = "none";
+
+        if (children.length === 0) {
+          emptyEl.textContent =
+            "No genres fall in this listeners-per-artist band. Widen the blue highlighted span on the slider.";
+          emptyEl.style.display = "block";
+          return;
+        }
+
+        const root = d3
+          .hierarchy({ name: "root", children })
+          .sum((d) => (d.children ? 0 : d.value))
+          .sort((a, b) => b.value - a.value);
+
+        d3.pack().size([innerSize, innerSize]).padding(0)(root);
+
+        const dx = outerPad + innerSize / 2 - root.x;
+        const dy = outerPad + innerSize / 2 - root.y;
+
+        const svg = host.append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img");
+
+        const g = svg.append("g").attr("transform", `translate(${dx},${dy})`);
+
+        g.append("circle")
+          .attr("class", "pack-boundary")
+          .attr("cx", root.x)
+          .attr("cy", root.y)
+          .attr("r", root.r);
+
+        const labelRingR = root.r + RING_OUTSET;
+        const textRingR = labelRingR + TEXT_RING_PAD;
+
+        const leaves = root.leaves();
+
+        const leafGeom = leaves.map((d) => {
+          let vx = d.x - root.x;
+          let vy = d.y - root.y;
+          const len = Math.hypot(vx, vy);
+          if (len < 1e-6) {
+            vx = 1;
+            vy = 0;
+          } else {
+            vx /= len;
+            vy /= len;
+          }
+          const inside = root.r > 1e-6 && d.r / root.r >= INSIDE_LABEL_R_RATIO;
+          return { d, ux: vx, uy: vy, inside };
+        });
+
+        const circles = g
+          .selectAll("circle.genre-bubble")
+          .data(leaves)
+          .join("circle")
+          .attr("class", "genre-bubble")
+          .attr("cx", (d) => d.x)
+          .attr("cy", (d) => d.y)
+          .attr("r", (d) => d.r)
+          .attr("fill", (d) => globalLpaFill(d.data.lpa))
+          .attr("aria-label", (d) => bubbleAriaLabel(d));
+        circles.append("title").text((d) => tip(d));
+
+        function rectsOverlap(a, b) {
+          return !(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y);
+        }
+
+        const ann = g
+          .selectAll("g.genre-annotation")
+          .data(leafGeom)
+          .join("g")
+          .attr("class", "genre-annotation");
+
+        function tickEndpoints({ d, ux, uy }) {
+          return {
+            x1: d.x + ux * d.r,
+            y1: d.y + uy * d.r,
+            x2: root.x + ux * labelRingR,
+            y2: root.y + uy * labelRingR,
+          };
+        }
+
+        ann
+          .append("line")
+          .attr("class", "genre-tick-outline")
+          .attr("display", ({ inside }) => (inside ? "none" : null))
+          .each(function (geom) {
+            const { x1, y1, x2, y2 } = tickEndpoints(geom);
+            d3.select(this).attr("x1", x1).attr("y1", y1).attr("x2", x2).attr("y2", y2);
+          });
+
+        ann
+          .append("line")
+          .attr("class", "genre-tick")
+          .attr("display", ({ inside }) => (inside ? "none" : null))
+          .each(function (geom) {
+            const { x1, y1, x2, y2 } = tickEndpoints(geom);
+            d3.select(this).attr("x1", x1).attr("y1", y1).attr("x2", x2).attr("y2", y2);
+          });
+
+        ann
+          .append("text")
+          .attr("class", "genre-label")
+          .attr("dominant-baseline", "middle")
+          .each(function ({ d, ux, uy, inside }) {
+            const sel = d3.select(this);
+            sel.classed("genre-label--inside", inside);
+            let lx;
+            let ly;
+            let anchor;
+            if (inside) {
+              lx = d.x;
+              ly = d.y;
+              anchor = "middle";
+            } else {
+              lx = root.x + ux * textRingR;
+              ly = root.y + uy * textRingR;
+              anchor = "middle";
+              if (ux > 0.25) anchor = "start";
+              else if (ux < -0.25) anchor = "end";
+            }
+            sel.attr("x", lx).attr("y", ly).attr("text-anchor", anchor).text(d.data.name);
+          });
+
+        const LABEL_GAP = 5;
+        const order = d3.range(leafGeom.length).sort((i, j) => leafGeom[j].d.value - leafGeom[i].d.value);
+        const kept = [];
+        for (const i of order) {
+          const node = ann.nodes()[i];
+          const te = node.querySelector("text.genre-label");
+          if (!te) continue;
+          let bbox;
+          try {
+            bbox = te.getBBox();
+          } catch {
+            continue;
+          }
+          if (bbox.width <= 0 || bbox.height <= 0) continue;
+          const box = {
+            x: bbox.x - LABEL_GAP,
+            y: bbox.y - LABEL_GAP,
+            width: bbox.width + 2 * LABEL_GAP,
+            height: bbox.height + 2 * LABEL_GAP,
+          };
+          let overlaps = false;
+          for (const k of kept) {
+            if (rectsOverlap(box, k)) {
+              overlaps = true;
+              break;
+            }
+          }
+          if (overlaps) d3.select(node).attr("display", "none");
+          else kept.push(box);
+        }
+      }
+
+      function syncLpaSliders() {
+        if (lpas.length === 0) {
+          lpaValLabels.textContent = "Listeners per artist not available in this export.";
+          lpaSummary.textContent = "";
+          lpaTrackActive.style.width = "100%";
+          lpaTrackActive.style.left = "0%";
+          drawPack(allRows);
+          return;
+        }
+
+        let lo = +lpaMinEl.value;
+        let hi = +lpaMaxEl.value;
+        if (lo > hi) {
+          lpaMaxEl.value = String(lo);
+          hi = lo;
+        }
+        if (hi < lo) {
+          lpaMinEl.value = String(hi);
+          lo = hi;
+        }
+
+        const { vmin, vmax } = getBandLpas();
+        lpaValLabels.textContent = `Min: ${fmtLpa(vmin)} · Max: ${fmtLpa(vmax)} listeners/artist row`;
+
+        const span = logMax - logMin;
+        const p0 = (Math.log10(Math.max(vmin, Math.pow(10, logMin))) - logMin) / span;
+        const p1 = (Math.log10(Math.max(vmax, Math.pow(10, logMin))) - logMin) / span;
+        const leftPct = 100 * Math.max(0, Math.min(1, p0));
+        let widthPct = 100 * Math.max(0, Math.min(1, p1) - Math.min(1, p0));
+        if (widthPct === 0) widthPct = 0.6;
+        lpaTrackActive.style.left = `${leftPct}%`;
+        lpaTrackActive.style.width = `${widthPct}%`;
+
+        const filtered = filterRows(vmin, vmax);
+        lpaSummary.textContent = `${filtered.length.toLocaleString()} genre${filtered.length === 1 ? "" : "s"} in band (${fmtLpa(vmin)}–${fmtLpa(vmax)}). ${allRows.length.toLocaleString()} in file.`;
+        drawPack(filtered);
+      }
+
+      if (lpas.length === 0) {
+        lpaMinEl.disabled = true;
+        lpaMaxEl.disabled = true;
+        lpaDualWrap.style.opacity = "0.5";
+      }
+
+      lpaMinEl.addEventListener("input", () => {
+        if (+lpaMinEl.value > +lpaMaxEl.value) lpaMaxEl.value = lpaMinEl.value;
+        syncLpaSliders();
+      });
+      lpaMaxEl.addEventListener("input", () => {
+        if (+lpaMaxEl.value < +lpaMinEl.value) lpaMinEl.value = lpaMaxEl.value;
+        syncLpaSliders();
+      });
+
+      syncLpaSliders();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+---
+description: "Select correct chart type based on data relationships"
+globs: "*.py"
+alwaysApply: false
+---
+
+# Chart Selection Rules
+
+## MAPPING
+
+IF data is categorical vs numeric → USE bar chart  
+IF data is time-based → USE line chart  
+IF data is distribution → USE histogram / KDE / boxplot  
+IF data is correlation → USE scatter plot  
+IF data is part-to-whole → USE stacked bar (NOT pie if >5 categories)
+
+## HARD CONSTRAINTS
+
+- Bar charts MUST start at zero
+- Line charts MUST use ordered x-axis
+- Pie charts ONLY if <=5 categories
+
+## ANTI-PATTERNS
+
+- DO NOT use line chart for categorical x-axis
+- DO NOT use pie chart with similar values
+- DO NOT distort axis scales

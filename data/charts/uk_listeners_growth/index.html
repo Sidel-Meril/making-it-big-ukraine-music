@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NUAM — summed monthly listeners on roster (story opener)</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --muted: #9aa0a6;
+      --line-pre: #0072b2;
+      --line-2026: #2ecc71;
+      --point: #f0f0f0;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.45;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+    header { max-width: 72rem; margin: 0 auto 1rem; }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle { color: var(--muted); font-size: 0.9rem; max-width: 48rem; }
+    .legend-wrap {
+      max-width: 72rem;
+      margin: 0 auto 1rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #181818;
+      font-size: 0.82rem;
+      color: #ccc;
+      line-height: 1.5;
+    }
+    .legend-wrap .row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-top: 0.5rem; }
+    .swatch { display: inline-block; width: 2rem; height: 4px; vertical-align: middle; margin-right: 0.35rem; border-radius: 1px; }
+    .chart-host {
+      max-width: 72rem;
+      margin: 0 auto;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #141414;
+      padding: 0.75rem 0.75rem 0.5rem;
+      overflow-x: auto;
+    }
+    .chart-host svg { display: block; }
+    .axis text { fill: var(--muted); font-size: 11px; }
+    .axis line, .axis path { stroke: #444; }
+    .grid line { stroke: #2a2a2a; }
+    .delta-label {
+      fill: #cfcfcf;
+      font-size: 12px;
+      font-weight: 600;
+      paint-order: stroke fill;
+      stroke: #0a0a0a;
+      stroke-width: 0.35px;
+    }
+    .series-line {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .callout-connector {
+      fill: none;
+      stroke: var(--line-2026);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.92;
+    }
+    .callout-arrow-cap {
+      pointer-events: none;
+    }
+    .callout-headline {
+      fill: #f5f5f5;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      paint-order: stroke fill;
+      stroke: #0a0a0a;
+      stroke-width: 0.45px;
+    }
+    .callout-sub {
+      fill: #b8b8b8;
+      font-size: 12.5px;
+      font-weight: 600;
+      paint-order: stroke fill;
+      stroke: #0a0a0a;
+      stroke-width: 0.35px;
+    }
+    .note {
+      max-width: 72rem;
+      margin: 1.25rem auto 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="title-main">NUAM roster aggregate keeps adding monthly listener counts (2024–latest)</h1>
+    <p class="subtitle" id="subtitle"></p>
+  </header>
+  <div class="legend-wrap" id="legend-block">
+    <strong>Why this chart.</strong> Each month we sum Spotify “monthly listeners” across every artist–month row in the export (NUAM’s Ukrainian-music–leaning catalogue). It is <em>not</em> unique national reach — it shows roster scale moving up, which motivates digging into labels, genres, and deals.
+    <div class="row" id="legend-lines"></div>
+  </div>
+  <div class="chart-host"><svg id="chart" role="img" aria-labelledby="title-main"></svg></div>
+  <p class="note" id="footnote"></p>
+  <p class="note">
+    Regenerate: <code style="color:#ccc">uv run nuam-chart uk-listeners-growth --sync-html</code>
+  </p>
+
+  <script src="chart-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    (function () {
+      const raw = window.__NUAM_UK_LISTENERS_GROWTH__;
+      const svg = d3.select("#chart");
+      if (!raw || !raw.points || !raw.points.length) {
+        svg.append("text").attr("x", 20).attr("y", 40).attr("fill", "#888").text("No data for this range.");
+        return;
+      }
+
+      const meta = raw.meta || {};
+      const SPLIT = meta.currentYearSplit != null ? +meta.currentYearSplit : 2026;
+      const pts = raw.points.map((p) => ({
+        t: new Date(p.monthIso),
+        total: p.total,
+        deltaPrev: p.deltaPrev,
+        year: p.year,
+      }));
+
+      document.getElementById("subtitle").textContent =
+        `${meta.subtitleMetric || "Σ monthly listeners on roster"}. ${pts.length} month(s) from ${d3.timeFormat("%b %Y")(pts[0].t)} through ${d3.timeFormat("%b %Y")(pts[pts.length - 1].t)}.`;
+
+      document.getElementById("legend-lines").innerHTML =
+        `<span><i class="swatch" style="background:var(--line-pre)"></i>${SPLIT - 1} & earlier</span>` +
+        `<span><i class="swatch" style="background:var(--line-2026)"></i>${SPLIT}+ (current-year segment)</span>`;
+
+      const W = 900;
+      const H = 486;
+      const m = { top: 78, right: 36, bottom: 52, left: 72 };
+      const iw = W - m.left - m.right;
+      const ih = H - m.top - m.bottom;
+
+      const x = d3
+        .scaleTime()
+        .domain(d3.extent(pts, (d) => d.t))
+        .range([0, iw]);
+
+      const yMinData = d3.min(pts, (d) => d.total);
+      const yMaxData = d3.max(pts, (d) => d.total);
+      let span = yMaxData - yMinData;
+      if (!Number.isFinite(span) || span <= 0) {
+        span = Math.max(Math.abs(yMaxData) * 0.05, 1);
+      }
+      const padBottom = span * 0.06;
+      const padTop = span * 0.14;
+      const y = d3
+        .scaleLinear()
+        .domain([yMinData - padBottom, yMaxData + padTop])
+        .nice()
+        .range([ih, 0]);
+
+      svg.attr("viewBox", `0 0 ${W} ${H}`).attr("width", W).attr("height", H);
+
+      const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+
+      g.append("g")
+        .attr("class", "grid")
+        .attr("transform", `translate(0,${ih})`)
+        .call(d3.axisBottom(x).ticks(Math.min(pts.length, 14)).tickSize(-ih).tickFormat(""))
+        .call((s) => s.select(".domain").remove());
+
+      g.append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0,${ih})`)
+        .call(d3.axisBottom(x).ticks(Math.min(pts.length, 14)).tickFormat(d3.timeFormat("%b %y")));
+
+      g.append("g").attr("class", "axis").call(
+        d3
+          .axisLeft(y)
+          .ticks(6)
+          .tickFormat((v) => (v >= 1e9 ? `${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${(v / 1e3).toFixed(0)}k`))
+      );
+
+      g.append("text")
+        .attr("fill", "#9aa0a6")
+        .attr("x", iw / 2)
+        .attr("y", ih + 42)
+        .attr("text-anchor", "middle")
+        .style("font-size", "11px")
+        .text("Month (export snapshot)");
+
+      g.append("text")
+        .attr("fill", "#9aa0a6")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -ih / 2)
+        .attr("y", -56)
+        .attr("text-anchor", "middle")
+        .style("font-size", "11px")
+        .text("Σ monthly listeners on roster (count)");
+
+      const line = d3
+        .line()
+        .x((d) => x(d.t))
+        .y((d) => y(d.total))
+        .curve(d3.curveMonotoneX);
+
+      let i0 = pts.findIndex((d) => d.year >= SPLIT);
+      if (i0 < 0) i0 = pts.length;
+
+      const oldPts = pts.slice(0, i0);
+      const newPts = i0 === 0 ? pts : i0 === pts.length ? [] : [pts[i0 - 1], ...pts.slice(i0)];
+
+      const lineG = g.append("g").attr("class", "series-layer");
+      let pathPre = null;
+      let pathNew = null;
+
+      if (oldPts.length >= 2) {
+        pathPre = lineG
+          .append("path")
+          .attr("class", "series-line")
+          .attr("stroke", "var(--line-pre)")
+          .attr("stroke-width", 2.5)
+          .attr("d", line(oldPts));
+      } else if (oldPts.length === 1 && newPts.length === 0) {
+        pathPre = lineG
+          .append("path")
+          .attr("class", "series-line")
+          .attr("stroke", "var(--line-pre)")
+          .attr("stroke-width", 2.5)
+          .attr("d", line(oldPts));
+      }
+
+      if (newPts.length >= 2) {
+        pathNew = lineG
+          .append("path")
+          .attr("class", "series-line")
+          .attr("stroke", "var(--line-2026)")
+          .attr("stroke-width", 2.5)
+          .attr("d", line(newPts));
+      } else if (newPts.length === 1 && oldPts.length === 0) {
+        pathNew = lineG
+          .append("path")
+          .attr("class", "series-line")
+          .attr("stroke", "var(--line-2026)")
+          .attr("stroke-width", 2.5)
+          .attr("d", line(newPts));
+      }
+
+      g.selectAll("circle.pt")
+        .data(pts)
+        .join("circle")
+        .attr("class", "pt")
+        .attr("cx", (d) => x(d.t))
+        .attr("cy", (d) => y(d.total))
+        .attr("r", 4)
+        .style("opacity", 0)
+        .attr("fill", (d) => (d.year >= SPLIT ? "var(--line-2026)" : "var(--line-pre)"))
+        .attr("stroke", "#0a0a0a")
+        .attr("stroke-width", 1)
+        .append("title")
+        .text((d) => {
+          const mo = d3.timeFormat("%Y-%m")(d.t);
+          const dlt =
+            d.deltaPrev != null && Number.isFinite(d.deltaPrev)
+              ? `\nΔ vs prior month: ${d.deltaPrev >= 0 ? "+" : ""}${d.deltaPrev.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+              : "";
+          return `${mo}\nΣ listeners: ${d.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}${dlt}`;
+        });
+
+      function fmtDelta(dv) {
+        if (dv == null || !Number.isFinite(dv)) return "";
+        const sign = dv >= 0 ? "+" : "";
+        const a = Math.abs(dv);
+        if (a >= 1e6) return `${sign}${(dv / 1e6).toFixed(2)}M`;
+        if (a >= 1e3) return `${sign}${(dv / 1e3).toFixed(0)}k`;
+        return `${sign}${Math.round(dv).toLocaleString()}`;
+      }
+
+      const callLayer = g.append("g").attr("class", "callout-layer").style("pointer-events", "none").style("opacity", 0);
+
+      function shortenToward(tx, ty, sx, sy, dist) {
+        const dx = tx - sx;
+        const dy = ty - sy;
+        const len = Math.hypot(dx, dy) || 1;
+        const k = Math.min(dist, len - 2);
+        return { x: tx - (dx / len) * k, y: ty - (dy / len) * k };
+      }
+
+      const lastPt = pts[pts.length - 1];
+      const midIdx = Math.max(1, Math.min(pts.length - 2, Math.floor(pts.length * 0.42)));
+      const midPt = pts[midIdx];
+      const lx = x(lastPt.t);
+      const ly = y(lastPt.total);
+      const mx = x(midPt.t);
+      const my = y(midPt.total);
+
+      const rightTextX = Math.min(lx - 72, iw - 120);
+      const rightTextXClamped = Math.max(iw * 0.22 + 48, rightTextX);
+      const yElbow = -28;
+      const xLegRight = Math.min(Math.max(52, lx - 40), lx - 16);
+      const xLegLeft = Math.min(Math.max(mx + 34, 40), iw - 16);
+      const tipLast = shortenToward(lx, ly, xLegRight, yElbow, 18);
+      const tipMid = shortenToward(mx, my, xLegLeft, yElbow, 22);
+
+      const rightPoly = [
+        { x: rightTextXClamped, y: yElbow },
+        { x: xLegRight, y: yElbow },
+        { x: xLegRight, y: tipLast.y },
+        { x: tipLast.x, y: tipLast.y },
+      ];
+      const leftPoly = [
+        { x: 20, y: yElbow },
+        { x: xLegLeft, y: yElbow },
+        { x: xLegLeft, y: tipMid.y },
+        { x: tipMid.x, y: tipMid.y },
+      ];
+
+      function appendCalloutArrowCap(parent, poly) {
+        const q = poly.filter((pt, i) => i === 0 || pt.x !== poly[i - 1].x || pt.y !== poly[i - 1].y);
+        if (q.length < 2) return;
+        const b = q[q.length - 2];
+        const t = q[q.length - 1];
+        const ang = (Math.atan2(t.y - b.y, t.x - b.x) * 180) / Math.PI;
+        parent
+          .append("path")
+          .attr("class", "callout-arrow-cap")
+          .attr("transform", `translate(${t.x},${t.y}) rotate(${ang})`)
+          .attr("d", "M0,0 L-7.5,-3.1 L-7.5,3.1 Z")
+          .attr("fill", "#2ecc71");
+      }
+
+      callLayer
+        .append("path")
+        .attr("class", "callout-connector")
+        .attr(
+          "d",
+          `M${rightTextXClamped},${yElbow}L${xLegRight},${yElbow}L${xLegRight},${tipLast.y}L${tipLast.x},${tipLast.y}`
+        );
+
+      callLayer
+        .append("path")
+        .attr("class", "callout-connector")
+        .attr(
+          "d",
+          `M20,${yElbow}L${xLegLeft},${yElbow}L${xLegLeft},${tipMid.y}L${tipMid.x},${tipMid.y}`
+        );
+
+      appendCalloutArrowCap(callLayer, rightPoly);
+      appendCalloutArrowCap(callLayer, leftPoly);
+
+      callLayer
+        .append("text")
+        .attr("class", "callout-headline")
+        .attr("text-anchor", "end")
+        .attr("x", rightTextXClamped)
+        .attr("y", -58)
+        .text("Local Ukrainian bands gain listeners");
+
+      callLayer
+        .append("text")
+        .attr("class", "callout-sub")
+        .attr("text-anchor", "end")
+        .attr("x", rightTextXClamped)
+        .attr("y", -38)
+        .text("NUAM roster sum still rising");
+
+      callLayer
+        .append("text")
+        .attr("class", "callout-headline")
+        .attr("text-anchor", "start")
+        .attr("x", 12)
+        .attr("y", -58)
+        .style("font-size", "14px")
+        .text("Listening demand keeps climbing");
+
+      callLayer
+        .append("text")
+        .attr("class", "callout-sub")
+        .attr("text-anchor", "start")
+        .attr("x", 12)
+        .attr("y", -38)
+        .text("Winter 2025 dip on roster sum");
+
+      function measurePartialPathLen(ptsSlice, endVertexIndex) {
+        const sl = ptsSlice.slice(0, endVertexIndex + 1);
+        if (sl.length < 2) return 0;
+        const tmp = lineG
+          .append("path")
+          .attr("d", line(sl))
+          .attr("fill", "none")
+          .style("visibility", "hidden");
+        const len = tmp.node().getTotalLength();
+        tmp.remove();
+        return len;
+      }
+
+      function prepPathDash(sel) {
+        const node = sel && sel.node ? sel.node() : null;
+        if (!node) return 0;
+        const L = node.getTotalLength();
+        if (!Number.isFinite(L) || L <= 0) return 0;
+        sel.attr("stroke-dasharray", `${L} ${L}`).attr("stroke-dashoffset", L);
+        return L;
+      }
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const L1 = pathPre ? prepPathDash(pathPre) : 0;
+      const L2 = pathNew ? prepPathDash(pathNew) : 0;
+      const Lsum = L1 + L2 || 1;
+      const lineEase = d3.easeCubicInOut;
+      const lineMs = 2400;
+      const dur1 = L1 > 0 ? lineMs * (L1 / Lsum) : 0;
+      const dur2 = L2 > 0 ? lineMs * (L2 / Lsum) : 0;
+
+      function lineDrawDelayForPointIndex(j) {
+        if (j < 1) return 0;
+        if (i0 === 0) {
+          if (!pathNew || L2 <= 0) return 0;
+          return dur2 * (measurePartialPathLen(newPts, j) / L2);
+        }
+        if (j < i0) {
+          if (!pathPre || L1 <= 0) return 0;
+          return dur1 * (measurePartialPathLen(oldPts, j) / L1);
+        }
+        const k = j - (i0 - 1);
+        if (!pathNew || L2 <= 0) return dur1;
+        return dur1 + dur2 * (measurePartialPathLen(newPts, k) / L2);
+      }
+
+      const deltaRows = pts
+        .map((d, j) => ({ d, j }))
+        .filter(({ d }) => d.deltaPrev != null && Number.isFinite(d.deltaPrev));
+
+      g.selectAll("text.delta-label")
+        .data(deltaRows)
+        .join("text")
+        .attr("class", ({ d }) =>
+          d.deltaPrev > 0 ? "delta-label delta-label--pos" : "delta-label delta-label--neg"
+        )
+        .attr("text-anchor", "middle")
+        .attr("x", ({ d }) => x(d.t))
+        .attr("y", ({ d }) => y(d.total) - 10)
+        .style("opacity", 0)
+        .text(({ d }) => fmtDelta(d.deltaPrev));
+
+      function revealPositiveDeltasWithLine() {
+        g.selectAll("text.delta-label--pos").each(function (row) {
+          const delay = lineDrawDelayForPointIndex(row.j);
+          d3.select(this)
+            .transition()
+            .delay(delay)
+            .duration(200)
+            .ease(d3.easeCubicOut)
+            .style("opacity", 1);
+        });
+      }
+
+      function runIntro() {
+        if (reduceMotion) {
+          if (pathPre) pathPre.attr("stroke-dashoffset", 0);
+          if (pathNew) pathNew.attr("stroke-dashoffset", 0);
+          g.selectAll("circle.pt").style("opacity", 1);
+          g.selectAll("text.delta-label").style("opacity", 1);
+          callLayer.style("opacity", 1);
+          return;
+        }
+
+        revealPositiveDeltasWithLine();
+
+        let t = Promise.resolve();
+        if (pathPre && dur1 > 0) {
+          t = pathPre.transition().duration(dur1).ease(lineEase).attr("stroke-dashoffset", 0).end();
+        } else if (pathPre) {
+          pathPre.attr("stroke-dashoffset", 0);
+        }
+        t = t.then(() => {
+          if (pathNew && dur2 > 0) {
+            return pathNew.transition().duration(dur2).ease(lineEase).attr("stroke-dashoffset", 0).end();
+          }
+          if (pathNew) pathNew.attr("stroke-dashoffset", 0);
+        });
+        t.then(() => {
+          g.selectAll("circle.pt").transition().duration(380).ease(d3.easeCubicOut).style("opacity", 1);
+          g.selectAll("text.delta-label--neg")
+            .transition()
+            .duration(420)
+            .delay(90)
+            .ease(d3.easeCubicOut)
+            .style("opacity", 1);
+          callLayer
+            .transition()
+            .duration(520)
+            .delay(220)
+            .ease(d3.easeCubicOut)
+            .style("opacity", 1);
+        });
+      }
+
+      requestAnimationFrame(runIntro);
+
+      document.getElementById("footnote").textContent =
+        "Values are summed artist-level monthly listener fields in NUAM (Spotify), not deduplicated unique listeners. Month spacing follows export columns (Слухачів … mm.yy). The vertical scale is trimmed to the plotted range (not zero) so the upward trend is easier to read.";
+    })();
+  </script>
+</body>
+</html>

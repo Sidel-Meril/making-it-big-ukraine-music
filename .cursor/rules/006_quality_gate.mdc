@@ -1,0 +1,28 @@
+---
+description: "Final validation before delivering any visualization"
+globs: "*"
+alwaysApply: true
+---
+
+# Visualization Quality Gate
+
+## CHECKLIST (ALL MUST PASS)
+
+1. Is there ONE clear insight?
+2. Is chart understandable in <3 seconds?
+3. Are all labels present?
+4. Is scale honest and not misleading?
+5. Are colors meaningful (not decorative)?
+6. Is chart type correct?
+7. Is anything unnecessary present?
+
+## FAIL CONDITIONS
+
+- missing title or labels
+- wrong chart type
+- cluttered layout
+- misleading axis
+
+## OUTPUT RULE
+
+If any check fails → revise visualization BEFORE returning result

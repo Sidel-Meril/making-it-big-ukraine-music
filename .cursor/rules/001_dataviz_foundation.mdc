@@ -1,0 +1,33 @@
+---
+description: "Core philosophy and non-negotiable principles for all data visualizations"
+globs: ""
+alwaysApply: true
+---
+
+# Data Visualization – Core Principles
+
+## PURPOSE
+
+Every visualization MUST communicate a single clear insight.
+
+## RULES
+
+- MUST define the main insight before plotting
+- MUST optimize for clarity over aesthetics
+- MUST avoid decorative elements without informational value
+- MUST match chart type to data relationship:
+  - comparison
+  - time
+  - distribution
+  - correlation
+  - part-to-whole
+
+## FORBIDDEN
+
+- 3D charts
+- decorative gradients without meaning
+- charts without a clear takeaway
+
+## OUTPUT EXPECTATION
+
+All charts must be interpretable within 3 seconds.

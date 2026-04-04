@@ -1,0 +1,50 @@
+---
+description: "Implementation rules for Matplotlib and Seaborn charts"
+globs: "*.py"
+alwaysApply: false
+---
+
+# Matplotlib / Seaborn Standards
+
+## SETUP
+
+- MUST use:
+  fig, ax = plt.subplots()
+
+- MUST define figure size:
+  figsize=(10, 6)
+
+## STYLE
+
+- USE seaborn theme:
+  sns.set_theme(style="whitegrid" OR "ticks")
+
+- REMOVE unnecessary spines:
+  sns.despine()
+
+## LABELING
+
+- MUST include:
+  - title
+  - subtitle (via plt.text or ax.text)
+  - x and y labels
+
+## COLORS
+
+- USE:
+  sns.color_palette("colorblind")
+
+## ANNOTATIONS
+
+- USE ax.annotate() for key insights
+
+## OUTPUT
+
+- MUST call:
+  plt.tight_layout()
+
+## FORBIDDEN
+
+- default matplotlib styling (unstyled charts)
+- missing labels
+- overlapping elements

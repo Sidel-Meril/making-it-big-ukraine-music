@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NUAM artist milestones (Pudding-style flower)</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --muted: #9aa0a6;
+      --on: #0072b2;
+      --off-tracked: #4d4d4d;
+      --off-untracked: #252525;
+      --accent-lang: #e69f00;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.45;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+    header { max-width: 72rem; margin: 0 auto 1.25rem; }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 42rem;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin: 1rem auto 1.25rem;
+      max-width: 72rem;
+    }
+    label { font-size: 0.85rem; color: var(--muted); }
+    select {
+      background: #1e1e1e;
+      color: var(--text);
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 0.35rem 0.6rem;
+      font: inherit;
+    }
+    .legend-wrap {
+      max-width: 72rem;
+      margin: 0 auto 1.5rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #181818;
+    }
+    .legend-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+      gap: 0.35rem 1rem;
+      font-size: 0.78rem;
+      color: #ccc;
+    }
+    .legend-item { display: flex; gap: 0.4rem; align-items: baseline; }
+    .legend-item span.idx { color: var(--muted); width: 1.25rem; flex-shrink: 0; }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+      gap: 1.1rem 0.65rem;
+      max-width: 72rem;
+      margin: 0 auto;
+    }
+    .note {
+      max-width: 72rem;
+      margin: 2rem auto 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    svg { display: block; margin: 0 auto; }
+    .name {
+      text-align: center;
+      font-size: 0.68rem;
+      color: #ddd;
+      margin-top: 0.15rem;
+      line-height: 1.2;
+      max-width: 6.5rem;
+      margin-left: auto;
+      margin-right: auto;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Five scraped milestones per artist, shown as a compact flower glyph</h1>
+    <p class="subtitle" id="subtitle"></p>
+  </header>
+
+  <div class="controls">
+    <label for="sort">Sort</label>
+    <select id="sort">
+      <option value="achievements-desc">Most milestones</option>
+      <option value="achievements-asc">Fewest milestones</option>
+      <option value="listeners-desc">Peak listeners (high → low)</option>
+      <option value="name-asc">Name (A–Z)</option>
+    </select>
+  </div>
+
+  <div class="legend-wrap">
+    <div class="legend-title">Petals — clockwise from top (equal spacing)</div>
+    <div class="legend-grid" id="legend"></div>
+  </div>
+
+  <div id="grid"></div>
+
+  <p class="note">
+    Reference layout and metaphor: <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#6eb6ff">The Pudding — TikTok emerging artists</a>.
+    Data: <code style="color:#ccc">data/charts/milestones/chart-data.js</code> — regenerate with <code style="color:#ccc">uv run nuam-chart milestones</code>
+    (or <code style="color:#ccc">uv run python scripts/charts/export_milestones.py</code>).
+    Refresh this HTML from the package template: <code style="color:#ccc">uv run nuam-chart milestones --sync-html</code>.
+    Serve this directory with <code style="color:#ccc">python -m http.server</code> if the browser blocks local scripts.
+  </p>
+
+  <script src="chart-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    (function () {
+      const data = window.__NUAM_MILESTONE_DATA__;
+      if (!data || !data.artists || !data.milestones) {
+        document.getElementById("grid").textContent =
+          "Missing chart-data.js — run: uv run nuam-chart milestones";
+        return;
+      }
+
+      const meta = data.meta || {};
+      const ref = meta.refMonth ? String(meta.refMonth).slice(0, 7) : "—";
+      const nPetals = data.milestones.length;
+      document.getElementById("subtitle").textContent =
+        `Peak monthly listeners (NUAM scrape, ref. month ${ref}); center text is milestones achieved out of ${nPetals} extracted fields${meta.spotifyListenersThreshold != null ? ` (listeners petal: peak ≥ ${Number(meta.spotifyListenersThreshold).toLocaleString()})` : ""}.`;
+
+      const legend = d3.select("#legend");
+      data.milestones.forEach((m, i) => {
+        legend
+          .append("div")
+          .attr("class", "legend-item")
+          .html(`<span class="idx">${i + 1}</span><span>${m.label}</span>`);
+      });
+
+      const W = 88;
+      const H = 96;
+      const cx = W / 2;
+      const cy = H / 2 - 4;
+      const pr = 26;
+      const petalR = 5;
+      const holeR = 14;
+
+      function petalFill(on) {
+        return on
+          ? (getComputedStyle(document.documentElement).getPropertyValue("--on").trim() || "#0072b2")
+          : (getComputedStyle(document.documentElement).getPropertyValue("--off-tracked").trim() || "#4d4d4d");
+      }
+
+      function sortArtists(mode, artists) {
+        const copy = artists.slice();
+        if (mode === "achievements-desc")
+          copy.sort((a, b) => b.achievedTracked - a.achievedTracked || (b.listenersMax || 0) - (a.listenersMax || 0));
+        else if (mode === "achievements-asc")
+          copy.sort((a, b) => a.achievedTracked - b.achievedTracked || (b.listenersMax || 0) - (a.listenersMax || 0));
+        else if (mode === "listeners-desc")
+          copy.sort((a, b) => (b.listenersMax || 0) - (a.listenersMax || 0));
+        else copy.sort((a, b) => a.name.localeCompare(b.name));
+        return copy;
+      }
+
+      const grid = d3.select("#grid");
+      let mode = "achievements-desc";
+
+      function draw() {
+        const sorted = sortArtists(mode, data.artists);
+        grid.selectAll("div.card").remove();
+
+        const cards = grid
+          .selectAll("div.card")
+          .data(sorted)
+          .join("div")
+          .attr("class", "card");
+
+        cards.each(function (d) {
+          const el = d3.select(this);
+          const svg = el.append("svg").attr("width", W).attr("height", H);
+          if (d.ruLang) {
+            svg.append("rect").attr("x", 1).attr("y", 1).attr("width", W - 2).attr("height", H - 2)
+              .attr("fill", "none").attr("stroke", "#e69f00").attr("stroke-width", 1.2).attr("rx", 6);
+          }
+
+          const g = svg.append("g");
+          const n = data.milestones.length;
+          const step = (2 * Math.PI) / n;
+          for (let i = 0; i < n; i++) {
+            const ang = -Math.PI / 2 + i * step;
+            const px = cx + pr * Math.cos(ang);
+            const py = cy + pr * Math.sin(ang);
+            const on = !!d.bits[i];
+            g.append("circle")
+              .attr("cx", px)
+              .attr("cy", py)
+              .attr("r", petalR)
+              .attr("fill", petalFill(on));
+          }
+
+          const centerOn = d.achievedTracked > 0;
+          g.append("circle")
+            .attr("cx", cx)
+            .attr("cy", cy)
+            .attr("r", holeR)
+            .attr("fill", centerOn ? "#0072b2" : "#3a3a3a");
+
+          g.append("text")
+            .attr("x", cx)
+            .attr("y", cy)
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
+            .attr("fill", "#fff")
+            .attr("font-size", "9px")
+            .attr("font-weight", "600")
+            .text(`${d.achievedTracked} of ${d.trackedTotal}`);
+        });
+
+        cards
+          .append("div")
+          .attr("class", "name")
+          .text((d) => d.name);
+      }
+
+      d3.select("#sort").on("change", (e) => {
+        mode = e.target.value;
+        draw();
+      });
+
+      draw();
+    })();
+  </script>
+</body>
+</html>

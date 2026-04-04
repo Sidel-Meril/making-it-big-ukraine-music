@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NUAM — labels and their high-listener rosters (tick chart)</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --muted: #9aa0a6;
+      /* Colorblind-safe accent, distinct from milestone chart blue (--on #0072b2) */
+      --accent: #009e73;
+      --accent-dim: #3d6b5c;
+      --hole-off: #2e2e2e;
+      --gray-tick: #8a8a8a;
+      --gray-hole: #4d4d4d;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.45;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+    header { max-width: 72rem; margin: 0 auto 1.25rem; }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 44rem;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin: 1rem auto 1.25rem;
+      max-width: 72rem;
+    }
+    label { font-size: 0.85rem; color: var(--muted); }
+    select {
+      background: #1e1e1e;
+      color: var(--text);
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 0.35rem 0.6rem;
+      font: inherit;
+    }
+    .legend-wrap {
+      max-width: 72rem;
+      margin: 0 auto 1.5rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #181818;
+    }
+    .legend-lead {
+      font-size: 0.84rem;
+      color: #c4c4c4;
+      margin: 0 0 0.65rem;
+      max-width: 48rem;
+      line-height: 1.45;
+    }
+    .legend-diagram-host {
+      display: flex;
+      justify-content: center;
+      margin: 0.35rem 0 0;
+    }
+    .legend-diagram-svg {
+      width: min(200px, 50vw);
+      height: auto;
+      display: block;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+      gap: 1.1rem 0.65rem;
+      max-width: 72rem;
+      margin: 0 auto;
+    }
+    .grid-footer {
+      max-width: 72rem;
+      margin: 1.35rem auto 0;
+      padding: 0 0.5rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.45;
+    }
+    .note {
+      max-width: 72rem;
+      margin: 2rem auto 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    svg { display: block; margin: 0 auto; }
+    .name {
+      text-align: center;
+      font-size: 0.65rem;
+      color: #ddd;
+      margin-top: 0.2rem;
+      line-height: 1.2;
+      max-width: 6.5rem;
+      margin-left: auto;
+      margin-right: auto;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Every NUAM label: center size shows roster depth; green only when several high-listener artists share the imprint</h1>
+    <p class="subtitle" id="subtitle"></p>
+  </header>
+
+  <div class="controls">
+    <label for="sort">Order tiles by</label>
+    <select id="sort">
+      <option value="roster-desc">Catalog size (most artists first)</option>
+      <option value="roster-asc">Catalog size (fewest first)</option>
+      <option value="hits-desc">High-listener matches (most ticks)</option>
+      <option value="hits-asc">High-listener matches (fewest ticks)</option>
+      <option value="name-asc">Label name (A–Z)</option>
+    </select>
+  </div>
+
+  <div class="legend-wrap">
+    <p class="legend-lead">
+      <strong>How to read the glyphs.</strong> <strong>Center circle</strong> scales with how many distinct artists NUAM lists on that label (the number inside is that count). <strong>Each radial tick</strong> is one high-listener-pool artist on that imprint; tick tips share one <strong>fixed outer radius</strong>, and tick roots sit a <strong>constant gap</strong> outside the circle edge so small and large centers stay visually aligned. <strong>Green</strong> = top-rated (≥ threshold pool artists). <strong>Gray</strong> = otherwise.
+    </p>
+    <div class="legend-diagram-host" id="legend-host"></div>
+  </div>
+
+  <div id="grid"></div>
+  <p id="grid-footer" class="grid-footer" aria-live="polite"></p>
+
+  <p class="note">
+    Data: NUAM scrape — <a href="https://www.nuam.club/stat" style="color:#6eb6ff">nuam.club/stat</a>. “Top listeners” uses the same last-month quantile threshold as the milestone export. Companion view: milestone sun chart.
+  </p>
+
+  <script src="chart-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    (function () {
+      const data = window.__NUAM_LABEL_ROSTER_DATA__;
+      const gridFooterEl = document.getElementById("grid-footer");
+      const accent =
+        getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#009e73";
+      const grayTick =
+        getComputedStyle(document.documentElement).getPropertyValue("--gray-tick").trim() || "#8a8a8a";
+      const grayHole =
+        getComputedStyle(document.documentElement).getPropertyValue("--gray-hole").trim() || "#4d4d4d";
+
+      if (!data || !data.labels) {
+        document.getElementById("grid").textContent = "Chart data did not load.";
+        if (gridFooterEl) gridFooterEl.textContent = "";
+        return;
+      }
+
+      if (!data.labels.length) {
+        document.getElementById("grid").textContent = "No labels in this export.";
+        if (gridFooterEl) gridFooterEl.textContent = "";
+        return;
+      }
+
+      const meta = data.meta || {};
+      const ref = meta.refMonth ? String(meta.refMonth).slice(0, 7) : "—";
+      const thr = meta.listenersRankThreshold;
+      const minA = meta.minTopArtistsOnLabel != null ? meta.minTopArtistsOnLabel : 2;
+      const nLabels = meta.labelCount != null ? meta.labelCount : data.labels.length;
+      const nTopRated = meta.topRatedLabelCount != null ? meta.topRatedLabelCount : 0;
+      const maxCatalog = Math.max(1, meta.maxArtistCountOnLabel | 0);
+      const thrNote =
+        thr != null && Number.isFinite(thr)
+          ? ` Top-listener pool = artists at or above ${Number(thr).toLocaleString()} monthly listeners in the reference month.`
+          : "";
+      document.getElementById("subtitle").textContent =
+        `Reference month ${ref}.${thrNote} ${nLabels.toLocaleString()} labels in export; ${nTopRated.toLocaleString()} are top-rated (≥${minA} pool artists on the imprint). Center number = total artists on that label in NUAM; center radius scales with that count. Each tick = one pool artist on the label. Gray glyphs are not top-rated.`;
+
+      /** Center hole scales with catalog size. Tick tips sit on a fixed outer ring; tick roots sit a fixed gap past the circle edge. */
+      const W = 78;
+      const H = 84;
+      const cx = W / 2;
+      const cy = H / 2 - 2;
+      const tickStroke = 3;
+      const holeRMin = 5;
+      const holeRMax = 17;
+      /** Same for every glyph — outer ends of ticks align on one circle. */
+      const tickOuterR = 27.75;
+      /** Constant gap from the filled circle’s outer edge to where the tick begins (independent of hole size). */
+      const tickIndentFromHole = 2.5;
+
+      function holeRadiusForCount(count) {
+        const c = Math.max(1, count | 0);
+        const s1 = 1;
+        const sc = Math.sqrt(c);
+        const sn = Math.sqrt(Math.max(maxCatalog, 2));
+        const denom = sn - Math.sqrt(s1);
+        const t = denom > 1e-9 ? (sc - Math.sqrt(s1)) / denom : 0;
+        return holeRMin + (holeRMax - holeRMin) * Math.min(1, Math.max(0, t));
+      }
+
+      function drawTicks(gSel, n, opts) {
+        const { cx0, cy0, inner, outer, sw, stroke } = Object.assign(
+          {
+            cx0: cx,
+            cy0: cy,
+            inner: holeRMin + tickIndentFromHole,
+            outer: tickOuterR,
+            sw: tickStroke,
+            stroke: accent,
+          },
+          opts || {}
+        );
+        if (n <= 0) return;
+        const step = (2 * Math.PI) / n;
+        for (let i = 0; i < n; i++) {
+          const ang = -Math.PI / 2 + i * step;
+          const c = Math.cos(ang);
+          const s = Math.sin(ang);
+          gSel
+            .append("line")
+            .attr("x1", cx0 + inner * c)
+            .attr("y1", cy0 + inner * s)
+            .attr("x2", cx0 + outer * c)
+            .attr("y2", cy0 + outer * s)
+            .attr("stroke", stroke)
+            .attr("stroke-width", sw)
+            .attr("stroke-linecap", "round");
+        }
+      }
+
+      function buildLegend() {
+        const host = d3.select("#legend-host");
+        host.selectAll("*").remove();
+        const svg = host
+          .append("svg")
+          .attr("class", "legend-diagram-svg")
+          .attr("viewBox", "0 0 200 118");
+        const g1 = svg.append("g").attr("transform", "translate(52,56)");
+        const holeDemo = 13;
+        const inner1 = holeDemo + tickIndentFromHole;
+        const outer1 = tickOuterR;
+        const n1 = 6;
+        const step = (2 * Math.PI) / n1;
+        for (let i = 0; i < n1; i++) {
+          const ang = -Math.PI / 2 + i * step;
+          const c = Math.cos(ang);
+          const s = Math.sin(ang);
+          g1
+            .append("line")
+            .attr("x1", inner1 * c)
+            .attr("y1", inner1 * s)
+            .attr("x2", outer1 * c)
+            .attr("y2", outer1 * s)
+            .attr("stroke", accent)
+            .attr("stroke-width", 3.2)
+            .attr("stroke-linecap", "round");
+        }
+        g1.append("circle").attr("r", holeDemo).attr("fill", accent);
+        g1
+          .append("text")
+          .attr("text-anchor", "middle")
+          .attr("dominant-baseline", "middle")
+          .attr("fill", "#fff")
+          .attr("font-size", "10px")
+          .attr("font-weight", "700")
+          .text("42");
+
+        const g2 = svg.append("g").attr("transform", "translate(148,56)");
+        const inner2 = holeDemo + tickIndentFromHole;
+        const outer2 = tickOuterR;
+        const ang0 = -Math.PI / 2;
+        g2
+          .append("line")
+          .attr("x1", inner2 * Math.cos(ang0))
+          .attr("y1", inner2 * Math.sin(ang0))
+          .attr("x2", outer2 * Math.cos(ang0))
+          .attr("y2", outer2 * Math.sin(ang0))
+          .attr("stroke", grayTick)
+          .attr("stroke-width", 3.2)
+          .attr("stroke-linecap", "round");
+        g2.append("circle").attr("r", holeDemo).attr("fill", grayHole);
+        g2
+          .append("text")
+          .attr("text-anchor", "middle")
+          .attr("dominant-baseline", "middle")
+          .attr("fill", "#e8e8e8")
+          .attr("font-size", "10px")
+          .attr("font-weight", "700")
+          .text("42");
+
+        svg
+          .append("text")
+          .attr("x", 52)
+          .attr("y", 108)
+          .attr("text-anchor", "middle")
+          .attr("fill", "#9aa0a6")
+          .attr("font-size", "10px")
+          .text("Top-rated");
+        svg
+          .append("text")
+          .attr("x", 148)
+          .attr("y", 108)
+          .attr("text-anchor", "middle")
+          .attr("fill", "#9aa0a6")
+          .attr("font-size", "10px")
+          .text("Not top-rated");
+      }
+      buildLegend();
+
+      function rosterTooltip(d) {
+        const total =
+          d.artistCountOnLabel != null && d.artistCountOnLabel !== undefined
+            ? d.artistCountOnLabel
+            : d.artists.length;
+        const pool = d.artists || [];
+        const head = `Artists on label in NUAM: ${total}\nHigh-listener pool on label: ${pool.length}\n`;
+        if (!pool.length) return head.trimEnd();
+        return head + pool.map((a) => a.name || "(unnamed)").join("\n");
+      }
+
+      function sortLabels(mode, labels) {
+        const copy = labels.slice();
+        if (mode === "roster-desc")
+          copy.sort(
+            (a, b) =>
+              (b.artistCountOnLabel | 0) - (a.artistCountOnLabel | 0) || a.name.localeCompare(b.name)
+          );
+        else if (mode === "roster-asc")
+          copy.sort(
+            (a, b) =>
+              (a.artistCountOnLabel | 0) - (b.artistCountOnLabel | 0) || a.name.localeCompare(b.name)
+          );
+        else if (mode === "hits-desc")
+          copy.sort((a, b) => b.artists.length - a.artists.length || a.name.localeCompare(b.name));
+        else if (mode === "hits-asc")
+          copy.sort((a, b) => a.artists.length - b.artists.length || a.name.localeCompare(b.name));
+        else copy.sort((a, b) => a.name.localeCompare(b.name));
+        return copy;
+      }
+
+      const grid = d3.select("#grid");
+      let mode = "roster-desc";
+      const GRID_VISIBLE_MAX = 60;
+
+      function centerFontSize(total) {
+        if (total >= 10000) return "5.5px";
+        if (total >= 1000) return "6.5px";
+        if (total >= 100) return "7.5px";
+        return "8.5px";
+      }
+
+      function draw() {
+        const sorted = sortLabels(mode, data.labels);
+        const toShow = sorted.slice(0, GRID_VISIBLE_MAX);
+        const rest = sorted.length - toShow.length;
+
+        if (rest > 0) {
+          gridFooterEl.textContent = `${rest.toLocaleString()} more label${rest === 1 ? "" : "s"} match this sort but are not drawn above (grid shows ${GRID_VISIBLE_MAX} tiles).`;
+        } else {
+          gridFooterEl.textContent = `All ${sorted.length.toLocaleString()} labels in the export appear above.`;
+        }
+
+        grid.selectAll("div.card").remove();
+        const cards = grid
+          .selectAll("div.card")
+          .data(toShow)
+          .join("div")
+          .attr("class", "card");
+
+        cards.each(function (d) {
+          const el = d3.select(this);
+          const svg = el.append("svg").attr("width", W).attr("height", H);
+          svg.append("title").text(rosterTooltip(d));
+          const g = svg.append("g");
+          const nTicks = d.artists.length;
+          const total =
+            d.artistCountOnLabel != null && d.artistCountOnLabel !== undefined
+              ? d.artistCountOnLabel | 0
+              : d.artists.length;
+          const rated =
+            typeof d.topRated === "boolean" ? d.topRated : d.artists.length >= minA;
+          const holeR = holeRadiusForCount(total);
+          const tInner = holeR + tickIndentFromHole;
+          const strokeCol = rated ? accent : grayTick;
+          const fillCol = rated ? accent : grayHole;
+          drawTicks(g, nTicks, { inner: tInner, outer: tickOuterR, stroke: strokeCol });
+          g.append("circle").attr("cx", cx).attr("cy", cy).attr("r", holeR).attr("fill", fillCol);
+
+          g.append("text")
+            .attr("x", cx)
+            .attr("y", cy)
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
+            .attr("fill", rated ? "#fff" : "#ececec")
+            .attr("font-size", centerFontSize(total))
+            .attr("font-weight", "700")
+            .text(String(total));
+        });
+
+        cards
+          .append("div")
+          .attr("class", "name")
+          .text((d) => d.name);
+      }
+
+      d3.select("#sort").on("change", (e) => {
+        mode = e.target.value;
+        draw();
+      });
+
+      draw();
+    })();
+  </script>
+</body>
+</html>

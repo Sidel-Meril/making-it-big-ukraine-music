@@ -1,0 +1,45 @@
+---
+description: "Visual styling standards for all charts"
+globs: "*.py"
+alwaysApply: true
+---
+
+# Visual Design Rules
+
+## TITLES
+
+- MUST be insight-driven
+- Format: [Main insight] + (context)
+
+## SUBTITLE
+
+- MUST include time range and metric description
+
+## AXES
+
+- MUST include units
+- MUST avoid abbreviations unless standard
+
+## COLORS
+
+- Use max 3 colors:
+  - 1 highlight
+  - 1–2 secondary
+  - rest neutral
+
+- MUST be colorblind-safe
+
+## GRIDLINES
+
+- OPTIONAL
+- MUST be light and non-dominant
+
+## LEGEND
+
+- AVOID if direct labeling possible
+
+## LAYOUT
+
+- MUST be clean
+- MUST avoid clutter
+- MUST prioritize data over decoration
