@@ -86,55 +86,55 @@
       font-size: 0.8rem;
       color: var(--muted);
     }
-    .empty-hint { color: var(--muted); font-size: 0.85rem; padding: 1rem; text-align: center; }
-    /* Strange-deal pack: match genres_popularity pack layout, ticks, and label typography */
-    .pack-host {
+    body .empty-hint { color: var(--muted); font-size: 0.85rem; padding: 1rem; text-align: center; }
+    /* Strange-deal pack: prefixed with `body` so the merge script can scope to .nuam-ch-sd */
+    body .pack-host {
       max-width: min(72rem, 100%);
       margin: 0 auto;
       padding: 0;
       min-height: 200px;
     }
-    .chart-host--intrinsic-pack .pack-host {
+    body .chart-host--intrinsic-pack .pack-host {
       max-width: none;
       min-height: 0;
       margin: 0;
     }
-    .pack-host svg {
+    body .pack-host svg {
       display: block;
       width: 100%;
       height: auto;
       vertical-align: top;
     }
-    .chart-host--intrinsic-pack .pack-host svg {
+    body .chart-host--intrinsic-pack .pack-host svg {
       width: 100%;
       max-width: 100%;
       height: auto;
       display: block;
     }
-    .pack-host circle.pack-boundary {
+    body .pack-host circle.pack-boundary {
       fill: none;
       stroke: #666;
       stroke-width: 1.5px;
     }
-    .pack-host circle.genre-bubble {
+    body .pack-host circle.genre-bubble {
       stroke: var(--bubble-stroke);
       stroke-width: 1.5px;
     }
-    .pack-host line.genre-tick-outline {
+    body .pack-host line.genre-tick-outline {
       stroke: #0a0a0a;
       stroke-width: 4.25px;
       stroke-linecap: round;
       pointer-events: none;
       opacity: 0.92;
     }
-    .pack-host line.genre-tick {
+    body .pack-host line.genre-tick {
       stroke: #d0d4dc;
       stroke-width: 2.5px;
       stroke-linecap: round;
       pointer-events: none;
       opacity: 0.95;
     }
-    .pack-host text.genre-label {
+    body .pack-host text.genre-label {
       fill: #ddd;
       font-weight: 600;
       font-size: 26px;
@@ -144,13 +144,13 @@
       stroke: #0a0a0a;
       stroke-width: 0.7px;
     }
-    .pack-host text.genre-label.genre-label--inside {
+    body .pack-host text.genre-label.genre-label--inside {
       fill: #000000;
       font-size: 30px;
       stroke: rgba(255, 255, 255, 0.88);
       stroke-width: 0.55px;
     }
-    .pack-empty {
+    body .pack-empty {
       padding: 1.5rem;
       text-align: center;
       color: var(--muted);
@@ -222,7 +222,7 @@
       const LABEL_MIN = meta.labelMinPeakListeners;
 
       document.getElementById("subtitle").textContent =
-        `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} artists on recognized labels; ${meta.strangeArtistCount.toLocaleString()} never topped ${STRANGE.toLocaleString()} monthly listeners — the “strange deal” group.`;
+        `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} artists were signed to recognized labels — yet ${meta.strangeArtistCount.toLocaleString()} never exceeded ${STRANGE.toLocaleString()} monthly listeners, making up the “strange deal” group`;
 
       document.getElementById("hist-lead").textContent =
         `One artist per row. Peak = their best month ever. The orange band marks artists still under ${STRANGE.toLocaleString()} listeners at the time of signing.`;

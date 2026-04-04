@@ -66,7 +66,11 @@ def scope_css(css: str, scope: str, pfx: str, ids: list[str]) -> str:
         css,
         flags=re.MULTILINE,
     )
+    # 'body {' alone → component root class
     css = re.sub(r"^\s*body\s*\{", f"{scope} {{", css, flags=re.MULTILINE)
+    # 'body .selector' used as a descendant prefix → 'scope .selector'
+    # (source files use `body .pack-host` etc. so they also work standalone)
+    css = re.sub(r"(?m)^(\s*)body\s+(?!\{)", rf"\1{scope} ", css)
     for i in sorted(ids, key=len, reverse=True):
         css = re.sub(rf"#{re.escape(i)}\b", f"#{pfx}-{i}", css)
     return css

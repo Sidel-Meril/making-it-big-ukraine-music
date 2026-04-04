@@ -181,6 +181,22 @@
     }
     .money-tip strong { color: var(--accent); }
     .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
+    .pin-badge {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.6rem;
+      background: rgba(109,40,217,0.18);
+      border: 1px solid rgba(139,92,246,0.45);
+      border-radius: 6px;
+      font-size: 11px;
+      color: #C4B5FD;
+      margin-bottom: 0.45rem;
+      cursor: pointer;
+      user-select: none;
+      width: fit-content;
+    }
+    .pin-badge:hover { background: rgba(109,40,217,0.32); }
   </style>
 </head>
 <body>
@@ -208,6 +224,10 @@
         <div class="slider-axis" id="listen-axis" aria-hidden="true"></div>
         <p class="note" id="lines-filter-note" style="margin-top:0.35rem;margin-bottom:0"></p>
         <span id="listen-val-labels" style="display:none" aria-live="polite"></span>
+      </div>
+      <div id="pin-badge" class="pin-badge" role="button" tabindex="0" aria-label="Pinned line — click to unpin">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="#A78BFA" aria-hidden="true"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h6v6h2v-6h6v-2l-2-2z"/></svg>
+        <span id="pin-name"></span><span style="color:#6b7280;margin-left:3px">— click to unpin</span>
       </div>
       <div class="chart-host"><svg id="lines-svg" role="img" aria-labelledby="lines-title"></svg></div>
       <p class="note" id="lines-note"></p>
@@ -492,6 +512,31 @@
 
   const tip = d3.select("#money-tip");
   let activeId = null;
+  let pinnedId = null;
+
+  const pinBadge   = document.getElementById("pin-badge");
+  const pinNameEl  = document.getElementById("pin-name");
+
+  function updatePinBadge(vis) {
+    if (pinnedId == null) {
+      pinBadge.style.display = "none";
+      return;
+    }
+    const s = (vis || []).find((d) => d.id === pinnedId)
+              || seriesAll.find((d) => d.id === pinnedId);
+    pinNameEl.textContent = s ? s.name : String(pinnedId);
+    pinBadge.style.display = "flex";
+  }
+
+  pinBadge.addEventListener("click", () => {
+    pinnedId = null;
+    updatePinBadge([]);
+    const { draw } = computeDraw(false);
+    redrawLinesWithVis(draw);
+  });
+  pinBadge.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") pinBadge.click();
+  });
 
   function clampListenerSliders() {
     let lo = +listenMinEl.value;
@@ -548,6 +593,9 @@
     gx.call(d3.axisBottom(x2).ticks(d3.timeMonth.every(2)).tickFormat(d3.timeFormat("%b %y")));
     gy.call(d3.axisLeft(y2).ticks(6).tickFormat((v) => (v >= 1e6 ? `${v / 1e6}M` : v >= 1e3 ? `${v / 1e3}k` : v)));
 
+    /* effective highlight = hover first, then pin fallback */
+    const hId = activeId != null ? activeId : pinnedId;
+
     const pth = pathsG.selectAll("path.artist-line").data(vis, (d) => d.id);
     pth.exit().remove();
     pth
@@ -559,13 +607,38 @@
       .merge(pth)
       .attr("stroke", (d) => color(String(d.id)))
       .attr("d", (d) => lineGen(d.points))
-      .style("opacity", (d) => (activeId == null ? 0.25 : d.id === activeId ? 1 : 0.07))
-      .style("stroke-width", (d) => (d.id === activeId ? 3.8 : 1.5));
+      .style("opacity", (d) => {
+        if (hId == null)          return 0.25;
+        if (d.id === hId)         return 1;
+        if (d.id === pinnedId)    return 0.55;  /* pinned but not focused */
+        return 0.07;
+      })
+      .style("stroke-width", (d) => {
+        if (d.id === hId)         return 3.8;
+        if (d.id === pinnedId)    return 2.2;
+        return 1.5;
+      });
+
+    updatePinBadge(vis);
   }
 
   function redrawLines() {
     const { draw } = computeDraw(true);
     redrawLinesWithVis(draw);
+  }
+
+  /* shared helper: find the closest line to pointer (mx, my) at time tM */
+  function findClosestLine(vis, mx, my, tM) {
+    let best = null, bestD = 1e18;
+    for (const s of vis) {
+      const pt = valueAtMonth(s.points, tM);
+      if (!pt) continue;
+      const px = x2(new Date(pt.month + "T12:00:00"));
+      const py = y2(pt.usd);
+      const dd = (px - mx) ** 2 + (py - my) ** 2;
+      if (dd < bestD && dd < 900) { bestD = dd; best = { s, pt, px, py }; }
+    }
+    return best;
   }
 
   const overlay = g2
@@ -576,52 +649,65 @@
     .style("cursor", "crosshair")
     .on("mousemove", function (event) {
       const { draw: vis } = computeDraw(false);
-      if (!vis.length) {
-        tip.style("display", "none");
-        return;
-      }
+      if (!vis.length) { tip.style("display", "none"); return; }
+
       const [mx, my] = d3.pointer(event, this);
       const t0 = x2.invert(mx).getTime();
       const mi = bisectMonth(monthDates, t0);
-      const pick = monthDates[Math.max(0, Math.min(monthDates.length - 1, mi))];
-      const tM = pick.getTime();
-
-      let best = null;
-      let bestD = 1e18;
-      for (const s of vis) {
-        const pt = valueAtMonth(s.points, tM);
-        if (!pt) continue;
-        const px = x2(new Date(pt.month + "T12:00:00"));
-        const py = y2(pt.usd);
-        const dd = (px - mx) ** 2 + (py - my) ** 2;
-        if (dd < bestD && dd < 900) {
-          bestD = dd;
-          best = { s, pt, px, py };
-        }
-      }
+      const tM = monthDates[Math.max(0, Math.min(monthDates.length - 1, mi))].getTime();
+      const best = findClosestLine(vis, mx, my, tM);
 
       if (!best) {
         activeId = null;
         tip.style("display", "none");
+        overlay.style("cursor", pinnedId ? "default" : "crosshair");
         redrawLinesWithVis(vis);
         return;
       }
 
       activeId = best.s.id;
+      overlay.style("cursor", "pointer");
       redrawLinesWithVis(vis);
 
       const mo = d3.timeFormat("%b %Y")(new Date(best.pt.month + "T12:00:00"));
+      const pinHint = pinnedId === best.s.id ? " 📌" : "";
       tip
         .style("display", "block")
         .html(
-          `<strong>${best.s.name}</strong><br/>${mo}<br/>${fmtUsd2.format(best.pt.usd)} <span style="color:#888">est. / month</span>`
+          `<strong>${best.s.name}${pinHint}</strong><br/>${mo}<br/>${fmtUsd2.format(best.pt.usd)} <span style="color:#888">est. / month</span>`
+          + (pinnedId !== best.s.id ? `<br/><span style="color:#6b7280;font-size:10px">click to pin</span>` : `<br/><span style="color:#6b7280;font-size:10px">click to unpin</span>`)
         );
       tip.style("left", event.clientX + 14 + "px").style("top", event.clientY + 14 + "px");
     })
     .on("mouseleave", () => {
       activeId = null;
       tip.style("display", "none");
-      redrawLines();
+      overlay.style("cursor", "crosshair");
+      /* preserve pinnedId — only clear the transient hover highlight */
+      const { draw } = computeDraw(false);
+      redrawLinesWithVis(draw);
+    })
+    .on("click", function (event) {
+      const { draw: vis } = computeDraw(false);
+      if (!vis.length) return;
+
+      const [mx, my] = d3.pointer(event, this);
+      const t0 = x2.invert(mx).getTime();
+      const mi = bisectMonth(monthDates, t0);
+      const tM = monthDates[Math.max(0, Math.min(monthDates.length - 1, mi))].getTime();
+      const best = findClosestLine(vis, mx, my, tM);
+
+      if (!best) {
+        /* click on empty area → unpin */
+        pinnedId = null;
+      } else if (pinnedId === best.s.id) {
+        /* click pinned line → unpin */
+        pinnedId = null;
+      } else {
+        /* pin this line */
+        pinnedId = best.s.id;
+      }
+      redrawLinesWithVis(vis);
     });
 
   /* ── proximity-based z-index so the correct thumb is always on top ── */
@@ -646,6 +732,15 @@
   function onSliderInput() {
     activeId = null;
     tip.style("display", "none");
+    /* clear pin only if the pinned artist falls outside the new band */
+    if (pinnedId != null) {
+      const lo = +listenMinEl.value;
+      const hi = +listenMaxEl.value;
+      const stillVisible = seriesAll.some(
+        (s) => s.id === pinnedId && s.peakListeners >= lo && s.peakListeners <= hi
+      );
+      if (!stillVisible) pinnedId = null;
+    }
     redrawLines();
   }
   listenMinEl.addEventListener("input", onSliderInput);

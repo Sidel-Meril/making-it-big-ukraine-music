@@ -41,6 +41,7 @@
       border: 1px solid #2a2a2a;
       border-radius: 8px;
       background: #181818;
+      overflow: visible;
     }
     .filter-panel h2 {
       margin: 0 0 0.35rem;
@@ -171,19 +172,15 @@
     }
     svg { display: block; margin: 0 auto; }
     .pack-host {
-      max-width: min(72rem, 100%);
+      max-width: min(108rem, 100%);
       margin: 0 auto;
       padding: 0;
       min-height: 200px;
-      /* Cap height so slider + chart share one screen */
-      max-height: calc(100vh - 22rem);
-      overflow: hidden;
     }
     .pack-host svg {
       display: block;
       width: 100%;
-      height: 100%;
-      max-height: calc(100vh - 22rem);
+      height: auto;
       vertical-align: top;
     }
     .pack-host circle.pack-boundary {
@@ -326,8 +323,8 @@
       document.getElementById("legend-lead").innerHTML =
         "<strong>Quick read.</strong> Sliders choose <em>who</em> appears. <strong>Size</strong> = the metric above. <strong>Color</strong> = listeners per artist (violet = few, yellow = many). Big genres label inside; small ones sit on the ring. Hover a bubble for detail.";
 
-      const W = 1760;
-      const H = 1760;
+      const W = 1520;
+      const H = 1520;
       const outerPad = 200;
       const innerSize = W - 2 * outerPad;
       /** Pixels beyond pack boundary circle (`root.r`) where tick tips land. */
@@ -718,11 +715,19 @@
         lpaTrackActive.style.width = `${widthPct}%`;
 
         // Move handle markers to current slider positions
+        // Clamp transform at edges so labels never overflow the axis bounds
+        function placeMarker(el, pct) {
+          const EDGE = 4;
+          el.style.left = `${pct.toFixed(1)}%`;
+          if (pct <= EDGE) el.style.transform = "translateX(0)";
+          else if (pct >= 100 - EDGE) el.style.transform = "translateX(-100%)";
+          else el.style.transform = "translateX(-50%)";
+        }
         const loM = document.getElementById("lpa-marker-lo");
         const hiM = document.getElementById("lpa-marker-hi");
         if (loM && hiM) {
-          loM.style.left = `${(lo / SLIDER_MAX * 100).toFixed(1)}%`;
-          hiM.style.left = `${(hi / SLIDER_MAX * 100).toFixed(1)}%`;
+          placeMarker(loM, lo / SLIDER_MAX * 100);
+          placeMarker(hiM, hi / SLIDER_MAX * 100);
           loM.querySelector(".m-lbl").textContent = fmtLpa(vmin);
           hiM.querySelector(".m-lbl").textContent = fmtLpa(vmax);
         }

@@ -838,6 +838,7 @@
       border: 1px solid #2a2a2a;
       border-radius: 8px;
       background: #181818;
+      overflow: visible;
     }
     .filter-panel h2 {
       margin: 0 0 0.35rem;
@@ -968,19 +969,15 @@
     }
     svg { display: block; margin: 0 auto; }
     .pack-host {
-      max-width: min(72rem, 100%);
+      max-width: min(108rem, 100%);
       margin: 0 auto;
       padding: 0;
       min-height: 200px;
-      /* Cap height so slider + chart share one screen */
-      max-height: calc(100vh - 22rem);
-      overflow: hidden;
     }
     .pack-host svg {
       display: block;
       width: 100%;
-      height: 100%;
-      max-height: calc(100vh - 22rem);
+      height: auto;
       vertical-align: top;
     }
     .pack-host circle.pack-boundary {
@@ -1138,55 +1135,55 @@
       font-size: 0.8rem;
       color: var(--muted);
     }
-    .empty-hint { color: var(--muted); font-size: 0.85rem; padding: 1rem; text-align: center; }
-    /* Strange-deal pack: match genres_popularity pack layout, ticks, and label typography */
-    .pack-host {
+    .nuam-ch-sd .empty-hint { color: var(--muted); font-size: 0.85rem; padding: 1rem; text-align: center; }
+    /* Strange-deal pack: prefixed with `body` so the merge script can scope to .nuam-ch-sd */
+    .nuam-ch-sd .pack-host {
       max-width: min(72rem, 100%);
       margin: 0 auto;
       padding: 0;
       min-height: 200px;
     }
-    .chart-host--intrinsic-pack .pack-host {
+    .nuam-ch-sd .chart-host--intrinsic-pack .pack-host {
       max-width: none;
       min-height: 0;
       margin: 0;
     }
-    .pack-host svg {
+    .nuam-ch-sd .pack-host svg {
       display: block;
       width: 100%;
       height: auto;
       vertical-align: top;
     }
-    .chart-host--intrinsic-pack .pack-host svg {
+    .nuam-ch-sd .chart-host--intrinsic-pack .pack-host svg {
       width: 100%;
       max-width: 100%;
       height: auto;
       display: block;
     }
-    .pack-host circle.pack-boundary {
+    .nuam-ch-sd .pack-host circle.pack-boundary {
       fill: none;
       stroke: #666;
       stroke-width: 1.5px;
     }
-    .pack-host circle.genre-bubble {
+    .nuam-ch-sd .pack-host circle.genre-bubble {
       stroke: var(--bubble-stroke);
       stroke-width: 1.5px;
     }
-    .pack-host line.genre-tick-outline {
+    .nuam-ch-sd .pack-host line.genre-tick-outline {
       stroke: #0a0a0a;
       stroke-width: 4.25px;
       stroke-linecap: round;
       pointer-events: none;
       opacity: 0.92;
     }
-    .pack-host line.genre-tick {
+    .nuam-ch-sd .pack-host line.genre-tick {
       stroke: #d0d4dc;
       stroke-width: 2.5px;
       stroke-linecap: round;
       pointer-events: none;
       opacity: 0.95;
     }
-    .pack-host text.genre-label {
+    .nuam-ch-sd .pack-host text.genre-label {
       fill: #ddd;
       font-weight: 600;
       font-size: 26px;
@@ -1196,13 +1193,13 @@
       stroke: #0a0a0a;
       stroke-width: 0.7px;
     }
-    .pack-host text.genre-label.genre-label--inside {
+    .nuam-ch-sd .pack-host text.genre-label.genre-label--inside {
       fill: #000000;
       font-size: 30px;
       stroke: rgba(255, 255, 255, 0.88);
       stroke-width: 0.55px;
     }
-    .pack-empty {
+    .nuam-ch-sd .pack-empty {
       padding: 1.5rem;
       text-align: center;
       color: var(--muted);
@@ -1401,6 +1398,22 @@
     }
     .money-tip strong { color: var(--accent); }
     .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
+    .pin-badge {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.6rem;
+      background: rgba(109,40,217,0.18);
+      border: 1px solid rgba(139,92,246,0.45);
+      border-radius: 6px;
+      font-size: 11px;
+      color: #C4B5FD;
+      margin-bottom: 0.45rem;
+      cursor: pointer;
+      user-select: none;
+      width: fit-content;
+    }
+    .pin-badge:hover { background: rgba(109,40,217,0.32); }
 
   </style>
   <script src="../uk_listeners_growth/chart-data.js"></script>
@@ -1434,7 +1447,7 @@
       <div class="chart-frame"><div class="chart-frame-inner">
         <div class="nuam-ch nuam-ch-uklg" id="nuam-b-uklg">
 <header>
-    <h1 id="uklg-title-main">NUAM roster: summed Spotify listeners by month</h1>
+    <h1 id="uklg-title-main">Ukrainian artists on Spotify — how the audience grew</h1>
     <p class="subtitle" id="uklg-subtitle"></p>
   </header>
   <div class="legend-wrap" id="uklg-legend-block">
@@ -2006,9 +2019,11 @@
   const maxLog      = +(raw.maxLog    || 1);
   const minLog      = +(raw.minLog    || 0);
 
+  const _snapDate = new Date(month.slice(0, 7) + "-01");
+  const _snapLabel = _snapDate.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
   document.getElementById("ld-chart-subtitle").textContent =
-    `${totalArtists.toLocaleString()} artists · ${month.slice(0, 7)} snapshot. ` +
-    `The curve drops off sharply — most acts sit in the leftmost bars. X-axis labels show real counts.`;
+    `${totalArtists.toLocaleString()} artists · ${_snapLabel} snapshot. ` +
+    `The curve drops off sharply \u2014 most acts sit in the leftmost bars.`;
   document.getElementById("ld-chart-note").textContent =
     "Log scale keeps quiet acts and chart-toppers visible in one view. " +
     "Drag to shift the highlight band and see where any top-N% cutoff lands in actual listener count.";
@@ -2803,8 +2818,8 @@
           svg
             .append("polygon")
             .attr("points", legendRayPolygonPoints(ang, ringR, baseHalf, tipLen))
-            .attr("fill", "#4d6d8a")
-            .attr("stroke", "#6a8aad")
+            .attr("fill", "#6D28D9")
+            .attr("stroke", "#8B5CF6")
             .attr("stroke-width", 0.4)
             .attr("opacity", 0.92);
 
@@ -3229,8 +3244,8 @@
       document.getElementById("gp-legend-lead").innerHTML =
         "<strong>Quick read.</strong> Sliders choose <em>who</em> appears. <strong>Size</strong> = the metric above. <strong>Color</strong> = listeners per artist (violet = few, yellow = many). Big genres label inside; small ones sit on the ring. Hover a bubble for detail.";
 
-      const W = 1760;
-      const H = 1760;
+      const W = 1520;
+      const H = 1520;
       const outerPad = 200;
       const innerSize = W - 2 * outerPad;
       /** Pixels beyond pack boundary circle (`root.r`) where tick tips land. */
@@ -3621,11 +3636,19 @@
         lpaTrackActive.style.width = `${widthPct}%`;
 
         // Move handle markers to current slider positions
+        // Clamp transform at edges so labels never overflow the axis bounds
+        function placeMarker(el, pct) {
+          const EDGE = 4;
+          el.style.left = `${pct.toFixed(1)}%`;
+          if (pct <= EDGE) el.style.transform = "translateX(0)";
+          else if (pct >= 100 - EDGE) el.style.transform = "translateX(-100%)";
+          else el.style.transform = "translateX(-50%)";
+        }
         const loM = document.getElementById("lpa-marker-lo");
         const hiM = document.getElementById("lpa-marker-hi");
         if (loM && hiM) {
-          loM.style.left = `${(lo / SLIDER_MAX * 100).toFixed(1)}%`;
-          hiM.style.left = `${(hi / SLIDER_MAX * 100).toFixed(1)}%`;
+          placeMarker(loM, lo / SLIDER_MAX * 100);
+          placeMarker(hiM, hi / SLIDER_MAX * 100);
           loM.querySelector(".m-lbl").textContent = fmtLpa(vmin);
           hiM.querySelector(".m-lbl").textContent = fmtLpa(vmax);
         }
@@ -3725,7 +3748,7 @@
       const LABEL_MIN = meta.labelMinPeakListeners;
 
       document.getElementById("sd-subtitle").textContent =
-        `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} artists on recognized labels; ${meta.strangeArtistCount.toLocaleString()} never topped ${STRANGE.toLocaleString()} monthly listeners — the “strange deal” group.`;
+        `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} artists were signed to recognized labels — yet ${meta.strangeArtistCount.toLocaleString()} never exceeded ${STRANGE.toLocaleString()} monthly listeners, making up the “strange deal” group`;
 
       document.getElementById("sd-hist-lead").textContent =
         `One artist per row. Peak = their best month ever. The orange band marks artists still under ${STRANGE.toLocaleString()} listeners at the time of signing.`;
@@ -4281,6 +4304,10 @@
         <p class="note" id="ma-lines-filter-note" style="margin-top:0.35rem;margin-bottom:0"></p>
         <span id="ma-listen-val-labels" style="display:none" aria-live="polite"></span>
       </div>
+      <div id="ma-pin-badge" class="pin-badge" role="button" tabindex="0" aria-label="Pinned line — click to unpin">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="#A78BFA" aria-hidden="true"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h6v6h2v-6h6v-2l-2-2z"/></svg>
+        <span id="ma-pin-name"></span><span style="color:#6b7280;margin-left:3px">— click to unpin</span>
+      </div>
       <div class="chart-host"><svg id="ma-lines-svg" role="img" aria-labelledby="ma-lines-title"></svg></div>
       <p class="note" id="ma-lines-note"></p>
     </div>
@@ -4561,6 +4588,31 @@
 
   const tip = d3.select("#ma-money-tip");
   let activeId = null;
+  let pinnedId = null;
+
+  const pinBadge   = document.getElementById("ma-pin-badge");
+  const pinNameEl  = document.getElementById("ma-pin-name");
+
+  function updatePinBadge(vis) {
+    if (pinnedId == null) {
+      pinBadge.style.display = "none";
+      return;
+    }
+    const s = (vis || []).find((d) => d.id === pinnedId)
+              || seriesAll.find((d) => d.id === pinnedId);
+    pinNameEl.textContent = s ? s.name : String(pinnedId);
+    pinBadge.style.display = "flex";
+  }
+
+  pinBadge.addEventListener("click", () => {
+    pinnedId = null;
+    updatePinBadge([]);
+    const { draw } = computeDraw(false);
+    redrawLinesWithVis(draw);
+  });
+  pinBadge.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") pinBadge.click();
+  });
 
   function clampListenerSliders() {
     let lo = +listenMinEl.value;
@@ -4617,6 +4669,9 @@
     gx.call(d3.axisBottom(x2).ticks(d3.timeMonth.every(2)).tickFormat(d3.timeFormat("%b %y")));
     gy.call(d3.axisLeft(y2).ticks(6).tickFormat((v) => (v >= 1e6 ? `${v / 1e6}M` : v >= 1e3 ? `${v / 1e3}k` : v)));
 
+    /* effective highlight = hover first, then pin fallback */
+    const hId = activeId != null ? activeId : pinnedId;
+
     const pth = pathsG.selectAll("path.artist-line").data(vis, (d) => d.id);
     pth.exit().remove();
     pth
@@ -4628,13 +4683,38 @@
       .merge(pth)
       .attr("stroke", (d) => color(String(d.id)))
       .attr("d", (d) => lineGen(d.points))
-      .style("opacity", (d) => (activeId == null ? 0.25 : d.id === activeId ? 1 : 0.07))
-      .style("stroke-width", (d) => (d.id === activeId ? 3.8 : 1.5));
+      .style("opacity", (d) => {
+        if (hId == null)          return 0.25;
+        if (d.id === hId)         return 1;
+        if (d.id === pinnedId)    return 0.55;  /* pinned but not focused */
+        return 0.07;
+      })
+      .style("stroke-width", (d) => {
+        if (d.id === hId)         return 3.8;
+        if (d.id === pinnedId)    return 2.2;
+        return 1.5;
+      });
+
+    updatePinBadge(vis);
   }
 
   function redrawLines() {
     const { draw } = computeDraw(true);
     redrawLinesWithVis(draw);
+  }
+
+  /* shared helper: find the closest line to pointer (mx, my) at time tM */
+  function findClosestLine(vis, mx, my, tM) {
+    let best = null, bestD = 1e18;
+    for (const s of vis) {
+      const pt = valueAtMonth(s.points, tM);
+      if (!pt) continue;
+      const px = x2(new Date(pt.month + "T12:00:00"));
+      const py = y2(pt.usd);
+      const dd = (px - mx) ** 2 + (py - my) ** 2;
+      if (dd < bestD && dd < 900) { bestD = dd; best = { s, pt, px, py }; }
+    }
+    return best;
   }
 
   const overlay = g2
@@ -4645,52 +4725,65 @@
     .style("cursor", "crosshair")
     .on("mousemove", function (event) {
       const { draw: vis } = computeDraw(false);
-      if (!vis.length) {
-        tip.style("display", "none");
-        return;
-      }
+      if (!vis.length) { tip.style("display", "none"); return; }
+
       const [mx, my] = d3.pointer(event, this);
       const t0 = x2.invert(mx).getTime();
       const mi = bisectMonth(monthDates, t0);
-      const pick = monthDates[Math.max(0, Math.min(monthDates.length - 1, mi))];
-      const tM = pick.getTime();
-
-      let best = null;
-      let bestD = 1e18;
-      for (const s of vis) {
-        const pt = valueAtMonth(s.points, tM);
-        if (!pt) continue;
-        const px = x2(new Date(pt.month + "T12:00:00"));
-        const py = y2(pt.usd);
-        const dd = (px - mx) ** 2 + (py - my) ** 2;
-        if (dd < bestD && dd < 900) {
-          bestD = dd;
-          best = { s, pt, px, py };
-        }
-      }
+      const tM = monthDates[Math.max(0, Math.min(monthDates.length - 1, mi))].getTime();
+      const best = findClosestLine(vis, mx, my, tM);
 
       if (!best) {
         activeId = null;
         tip.style("display", "none");
+        overlay.style("cursor", pinnedId ? "default" : "crosshair");
         redrawLinesWithVis(vis);
         return;
       }
 
       activeId = best.s.id;
+      overlay.style("cursor", "pointer");
       redrawLinesWithVis(vis);
 
       const mo = d3.timeFormat("%b %Y")(new Date(best.pt.month + "T12:00:00"));
+      const pinHint = pinnedId === best.s.id ? " 📌" : "";
       tip
         .style("display", "block")
         .html(
-          `<strong>${best.s.name}</strong><br/>${mo}<br/>${fmtUsd2.format(best.pt.usd)} <span style="color:#888">est. / month</span>`
+          `<strong>${best.s.name}${pinHint}</strong><br/>${mo}<br/>${fmtUsd2.format(best.pt.usd)} <span style="color:#888">est. / month</span>`
+          + (pinnedId !== best.s.id ? `<br/><span style="color:#6b7280;font-size:10px">click to pin</span>` : `<br/><span style="color:#6b7280;font-size:10px">click to unpin</span>`)
         );
       tip.style("left", event.clientX + 14 + "px").style("top", event.clientY + 14 + "px");
     })
     .on("mouseleave", () => {
       activeId = null;
       tip.style("display", "none");
-      redrawLines();
+      overlay.style("cursor", "crosshair");
+      /* preserve pinnedId — only clear the transient hover highlight */
+      const { draw } = computeDraw(false);
+      redrawLinesWithVis(draw);
+    })
+    .on("click", function (event) {
+      const { draw: vis } = computeDraw(false);
+      if (!vis.length) return;
+
+      const [mx, my] = d3.pointer(event, this);
+      const t0 = x2.invert(mx).getTime();
+      const mi = bisectMonth(monthDates, t0);
+      const tM = monthDates[Math.max(0, Math.min(monthDates.length - 1, mi))].getTime();
+      const best = findClosestLine(vis, mx, my, tM);
+
+      if (!best) {
+        /* click on empty area → unpin */
+        pinnedId = null;
+      } else if (pinnedId === best.s.id) {
+        /* click pinned line → unpin */
+        pinnedId = null;
+      } else {
+        /* pin this line */
+        pinnedId = best.s.id;
+      }
+      redrawLinesWithVis(vis);
     });
 
   /* ── proximity-based z-index so the correct thumb is always on top ── */
@@ -4715,6 +4808,15 @@
   function onSliderInput() {
     activeId = null;
     tip.style("display", "none");
+    /* clear pin only if the pinned artist falls outside the new band */
+    if (pinnedId != null) {
+      const lo = +listenMinEl.value;
+      const hi = +listenMaxEl.value;
+      const stillVisible = seriesAll.some(
+        (s) => s.id === pinnedId && s.peakListeners >= lo && s.peakListeners <= hi
+      );
+      if (!stillVisible) pinnedId = null;
+    }
     redrawLines();
   }
   listenMinEl.addEventListener("input", onSliderInput);
