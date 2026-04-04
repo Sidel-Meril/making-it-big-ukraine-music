@@ -10,8 +10,8 @@
       --text: #f0f0f0;
       --muted: #9aa0a6;
       /* Colorblind-safe accent, distinct from milestone chart blue (--on #0072b2) */
-      --accent: #009e73;
-      --accent-dim: #3d6b5c;
+      --accent: #DC2626;
+      --accent-dim: #7F1D1D;
       --hole-off: #2e2e2e;
       --gray-tick: #8a8a8a;
       --gray-hole: #4d4d4d;
@@ -36,7 +36,6 @@
     .subtitle {
       color: var(--muted);
       font-size: 0.9rem;
-      max-width: 44rem;
     }
     .controls {
       display: flex;
@@ -67,7 +66,6 @@
       font-size: 0.84rem;
       color: #c4c4c4;
       margin: 0 0 0.65rem;
-      max-width: 48rem;
       line-height: 1.45;
     }
     .legend-diagram-host {
@@ -118,7 +116,7 @@
 </head>
 <body>
   <header>
-    <h1>NUAM labels in a grid: bigger dot = more artists; green = “top-rated” by NUAM’s rule</h1>
+    <h1>Labels on the NUAM roster — bigger circle, more artists signed</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
@@ -135,7 +133,7 @@
 
   <div class="legend-wrap">
     <p class="legend-lead">
-      <strong>Quick read.</strong> The number in the middle is how many artists NUAM ties to that label; the dot grows with that count. Each spoke is one artist who also clears NUAM’s “big listener” bar. <strong>Green</strong> = top-rated label; <strong>gray</strong> = not.
+      <strong>Quick read.</strong> The number in the center is how many artists are signed to that label. Each spoke is a standout artist with high monthly listeners. <strong>Red</strong> = top-rated label; <strong>gray</strong> = the rest.
     </p>
     <div class="legend-diagram-host" id="legend-host"></div>
   </div>
@@ -154,7 +152,7 @@
       const data = window.__NUAM_LABEL_ROSTER_DATA__;
       const gridFooterEl = document.getElementById("grid-footer");
       const accent =
-        getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#009e73";
+        getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#DC2626";
       const grayTick =
         getComputedStyle(document.documentElement).getPropertyValue("--gray-tick").trim() || "#8a8a8a";
       const grayHole =
@@ -184,7 +182,7 @@
           ? ` “Big listener” = ≥${Number(thr).toLocaleString()} monthly listeners that month.`
           : "";
       document.getElementById("subtitle").textContent =
-        `Snapshot ${ref}.${thrNote} ${nLabels.toLocaleString()} labels in the file; ${nTopRated.toLocaleString()} count as top-rated (≥${minA} pool artists). Gray tiles are not top-rated.`;
+        `Snapshot ${ref}. ${nLabels.toLocaleString()} labels · red = top-rated by NUAM, gray = the rest.`;
 
       /** Center hole scales with catalog size. Tick tips sit on a fixed outer ring; tick roots sit a fixed gap past the circle edge. */
       const W = 78;

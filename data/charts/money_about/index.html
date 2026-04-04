@@ -10,10 +10,10 @@
       --text: #e8e8e8;
       --muted: #9aa0a6;
       --rule: #2a2a2a;
-      --accent: #7eb8ff;
-      --on: #0072b2;
-      --warn: rgba(220, 80, 80, 0.25);
-      --bar: #5a8fc9;
+      --accent: #A78BFA;
+      --on: #6D28D9;
+      --warn: rgba(251,191,36,0.15);
+      --bar: #8B5CF6;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
     * { box-sizing: border-box; }
@@ -33,7 +33,7 @@
       margin: 0 0 0.35rem;
       letter-spacing: -0.02em;
     }
-    .block .subtitle { color: var(--muted); font-size: 0.88rem; max-width: 44rem; margin: 0 0 0.75rem; }
+    .block .subtitle { color: var(--muted); font-size: 0.88rem; margin: 0 0 0.75rem; }
     .chart-host {
       border: 1px solid var(--rule);
       border-radius: 8px;
@@ -45,7 +45,7 @@
     .axis line, .axis path { stroke: #444; }
     .grid line { stroke: #2a2a2a; }
     .filter-panel {
-      max-width: 36rem;
+      max-width: 100%;
       margin: 0 0 0.75rem;
       padding: 0.85rem 1rem;
       border: 1px solid #2a2a2a;
@@ -70,7 +70,6 @@
       position: relative;
       height: 36px;
       margin: 0.65rem 0 0.15rem;
-      max-width: 36rem;
     }
     .listener-track-bg {
       position: absolute;
@@ -136,6 +135,37 @@
     .listener-dual #listen-min {
       z-index: 1;
     }
+    /* ── slider axis ── */
+    .slider-axis {
+      position: relative;
+      height: 28px;
+      margin-top: 2px;
+    }
+    .slider-tick {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateX(-50%);
+    }
+    .slider-tick .t-bar { width: 2px; height: 5px; background: #FBBF24; border-radius: 1px; }
+    .slider-tick .t-lbl { font-size: 10px; color: #A16207; white-space: nowrap; line-height: 1.4; }
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      transition: left 0.04s linear;
+    }
+    .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
+    .slider-marker .m-lbl {
+      font-size: 10px; font-weight: 700; color: #FDE68A;
+      background: rgba(120,77,0,0.55);
+      padding: 0 5px; border-radius: 3px;
+      white-space: nowrap; line-height: 1.6;
+    }
     .money-tip {
       position: fixed;
       pointer-events: none;
@@ -150,7 +180,7 @@
       max-width: 280px;
     }
     .money-tip strong { color: var(--accent); }
-    .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; max-width: 48rem; }
+    .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
   </style>
 </head>
 <body>
@@ -167,18 +197,19 @@
       <div class="filter-panel" id="listener-filter-panel">
         <h2>Peak monthly listeners</h2>
         <p class="filter-readout" style="margin-top:0">
-          <strong>Peak</strong> = that artist’s best month in the file. The blue strip is what you’re viewing; widen it to bring more lines back.
+          <strong>Peak</strong> = artist’s best month. The highlighted strip is what you’re seeing — widen it to bring more lines back.
         </p>
         <div class="listener-dual" id="listener-dual-wrap">
           <div class="listener-track-bg" aria-hidden="true"></div>
           <div class="listener-track-active" id="listener-track-active" aria-hidden="true"></div>
           <input type="range" id="listen-min" min="0" max="100" value="0" step="1" aria-label="Lower end of peak listener band shown" />
-          <input type="range" id="listen-max" min="0" max="100" value="100" step="1" aria-label="Upper end of peak listener band shown" />
+          <input type="range" id="listen-max" min="0" max="100" value="10000" step="1" aria-label="Upper end of peak listener band shown" />
         </div>
-        <p class="filter-readout"><span id="listen-val-labels">Min: — · Max: —</span></p>
+        <div class="slider-axis" id="listen-axis" aria-hidden="true"></div>
+        <p class="note" id="lines-filter-note" style="margin-top:0.35rem;margin-bottom:0"></p>
+        <span id="listen-val-labels" style="display:none" aria-live="polite"></span>
       </div>
-      <p class="note" id="lines-filter-note" style="margin-top:0;margin-bottom:0.5rem"></p>
-      <div class="chart-host" style="position:relative"><svg id="lines-svg" role="img" aria-labelledby="lines-title"></svg></div>
+      <div class="chart-host"><svg id="lines-svg" role="img" aria-labelledby="lines-title"></svg></div>
       <p class="note" id="lines-note"></p>
     </div>
   </div>
@@ -207,10 +238,10 @@
   const nArt = hist.artistCount || 0;
 
   document.getElementById("hist-subtitle").textContent =
-    `X: estimated lifetime payout per artist (USD, log scale). Y: how many artists. ${nArt.toLocaleString()} artists. Shaded = under $${hist.thresholdUsd || 300}.`;
+    `${nArt.toLocaleString()} artists. X = estimated lifetime payout (USD). Most earn very little — the shaded area is below $${hist.thresholdUsd || 300}.`;
 
   document.getElementById("hist-note").textContent =
-    `${pct.toFixed(1)}% sit under $${hist.thresholdUsd || 300} with this rough model (${meta.subtitleMetric || ""}). Not unique listeners; not Spotify’s real checks.`;
+    `${pct.toFixed(1)}% of artists sit below $${hist.thresholdUsd || 300} in estimated lifetime earnings. Numbers are rough — real payouts vary by deal.`;
 
   const W1 = 880;
   const H1 = 340;
@@ -232,7 +263,9 @@
     .attr("width", Math.max(0, x1(tLog) - x1(0)))
     .attr("y", 0)
     .attr("height", i1h)
-    .attr("fill", "var(--warn)");
+    .attr("fill", "var(--warn)")
+    .attr("stroke", "rgba(251,191,36,0.45)")
+    .attr("stroke-width", 1);
 
   g1.selectAll("rect.bar")
     .data(bars)
@@ -268,7 +301,7 @@
     .attr("y", i1h + 40)
     .attr("text-anchor", "middle")
     .style("font-size", "11px")
-    .text("Estimated lifetime payout per artist (USD; log scale; ticks = dollars)");
+    .text("Estimated lifetime earnings per artist (USD)");
 
   g1.append("text")
     .attr("fill", "#9aa0a6")
@@ -302,9 +335,16 @@
   const listenTrackActive = document.getElementById("listener-track-active");
   const listenerDualWrap = document.getElementById("listener-dual-wrap");
   const filterNoteEl = document.getElementById("lines-filter-note");
+  let _loMarker = null, _hiMarker = null;
 
   function fmtListen(x) {
     return Math.round(x).toLocaleString();
+  }
+
+  function fmtListenShort(x) {
+    if (x >= 1e6) return `${+(x / 1e6).toPrecision(2)}M`;
+    if (x >= 1e3) return `${+(x / 1e3).toPrecision(2)}k`;
+    return `${Math.round(x)}`;
   }
 
   function syncListenerTrack(lo, hi) {
@@ -317,18 +357,58 @@
     else if (widthPct === 0) widthPct = 0.6;
     listenTrackActive.style.left = `${leftPct}%`;
     listenTrackActive.style.width = `${widthPct}%`;
+
+    if (_loMarker && _hiMarker) {
+      _loMarker.style.left = `${leftPct.toFixed(1)}%`;
+      _hiMarker.style.left = `${(leftPct + widthPct).toFixed(1)}%`;
+      _loMarker.querySelector(".m-lbl").textContent = fmtListenShort(lo);
+      _hiMarker.querySelector(".m-lbl").textContent = fmtListenShort(hi);
+    }
+  }
+
+  function buildListenAxis() {
+    const axEl = document.getElementById("listen-axis");
+    if (!axEl || dataMin >= dataMax) return;
+    axEl.innerHTML = "";
+
+    const span = dataMax - dataMin;
+
+    function addTick(pct, lbl, edge) {
+      const div = document.createElement("div");
+      div.className = "slider-tick";
+      div.style.left = `${pct.toFixed(1)}%`;
+      if (edge === "start") div.style.transform = "translateX(0)";
+      else if (edge === "end") div.style.transform = "translateX(-100%)";
+      div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
+      axEl.appendChild(div);
+    }
+
+    addTick(0, fmtListenShort(dataMin), "start");
+    addTick(100, fmtListenShort(dataMax), "end");
+
+    // evenly-spaced linear ticks (4 interior steps at 20%, 40%, 60%, 80%)
+    const N_TICKS = 4;
+    for (let i = 1; i <= N_TICKS; i++) {
+      const val = dataMin + span * (i / (N_TICKS + 1));
+      const pct = (val - dataMin) / span * 100;
+      addTick(pct, fmtListenShort(val), null);
+    }
+
+    _loMarker = document.createElement("div");
+    _loMarker.className = "slider-marker";
+    _loMarker.innerHTML = `<div class="m-bar"></div><div class="m-lbl">—</div>`;
+    axEl.appendChild(_loMarker);
+
+    _hiMarker = document.createElement("div");
+    _hiMarker.className = "slider-marker";
+    _hiMarker.innerHTML = `<div class="m-bar"></div><div class="m-lbl">—</div>`;
+    axEl.appendChild(_hiMarker);
   }
 
   function initPeakSliders() {
-    const span0 = Math.max(dataMax - dataMin, 0);
-    const step =
-      span0 > 2_000_000
-        ? Math.ceil(span0 / 400)
-        : span0 > 200_000
-          ? Math.max(1, Math.ceil(span0 / 400))
-          : span0 > 20_000
-            ? Math.max(1, Math.ceil(span0 / 400))
-            : 1;
+    // Step of 1 000 lets 10 000 be exactly reachable (10 steps)
+    const step = 1000;
+    const DEFAULT_INIT_MAX = 10000;
 
     if (dataMin === dataMax) {
       listenMinEl.min = listenMaxEl.min = String(dataMin);
@@ -338,10 +418,10 @@
       listenMaxEl.value = String(dataMin);
     } else {
       listenMinEl.min = listenMaxEl.min = String(dataMin);
-      listenMinEl.max = listenMaxEl.max = String(dataMax);
+      listenMinEl.max = listenMaxEl.max = String(dataMax);   // full range preserved
       listenMinEl.step = listenMaxEl.step = String(step);
-      listenMinEl.value = String(dataMin);
-      listenMaxEl.value = String(dataMax);
+      listenMinEl.value = String(dataMin);                    // min starts at 0
+      listenMaxEl.value = String(Math.min(dataMax, DEFAULT_INIT_MAX)); // max starts at 10 000
     }
     listenerDualWrap.style.opacity = "1";
     listenMinEl.disabled = false;
@@ -349,14 +429,15 @@
   }
 
   initPeakSliders();
+  buildListenAxis();
 
   const nExported = seriesAll.length;
   const nMeta = lm.artistSeriesCount != null ? +lm.artistSeriesCount : nExported;
   document.getElementById("lines-subtitle").textContent =
-    `Rough monthly USD from ${lm.startMonth || "2025-01"}; ${nMeta.toLocaleString()} artist series in the file. Drag the handles to pick a peak band, then hover a line.`;
+    `Estimated monthly earnings from ${lm.startMonth || "2025-01"}; ${nMeta.toLocaleString()} artists. Drag the handles to pick a listener band, then hover a line.`;
 
   document.getElementById("lines-note").textContent =
-    "Heavy bands only draw the top earners (speed limit). Hover picks the nearest month and line. Peak = max monthly listeners for that artist in NUAM.";
+    "When many artists match, only the top earners are drawn. Hover to identify a line.";
 
   const monthDates = monthStrs.map((s) => new Date(s + "T12:00:00"));
   const bisectMonth = d3.bisector((d) => d.getTime()).center;
@@ -383,7 +464,11 @@
     .y((d) => y2(d.usd))
     .curve(d3.curveMonotoneX);
 
-  const color = d3.scaleOrdinal(d3.schemeTableau10);
+  const color = d3.scaleOrdinal([
+    "#8B5CF6","#FBBF24","#A78BFA","#FDE047",
+    "#6D28D9","#FDE68A","#C084FC","#FCD34D",
+    "#7C3AED","#F59E0B"
+  ]);
   const pathsG = g2.append("g").attr("class", "paths");
   const gx = g2.append("g").attr("class", "axis").attr("transform", `translate(0,${i2h})`);
   const gy = g2.append("g").attr("class", "axis");
@@ -412,13 +497,14 @@
     let lo = +listenMinEl.value;
     let hi = +listenMaxEl.value;
     if (lo > hi) {
-      listenMaxEl.value = String(lo);
-      hi = lo;
-    }
-    if (hi < lo) {
+      // pull min down to hi — keep max in place
       listenMinEl.value = String(hi);
       lo = hi;
     }
+    // dynamic z-index: give min higher priority when thumbs nearly overlap
+    // so the user can always pull min leftward away from max
+    const step = +(listenMinEl.step) || 1;
+    listenMinEl.style.zIndex = lo >= hi - step * 2 ? 3 : 1;
   }
 
   /** @returns {{ draw: typeof seriesAll, inBandCount: number, capped: boolean }} */
@@ -473,8 +559,8 @@
       .merge(pth)
       .attr("stroke", (d) => color(String(d.id)))
       .attr("d", (d) => lineGen(d.points))
-      .style("opacity", (d) => (activeId == null || d.id === activeId ? 1 : 0.12))
-      .style("stroke-width", (d) => (d.id === activeId ? 3.2 : 2));
+      .style("opacity", (d) => (activeId == null ? 0.25 : d.id === activeId ? 1 : 0.07))
+      .style("stroke-width", (d) => (d.id === activeId ? 3.8 : 1.5));
   }
 
   function redrawLines() {
@@ -537,6 +623,25 @@
       tip.style("display", "none");
       redrawLines();
     });
+
+  /* ── proximity-based z-index so the correct thumb is always on top ── */
+  listenerDualWrap.addEventListener("mousemove", function (e) {
+    const rect = listenerDualWrap.getBoundingClientRect();
+    const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const span = Math.max(dataMax - dataMin, 1);
+    const pLo  = (+listenMinEl.value - dataMin) / span;
+    const pHi  = (+listenMaxEl.value - dataMin) / span;
+    listenMinEl.style.zIndex = Math.abs(pct - pLo) <= Math.abs(pct - pHi) ? 3 : 1;
+  });
+  listenerDualWrap.addEventListener("touchmove", function (e) {
+    const touch = e.touches[0];
+    const rect  = listenerDualWrap.getBoundingClientRect();
+    const pct   = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+    const span  = Math.max(dataMax - dataMin, 1);
+    const pLo   = (+listenMinEl.value - dataMin) / span;
+    const pHi   = (+listenMaxEl.value - dataMin) / span;
+    listenMinEl.style.zIndex = Math.abs(pct - pLo) <= Math.abs(pct - pHi) ? 3 : 1;
+  }, { passive: true });
 
   function onSliderInput() {
     activeId = null;

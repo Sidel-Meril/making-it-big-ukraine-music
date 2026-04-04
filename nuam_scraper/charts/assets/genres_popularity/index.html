@@ -9,12 +9,12 @@
       --bg: #121212;
       --text: #f0f0f0;
       --muted: #9aa0a6;
-      --on: #0072b2;
+      --on: #6D28D9;
       --bubble-stroke: #1a1a1a;
-      /* Bubble fill scale: log(LPA) → blue→yellow→green; slider track uses --on like milestone chart */
-      --lpa-color-low: #0a8fe8;
-      --lpa-color-mid: #e6c229;
-      --lpa-color-high: #00d978;
+      /* Bubble fill scale: log(LPA) → violet→red→yellow */
+      --lpa-color-low: #5B21B6;
+      --lpa-color-mid: #DC2626;
+      --lpa-color-high: #FBBF24;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     * { box-sizing: border-box; }
@@ -33,7 +33,7 @@
       margin: 0 0 0.35rem;
       letter-spacing: -0.02em;
     }
-    .subtitle { color: var(--muted); font-size: 0.9rem; max-width: 42rem; }
+    .subtitle { color: var(--muted); font-size: 0.9rem; }
     .filter-panel {
       max-width: 72rem;
       margin: 0 auto 1rem;
@@ -60,7 +60,6 @@
       position: relative;
       height: 36px;
       margin: 0.65rem 0 0.15rem;
-      max-width: 36rem;
     }
     .listener-track-bg {
       position: absolute;
@@ -122,6 +121,40 @@
     }
     .listener-dual #lpa-max { z-index: 2; }
     .listener-dual #lpa-min { z-index: 1; }
+    /* ── slider axis row ── */
+    .slider-axis {
+      position: relative;
+      width: 100%;
+      height: 36px;
+      margin-top: 3px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .slider-tick {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .slider-tick .t-bar { width: 1px; height: 5px; background: #FBBF24; }
+    .slider-tick .t-lbl { font-size: 9px; color: #A16207; white-space: nowrap; margin-top: 1px; }
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      transition: left 0.04s linear;
+    }
+    .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
+    .slider-marker .m-lbl {
+      font-size: 10px; font-weight: 700; color: #FDE68A;
+      background: rgba(120,77,0,0.55);
+      padding: 0 5px; border-radius: 3px;
+      white-space: nowrap; line-height: 1.6;
+    }
     .legend-wrap {
       max-width: 72rem;
       margin: 0 auto 1.5rem;
@@ -134,7 +167,6 @@
       font-size: 0.84rem;
       color: #c4c4c4;
       margin: 0 0 0.65rem;
-      max-width: 48rem;
       line-height: 1.45;
     }
     svg { display: block; margin: 0 auto; }
@@ -143,11 +175,15 @@
       margin: 0 auto;
       padding: 0;
       min-height: 200px;
+      /* Cap height so slider + chart share one screen */
+      max-height: calc(100vh - 22rem);
+      overflow: hidden;
     }
     .pack-host svg {
       display: block;
       width: 100%;
-      height: auto;
+      height: 100%;
+      max-height: calc(100vh - 22rem);
       vertical-align: top;
     }
     .pack-host circle.pack-boundary {
@@ -232,9 +268,9 @@
   </header>
 
   <div class="filter-panel" id="lpa-filter-panel">
-    <h2>Listeners per artist (log band)</h2>
+    <h2>Listeners per artist</h2>
     <p class="filter-readout" style="margin-top:0">
-      Sliders pick which genres show up. Bubble <strong>size</strong> still follows <span id="metric-name"></span>. The band is <strong>log</strong>-scaled so tiny and huge acts are both reachable.
+      Sliders pick which genres appear. Bubble <strong>size</strong> still follows <span id="metric-name"></span>. Both small and huge acts are reachable.
     </p>
     <div class="listener-dual" id="lpa-dual-wrap">
       <div class="listener-track-bg" aria-hidden="true"></div>
@@ -242,8 +278,7 @@
       <input type="range" id="lpa-min" min="0" max="1000" value="0" step="1" aria-label="Lower end of listeners-per-artist band" />
       <input type="range" id="lpa-max" min="0" max="1000" value="1000" step="1" aria-label="Upper end of listeners-per-artist band" />
     </div>
-    <p class="filter-readout"><span id="lpa-val-labels">Min: — · Max: —</span></p>
-    <p class="filter-readout" id="lpa-summary"></p>
+    <div class="slider-axis" id="lpa-axis" aria-hidden="true"></div>
   </div>
 
   <div class="legend-wrap">
@@ -251,8 +286,8 @@
     <div class="color-ramp-wrap" id="color-ramp-block">
       <div class="color-ramp-bar" aria-hidden="true"></div>
       <div class="color-ramp-labels">
-        <span id="ramp-low">Low in this file</span>
-        <span id="ramp-high">High in this file</span>
+        <span id="ramp-low">Fewer listeners per artist</span>
+        <span id="ramp-high">More listeners per artist</span>
       </div>
     </div>
   </div>
@@ -286,14 +321,14 @@
       document.getElementById("metric-name").textContent = metricLabel;
 
       document.getElementById("subtitle").textContent =
-        `${(meta.genreCount != null ? meta.genreCount : raw.genres.length).toLocaleString()} genres; bubble area = ${metricLabel}. Band = listeners per artist (monthly listeners summed on tagged rows ÷ those rows).`;
+        `${(meta.genreCount != null ? meta.genreCount : raw.genres.length).toLocaleString()} genres · bubble size = ${metricLabel}.`;
 
       document.getElementById("legend-lead").innerHTML =
-        "<strong>Quick read.</strong> Sliders choose <em>who</em> appears. <strong>Size</strong> = the metric above. <strong>Color</strong> = listeners per artist vs. the whole file (log scale, blue→yellow→green). Big genres label inside; small ones sit on the ring. Hover a bubble for detail.";
+        "<strong>Quick read.</strong> Sliders choose <em>who</em> appears. <strong>Size</strong> = the metric above. <strong>Color</strong> = listeners per artist (violet = few, yellow = many). Big genres label inside; small ones sit on the ring. Hover a bubble for detail.";
 
-      const W = 1380;
-      const H = 1380;
-      const outerPad = 270;
+      const W = 1520;
+      const H = 1520;
+      const outerPad = 200;
       const innerSize = W - 2 * outerPad;
       /** Pixels beyond pack boundary circle (`root.r`) where tick tips land. */
       const RING_OUTSET = 108;
@@ -333,8 +368,6 @@
       const lpaMaxEl = document.getElementById("lpa-max");
       const lpaTrackActive = document.getElementById("lpa-track-active");
       const lpaDualWrap = document.getElementById("lpa-dual-wrap");
-      const lpaValLabels = document.getElementById("lpa-val-labels");
-      const lpaSummary = document.getElementById("lpa-summary");
 
       let logMin = 0;
       let logMax = 1;
@@ -352,6 +385,54 @@
         logMin = Math.log10(Math.max(linearMin, 1));
         logMax = Math.log10(linearMax);
         if (logMax <= logMin) logMax = logMin + 1e-6;
+
+        // Build HTML tick axis + handle-value markers below the slider
+        (function buildLpaAxis() {
+          const axEl = document.getElementById("lpa-axis");
+          if (!axEl || linearMin <= 0 || linearMax <= linearMin) return;
+
+          const fmtAx = v => v >= 1e6 ? `${+(v/1e6).toPrecision(2)}M`
+                           : v >= 1e3 ? `${+(v/1e3).toPrecision(2)}k`
+                           : `${Math.round(v)}`;
+
+          function addTick(pct, lbl, edge) {
+            const div = document.createElement("div");
+            div.className = "slider-tick";
+            div.style.left = `${pct.toFixed(1)}%`;
+            if (edge === "start") div.style.transform = "translateX(0)";
+            else if (edge === "end") div.style.transform = "translateX(-100%)";
+            div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
+            axEl.appendChild(div);
+          }
+
+          // Always show the slider limits (left and right endpoints)
+          addTick(0, fmtAx(linearMin), "start");
+          addTick(100, fmtAx(linearMax), "end");
+
+          // Intermediate ticks: one per decade + ×3 mid-decade
+          const MIN_GAP_PCT = 8;
+          const expLo = Math.ceil(Math.log10(linearMin));
+          const expHi = Math.floor(Math.log10(linearMax));
+          for (let e = expLo; e <= expHi; e++) {
+            for (const mult of [1, 3]) {
+              if (mult === 3 && e >= expHi) continue;
+              const val = mult * Math.pow(10, e);
+              if (val <= linearMin || val >= linearMax) continue;
+              const pct = (Math.log10(val) - logMin) / (logMax - logMin) * 100;
+              if (pct < MIN_GAP_PCT || pct > 100 - MIN_GAP_PCT) continue;
+              addTick(pct, fmtAx(val), null);
+            }
+          }
+
+          // Two markers that follow each handle (updated by syncLpaSliders)
+          for (const id of ["lo", "hi"]) {
+            const m = document.createElement("div");
+            m.id = `lpa-marker-${id}`;
+            m.className = "slider-marker";
+            m.innerHTML = `<div class="m-bar"></div><div class="m-lbl">—</div>`;
+            axEl.appendChild(m);
+          }
+        })();
       }
 
       function tToLpa(t) {
@@ -366,11 +447,11 @@
       }
 
       const COLOR_LOW =
-        getComputedStyle(document.documentElement).getPropertyValue("--lpa-color-low").trim() || "#0a8fe8";
+        getComputedStyle(root).getPropertyValue("--lpa-color-low").trim() || "#5B21B6";
       const COLOR_MID =
-        getComputedStyle(document.documentElement).getPropertyValue("--lpa-color-mid").trim() || "#e6c229";
+        getComputedStyle(root).getPropertyValue("--lpa-color-mid").trim() || "#DC2626";
       const COLOR_HIGH =
-        getComputedStyle(document.documentElement).getPropertyValue("--lpa-color-high").trim() || "#00d978";
+        getComputedStyle(root).getPropertyValue("--lpa-color-high").trim() || "#FBBF24";
       const _lpaAll = allRows.map((r) => r.lpa).filter((v) => v != null && Number.isFinite(v));
       let globalLpaFill = () => "#656565";
       if (_lpaAll.length) {
@@ -429,13 +510,13 @@
         const lines = [o.name];
         if (o.topArtistNames && o.topArtistNames.length) {
           const ranked = o.topArtistNames.map((n, i) => `${i + 1}. ${n}`).join("\n");
-          lines.push(`Top acts here (by monthly listeners in file):\n${ranked}`);
+          lines.push(`Top artists here:\n${ranked}`);
         }
         lines.push(
           `${metricLabel} (bubble size): ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
-          `Color = listeners per artist vs. full file (log; blue→yellow→green)`,
+          `Color = listeners per artist vs. full file (log; violet→red→yellow)`,
           `Listeners per artist: ${o.lpa != null ? o.lpa.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "—"}`,
-          `Rows (artist–genre): ${o.artistCount.toLocaleString()}`,
+          
           `Monthly listeners summed: ${Math.round(o.listenersSum).toLocaleString()}`
         );
         return lines.join("\n");
@@ -446,7 +527,7 @@
         let s = `${o.name}. ${metricLabel} (size) ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}.`;
         if (o.topArtistNames && o.topArtistNames.length) {
           const tail = o.topArtistNames.map((n, i) => `${i + 1}) ${n}`).join("; ");
-          s += ` Top ${o.topArtistNames.length} in file: ${tail}.`;
+          s += ` Top ${o.topArtistNames.length}: ${tail}.`;
         }
         return s;
       }
@@ -456,7 +537,7 @@
         emptyEl.style.display = "none";
 
         if (children.length === 0) {
-          emptyEl.textContent = "Nothing in this band — widen the blue span on the sliders.";
+          emptyEl.textContent = "Nothing here — widen the slider range to show more genres.";
           emptyEl.style.display = "block";
           return;
         }
@@ -608,8 +689,6 @@
 
       function syncLpaSliders() {
         if (lpas.length === 0) {
-          lpaValLabels.textContent = "Listeners per artist are not available in this export.";
-          lpaSummary.textContent = "";
           lpaTrackActive.style.width = "100%";
           lpaTrackActive.style.left = "0%";
           drawPack(allRows);
@@ -628,7 +707,6 @@
         }
 
         const { vmin, vmax } = getBandLpas();
-        lpaValLabels.textContent = `Minimum ${fmtLpa(vmin)} · maximum ${fmtLpa(vmax)} listeners per artist row`;
 
         const span = logMax - logMin;
         const p0 = (Math.log10(Math.max(vmin, Math.pow(10, logMin))) - logMin) / span;
@@ -639,8 +717,17 @@
         lpaTrackActive.style.left = `${leftPct}%`;
         lpaTrackActive.style.width = `${widthPct}%`;
 
+        // Move handle markers to current slider positions
+        const loM = document.getElementById("lpa-marker-lo");
+        const hiM = document.getElementById("lpa-marker-hi");
+        if (loM && hiM) {
+          loM.style.left = `${(lo / SLIDER_MAX * 100).toFixed(1)}%`;
+          hiM.style.left = `${(hi / SLIDER_MAX * 100).toFixed(1)}%`;
+          loM.querySelector(".m-lbl").textContent = fmtLpa(vmin);
+          hiM.querySelector(".m-lbl").textContent = fmtLpa(vmax);
+        }
+
         const filtered = filterRows(vmin, vmax);
-        lpaSummary.textContent = `${filtered.length.toLocaleString()} genre${filtered.length === 1 ? "" : "s"} here (${fmtLpa(vmin)}–${fmtLpa(vmax)}), of ${allRows.length.toLocaleString()} total.`;
         drawPack(filtered);
       }
 

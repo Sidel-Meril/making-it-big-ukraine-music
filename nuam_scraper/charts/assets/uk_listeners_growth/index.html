@@ -9,8 +9,8 @@
       --bg: #121212;
       --text: #f0f0f0;
       --muted: #9aa0a6;
-      --line-pre: #0072b2;
-      --line-2026: #2ecc71;
+      --line-pre: #8B5CF6;
+      --line-2026: #FDE047;
       --point: #f0f0f0;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
@@ -30,7 +30,7 @@
       margin: 0 0 0.35rem;
       letter-spacing: -0.02em;
     }
-    .subtitle { color: var(--muted); font-size: 0.9rem; max-width: 48rem; }
+    .subtitle { color: var(--muted); font-size: 0.9rem; }
     .legend-wrap {
       max-width: 72rem;
       margin: 0 auto 1rem;
@@ -440,7 +440,7 @@
 
       const deltaRows = pts
         .map((d, j) => ({ d, j }))
-        .filter(({ d }) => d.deltaPrev != null && Number.isFinite(d.deltaPrev));
+        .filter(({ d, j }) => d.deltaPrev != null && Number.isFinite(d.deltaPrev) && j < pts.length - 1);
 
       g.selectAll("text.delta-label")
         .data(deltaRows)
@@ -453,6 +453,63 @@
         .attr("y", ({ d }) => y(d.total) - 10)
         .style("opacity", 0)
         .text(({ d }) => fmtDelta(d.deltaPrev));
+
+      /* ── Latest-month KPI badge ── */
+      const kpiG = g.append("g").attr("class", "latest-kpi").style("opacity", 0);
+      if (lastPt && lastPt.deltaPrev != null && Number.isFinite(lastPt.deltaPrev)) {
+        const lx = x(lastPt.t);
+        const ly = y(lastPt.total);
+        const BW = 182, BH = 72;
+        /* anchor in the bottom-right corner — space under the rising curve */
+        const bx = iw - BW - 8;
+        const by = ih - BH - 16;
+
+        /* dark pill */
+        kpiG.append("rect")
+          .attr("x", bx).attr("y", by)
+          .attr("width", BW).attr("height", BH)
+          .attr("rx", 5).attr("fill", "rgba(10,8,22,0.85)")
+          .attr("stroke", "rgba(251,191,36,0.38)").attr("stroke-width", 1);
+        /* yellow left accent stripe */
+        kpiG.append("rect")
+          .attr("x", bx).attr("y", by + 9)
+          .attr("width", 3).attr("height", BH - 18)
+          .attr("rx", 1.5).attr("fill", "#FBBF24");
+        /* big metric number */
+        const sign = lastPt.deltaPrev >= 0 ? "+" : "\u2212";
+        const abs  = Math.abs(lastPt.deltaPrev);
+        const numStr = abs >= 1e6 ? `${sign}${(abs/1e6).toFixed(2)}M`
+                     : abs >= 1e3 ? `${sign}${(abs/1e3).toFixed(0)}k`
+                     : `${sign}${Math.round(abs).toLocaleString()}`;
+        kpiG.append("text")
+          .attr("x", bx + 15).attr("y", by + 27)
+          .attr("dominant-baseline", "middle")
+          .attr("fill", "#FBBF24")
+          .style("font-size", "20px").style("font-weight", "800")
+          .style("letter-spacing", "-0.5px").style("font-family", "inherit")
+          .text(numStr);
+        /* sub-label */
+        const fmt = d3.timeFormat("%b %Y");
+        kpiG.append("text")
+          .attr("x", bx + 15).attr("y", by + 45)
+          .attr("dominant-baseline", "middle")
+          .attr("fill", "#FDE68A")
+          .style("font-size", "9.5px").style("font-weight", "600")
+          .text(`${fmt(lastPt.t)} \u00b7 vs prior month`);
+        /* footnote with ≠ */
+        kpiG.append("text")
+          .attr("x", bx + 15).attr("y", by + 59)
+          .attr("dominant-baseline", "middle")
+          .attr("fill", "#666")
+          .style("font-size", "8.5px").style("font-style", "italic")
+          .text("listeners \u2260 listenings");
+        /* dashed connector to last dot */
+        kpiG.append("line")
+          .attr("x1", bx + BW * 0.75).attr("y1", by)
+          .attr("x2", lx).attr("y2", ly)
+          .attr("stroke", "#FBBF24").attr("stroke-width", 1)
+          .attr("stroke-dasharray", "3,3").attr("opacity", 0.5);
+      }
 
       function revealPositiveDeltasWithLine() {
         g.selectAll("text.delta-label--pos").each(function (row) {
@@ -473,6 +530,7 @@
           g.selectAll("circle.pt").style("opacity", 1);
           g.selectAll("text.delta-label").style("opacity", 1);
           callLayer.style("opacity", 1);
+          kpiG.style("opacity", 1);
           return;
         }
 
@@ -493,21 +551,30 @@
         t.then(() => {
           g.selectAll("circle.pt").transition().duration(380).ease(d3.easeCubicOut).style("opacity", 1);
           g.selectAll("text.delta-label--neg")
-            .transition()
-            .duration(420)
-            .delay(90)
-            .ease(d3.easeCubicOut)
-            .style("opacity", 1);
+            .transition().duration(420).delay(90).ease(d3.easeCubicOut).style("opacity", 1);
           callLayer
-            .transition()
-            .duration(520)
-            .delay(220)
-            .ease(d3.easeCubicOut)
+            .transition().duration(520).delay(220).ease(d3.easeCubicOut).style("opacity", 1);
+          /* KPI badge pops in last — after dots + callouts have settled */
+          kpiG
+            .transition().duration(500).delay(900).ease(d3.easeBackOut.overshoot(1.4))
             .style("opacity", 1);
         });
       }
 
-      requestAnimationFrame(runIntro);
+      // Fire animation when the chart scrolls into view (not on page load)
+      const _introTarget = svg.node();
+      if ("IntersectionObserver" in window) {
+        const _io = new IntersectionObserver((entries, obs) => {
+          if (entries[0].isIntersecting) {
+            obs.disconnect();
+            requestAnimationFrame(runIntro);
+          }
+        }, { threshold: 0.2 });
+        _io.observe(_introTarget);
+      } else {
+        // Fallback for very old browsers
+        requestAnimationFrame(runIntro);
+      }
 
       document.getElementById("footnote").textContent =
         "Summed from NUAM’s Spotify fields — not unique listeners. Axis is cropped (not from zero) so the trend is easier to see.";

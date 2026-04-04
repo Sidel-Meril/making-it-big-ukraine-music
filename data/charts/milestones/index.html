@@ -9,10 +9,10 @@
       --bg: #121212;
       --text: #f0f0f0;
       --muted: #9aa0a6;
-      --on: #0072b2;
+      --on: #6D28D9;
       --off-tracked: #4d4d4d;
       --off-untracked: #252525;
-      --accent-lang: #e69f00;
+      --accent-lang: #f59e0b;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     * { box-sizing: border-box; }
@@ -79,7 +79,6 @@
       position: relative;
       height: 36px;
       margin: 0.65rem 0 0.15rem;
-      max-width: 36rem;
     }
     .listener-track-bg {
       position: absolute;
@@ -145,6 +144,37 @@
     .listener-dual #listen-min {
       z-index: 1;
     }
+    /* ── slider axis row ── */
+    .slider-axis {
+      position: relative;
+      height: 28px;
+      margin-top: 2px;
+    }
+    .slider-tick {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateX(-50%);
+    }
+    .slider-tick .t-bar { width: 2px; height: 5px; background: #FBBF24; border-radius: 1px; }
+    .slider-tick .t-lbl { font-size: 10px; color: #A16207; white-space: nowrap; line-height: 1.4; }
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      transition: left 0.04s linear;
+    }
+    .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
+    .slider-marker .m-lbl {
+      font-size: 10px; font-weight: 700; color: #FDE68A;
+      background: rgba(120,77,0,0.55);
+      padding: 0 5px; border-radius: 3px;
+      white-space: nowrap; line-height: 1.6;
+    }
     .gold-note {
       margin-top: 0.65rem;
       padding-top: 0.65rem;
@@ -172,7 +202,7 @@
       background: #181818;
     }
     .legend-lead {
-      font-size: 0.84rem;
+      font-size: 0.72rem;
       color: #c4c4c4;
       margin: 0 0 0.65rem;
       max-width: 48rem;
@@ -230,7 +260,7 @@
 </head>
 <body>
   <header>
-    <h1>Five career signals per artist — NUAM’s “sun” glyph</h1>
+    <h1>Each artist as a little sun — five slices of their story</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
@@ -244,23 +274,6 @@
     </select>
   </div>
 
-  <div class="filter-panel" id="listener-filter-panel">
-    <h2>Peak monthly listeners</h2>
-    <p class="filter-readout" style="margin-top:0"><strong>Peak</strong> = their best month in the scrape. The blue strip is what you’re viewing; widen it to show more artists.</p>
-    <div class="listener-dual" id="listener-dual-wrap">
-      <div class="listener-track-bg" aria-hidden="true"></div>
-      <div class="listener-track-active" id="listener-track-active" aria-hidden="true"></div>
-      <input type="range" id="listen-min" min="0" max="100" value="0" step="1" aria-label="Lower end of peak listener band shown" />
-      <input type="range" id="listen-max" min="0" max="100" value="100" step="1" aria-label="Upper end of peak listener band shown" />
-    </div>
-    <p class="filter-readout"><span id="listen-val-labels">Min: — · Max: —</span></p>
-    <p class="filter-readout" id="listen-summary"></p>
-    <div class="gold-note">
-      <span class="gold-swatch" aria-hidden="true"></span>
-      <span><strong>Gold border:</strong> NUAM’s <code style="color:#ccc">RuLang</code> flag in the data — a catalog field, not our editorial call.</span>
-    </div>
-  </div>
-
   <div class="legend-wrap">
     <p class="legend-lead">
       <strong>Quick read.</strong> Inspired by <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#7eb8ff">The Pudding’s TikTok “flowers.”</a> Data: <a href="https://www.nuam.club/stat" style="color:#7eb8ff">NUAM</a>. From the top, clockwise: one wedge per milestone. Bright wedge = yes for that artist; the middle number counts how many of the five fired.
@@ -270,6 +283,25 @@
 
   <div id="grid"></div>
   <p id="grid-footer" class="grid-footer" aria-live="polite"></p>
+
+  <div class="filter-panel" id="listener-filter-panel">
+    <h2>Peak monthly listeners</h2>
+    <p class="filter-readout" style="margin-top:0"><strong>Peak</strong> = their best month in the scrape. The blue strip is what you’re viewing; widen it to show more artists.</p>
+    <div class="listener-dual" id="listener-dual-wrap">
+      <div class="listener-track-bg" aria-hidden="true"></div>
+      <div class="listener-track-active" id="listener-track-active" aria-hidden="true"></div>
+      <input type="range" id="listen-min" min="0" max="100" value="0" step="1" aria-label="Lower end of peak listener band shown" />
+      <input type="range" id="listen-max" min="0" max="100" value="100" step="1" aria-label="Upper end of peak listener band shown" />
+    </div>
+    <span id="listen-val-labels" style="display:none" aria-hidden="true">Min: — · Max: —</span>
+    <div class="slider-axis" id="listen-axis" aria-hidden="true"></div>
+    <p class="filter-readout" id="listen-summary"></p>
+    <div class="gold-note">
+      <span class="gold-swatch" aria-hidden="true"></span>
+      <span><strong>Gold border:</strong> NUAM’s <code style="color:#ccc">RuLang</code> flag in the data — a catalog field, not our editorial call.</span>
+    </div>
+  </div>
+
 
   <p class="note">
     Essay working title: <em>The Unlikely Odds of Making it Big on Ukraine</em>. Look: <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#6eb6ff">The Pudding — TikTok careers</a>.
@@ -306,10 +338,10 @@
           : "";
       const listenersRayNote =
         meta.spotifyListenersThreshold != null
-          ? ` The big-listener ray lights up at ≥${Number(meta.spotifyListenersThreshold).toLocaleString()} peak monthly listeners.`
+          ? ` One ray glows at ≥${Number(meta.spotifyListenersThreshold).toLocaleString()} peak listeners.`
           : "";
       document.getElementById("subtitle").textContent =
-        `NUAM catalog, ref. ${ref}. Peak = each artist’s best month in the scrape.${exportFloor} Each tile: five wedges + center count of hits.${listenersRayNote} Grid shows the first 30 for your band and sort.`;
+        `NUAM roster, ${ref}. Every slice lights up when an artist hits that milestone — the number in the middle shows how many they’ve reached.${exportFloor}${listenersRayNote} Showing top 30 for your current sort.`;
 
       function legendRayPolygonPoints(ang, ringR, baseHalf, tipLen) {
         const rx = Math.cos(ang);
@@ -470,7 +502,7 @@
 
       function petalFill(on) {
         return on
-          ? (getComputedStyle(document.documentElement).getPropertyValue("--on").trim() || "#0072b2")
+          ? (getComputedStyle(document.documentElement).getPropertyValue("--on").trim() || "#6D28D9")
           : (getComputedStyle(document.documentElement).getPropertyValue("--off-tracked").trim() || "#4d4d4d");
       }
 
@@ -518,6 +550,12 @@
         return Math.round(x).toLocaleString();
       }
 
+      function fmtListenShort(x) {
+        if (x >= 1e6) return `${+(x / 1e6).toPrecision(2)}M`;
+        if (x >= 1e3) return `${+(x / 1e3).toPrecision(2)}k`;
+        return `${Math.round(x)}`;
+      }
+
       function syncListenerSliders() {
         if (!numericListeners.length) {
           listenValLabels.textContent = "Peak listeners are missing from this export.";
@@ -557,6 +595,15 @@
         listenTrackActive.style.left = `${leftPct}%`;
         listenTrackActive.style.width = `${widthPct}%`;
 
+        const loM = document.getElementById("listen-marker-lo");
+        const hiM = document.getElementById("listen-marker-hi");
+        if (loM && hiM) {
+          loM.style.left = `${leftPct.toFixed(1)}%`;
+          hiM.style.left = `${(leftPct + widthPct).toFixed(1)}%`;
+          loM.querySelector(".m-lbl").textContent = fmtListenShort(lo);
+          hiM.querySelector(".m-lbl").textContent = fmtListenShort(hi);
+        }
+
         const filtered = data.artists.filter((a) => {
           const v = a.listenersMax;
           if (v == null || !Number.isFinite(v)) return false;
@@ -586,10 +633,49 @@
           listenMinEl.min = listenMaxEl.min = String(dataMin);
           listenMinEl.max = listenMaxEl.max = String(dataMax);
           listenMinEl.step = listenMaxEl.step = String(step);
-          listenMinEl.value = String(dataMin);
-          listenMaxEl.value = String(dataMax);
+          listenMinEl.value = String(Math.max(dataMin, 237480));
+          listenMaxEl.value = String(Math.min(dataMax, 1845544));
         }
         syncListenerSliders();
+        buildListenAxis();
+      }
+
+      function buildListenAxis() {
+        const axEl = document.getElementById("listen-axis");
+        if (!axEl || !numericListeners.length || dataMin >= dataMax) return;
+        axEl.innerHTML = "";
+
+        const span = dataMax - dataMin;
+
+        function addTick(pct, lbl, edge) {
+          const div = document.createElement("div");
+          div.className = "slider-tick";
+          div.style.left = `${pct.toFixed(1)}%`;
+          if (edge === "start") div.style.transform = "translateX(0)";
+          else if (edge === "end") div.style.transform = "translateX(-100%)";
+          div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
+          axEl.appendChild(div);
+        }
+
+        addTick(0, fmtListenShort(dataMin), "start");
+        addTick(100, fmtListenShort(dataMax), "end");
+
+        const candidates = [10e3, 50e3, 100e3, 500e3, 1e6, 2e6, 5e6];
+        const MIN_GAP_PCT = 8;
+        for (const val of candidates) {
+          if (val <= dataMin || val >= dataMax) continue;
+          const pct = (val - dataMin) / span * 100;
+          if (pct < MIN_GAP_PCT || pct > 100 - MIN_GAP_PCT) continue;
+          addTick(pct, fmtListenShort(val), null);
+        }
+
+        for (const id of ["lo", "hi"]) {
+          const m = document.createElement("div");
+          m.id = `listen-marker-${id}`;
+          m.className = "slider-marker";
+          m.innerHTML = `<div class="m-bar"></div><div class="m-lbl">—</div>`;
+          axEl.appendChild(m);
+        }
       }
 
       const GRID_VISIBLE_MAX = 30;
@@ -641,7 +727,7 @@
             .attr("cx", cx)
             .attr("cy", cy)
             .attr("r", holeR)
-            .attr("fill", centerOn ? "#0072b2" : "#3a3a3a");
+            .attr("fill", centerOn ? "#6D28D9" : "#3a3a3a");
 
           g.append("text")
             .attr("x", cx)

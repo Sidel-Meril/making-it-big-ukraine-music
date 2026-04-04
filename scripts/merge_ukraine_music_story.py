@@ -12,6 +12,7 @@ OUT = CH / "ukraine-music-story" / "index.html"
 
 CHARTS: list[tuple[str, str, str]] = [
     ("uk_listeners_growth", "uklg", "nuam-b-uklg"),
+    ("listeners_dist", "ld", "nuam-b-ld"),
     ("label_rosters", "lr", "nuam-b-lr"),
     ("milestones", "ms", "nuam-b-ms"),
     ("genres_popularity", "gp", "nuam-b-gp"),
@@ -131,8 +132,8 @@ def main() -> None:
       --ink: #e8e8e8;
       --ink-muted: #9aa0a6;
       --rule: #2a2a2a;
-      --accent: #7eb8ff;
-      --accent-soft: rgba(126, 184, 255, 0.1);
+      --accent: #c084fc;
+      --accent-soft: rgba(192, 132, 252, 0.13);
       --max-prose: 40rem;
       --max-chart: 72rem;
       --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
@@ -154,8 +155,8 @@ def main() -> None:
       pointer-events: none;
       z-index: 0;
       background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(44, 82, 130, 0.22), transparent 55%),
-        radial-gradient(ellipse 55% 40% at 100% 20%, rgba(126, 184, 255, 0.06), transparent 45%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(100, 40, 180, 0.30), transparent 55%),
+        radial-gradient(ellipse 55% 40% at 100% 20%, rgba(251, 191, 36, 0.07), transparent 45%),
         var(--paper);
     }
     .story { position: relative; z-index: 1; }
@@ -362,12 +363,9 @@ def main() -> None:
     )
 
     s1 = chart_blocks[0]
+    s2_ld = chart_blocks[1]
 
-    # %% → % when using old-style formatting; keeps a literal percent in the HTML output.
-    _dist_listeners_share = "about 5%% of artists" % ()
-
-    listeners_followup = (
-        """
+    listeners_followup = """
       <div class="prose-block">
         <p>
           The chart illustrates the growth in total listeners in the Ukrainian music scene from 2024 to early 2026, based on data from <strong>NUAM (New UA Music)</strong> — a leading Ukrainian online music resource. The dataset, with a snapshot from April 2026, shows a steady rise in listener engagement, reflecting the ongoing transformation of the local music market.
@@ -415,14 +413,18 @@ def main() -> None:
       </div>
       <div class="prose-block">
         <p>
-          We analyzed the listener distribution of Ukrainian artists over the past month to better understand the market’s potential. The results revealed that only <strong>"""
-        + _dist_listeners_share
-        + """</strong> have surpassed the <strong>320,000 listener</strong> mark. The upper boundary for listeners is <strong>1.8 million</strong>, but we’ll leave the identity of that top performer a mystery for now.
+          The distribution is sharply skewed. A large share of artists in the NUAM catalogue attract only a handful of streams; the curve drops off steeply, and only a small slice ever breaks through to significant listener counts. The histogram below makes that shape visible — drag the slider to see where any top‑percentile cutoff lands in actual listener count terms.
         </p>
         <p>
-          For this analysis, we set a threshold of <strong>400,000 listeners</strong> to identify the most promising and successful artists in the Ukrainian market at present. Artists who reach this milestone are positioned as some of the most influential players in the industry, reflecting both established fan bases and the growing appeal of Ukrainian music.
+          For the analysis in this piece, we focus on artists who’ve crossed the <strong>400,000 monthly listener</strong> mark — a threshold that puts them among the most visible acts in the Ukrainian market today.
         </p>
       </div>
+      <p class="chart-dek">
+        Log-scaled histogram of monthly listeners across the full NUAM catalogue. Drag the blue band to see where any top-N% cutoff falls in real listener count.
+      </p>
+"""
+
+    dist_close = """
     </section>
 
     <section class="chart-section" aria-labelledby="sec-labels">
@@ -434,9 +436,8 @@ def main() -> None:
         Each glyph is a label: the center scales with how many artists sit on that imprint; green marks labels with several high-listener acts. Legend and sort sit with the graphic.
       </p>
 """
-    )
 
-    s3 = chart_blocks[1]
+    s3 = chart_blocks[2]
 
     block4 = """
       <div class="prose-block">
@@ -487,7 +488,7 @@ def main() -> None:
       </p>
 """
 
-    s5 = chart_blocks[2]
+    s5 = chart_blocks[3]
 
     block6 = """
       <div class="prose-block">
@@ -512,7 +513,7 @@ def main() -> None:
       </p>
 """
 
-    s7 = chart_blocks[3]
+    s7 = chart_blocks[4]
 
     block8 = """
       <div class="prose-block">
@@ -543,8 +544,8 @@ def main() -> None:
       </p>
 """
 
-    s9 = chart_blocks[4]
-    s10 = chart_blocks[5]
+    s9 = chart_blocks[5]
+    s10 = chart_blocks[6]
 
     # Strange-deals prose closes section 6; must come *after* s9 (chart follows chart-dek).
     block_deals_prose = r"""
@@ -630,6 +631,8 @@ def main() -> None:
         + middle
         + s1
         + listeners_followup
+        + s2_ld
+        + dist_close
         + s3
         + block4
         + s5

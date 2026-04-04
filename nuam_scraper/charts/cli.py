@@ -15,6 +15,8 @@ from nuam_scraper.charts.uk_listeners_growth import build_uk_listeners_growth_pa
 from nuam_scraper.charts.uk_listeners_growth_export import write_uk_listeners_growth_js_bundle
 from nuam_scraper.charts.money_about import build_money_about_payload
 from nuam_scraper.charts.money_about_export import write_money_about_js_bundle
+from nuam_scraper.charts.listeners_dist import build_listeners_dist_payload
+from nuam_scraper.charts.listeners_dist_export import write_listeners_dist_js_bundle
 from nuam_scraper.charts.labels_roster import build_label_roster_entries
 from nuam_scraper.charts.labels_roster_export import (
     label_roster_entries_to_payload,
@@ -37,6 +39,7 @@ _ASSET_GENRES_PACK_INDEX = Path(__file__).resolve().parent / "assets" / "genres_
 _ASSET_SIGNED_DEALS_INDEX = Path(__file__).resolve().parent / "assets" / "signed_deals" / "index.html"
 _ASSET_UK_LISTENERS_GROWTH_INDEX = Path(__file__).resolve().parent / "assets" / "uk_listeners_growth" / "index.html"
 _ASSET_MONEY_ABOUT_INDEX = Path(__file__).resolve().parent / "assets" / "money_about" / "index.html"
+_ASSET_LISTENERS_DIST_INDEX = Path(__file__).resolve().parent / "assets" / "listeners_dist" / "index.html"
 
 
 def _cmd_milestones(args: argparse.Namespace) -> None:
@@ -217,6 +220,23 @@ def _cmd_money_about(args: argparse.Namespace) -> None:
     write_money_about_js_bundle(out_js, payload)
     nlines = len(payload.get("lines", {}).get("series", []))
     print(f"Wrote {out_js} (hist bars + {nlines} line series)")
+
+
+def _cmd_listeners_dist(args: argparse.Namespace) -> None:
+    out_dir = Path(args.out_dir) if args.out_dir else charts_root() / "listeners_dist"
+    out_js = Path(args.out_js) if args.out_js else out_dir / "chart-data.js"
+
+    if args.sync_html:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        if not _ASSET_LISTENERS_DIST_INDEX.is_file():
+            raise FileNotFoundError(f"Missing bundled template: {_ASSET_LISTENERS_DIST_INDEX}")
+        shutil.copyfile(_ASSET_LISTENERS_DIST_INDEX, out_dir / "index.html")
+
+    frames = load_nuam_parquet(args.parquet)
+    payload = build_listeners_dist_payload(frames.listeners_df, bins=int(args.bins))
+    write_listeners_dist_js_bundle(out_js, payload)
+    nbars = len(payload.get("bars", []))
+    print(f"Wrote {out_js} ({payload['totalArtists']} artists, {nbars} histogram bars)")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -490,6 +510,25 @@ def main(argv: list[str] | None = None) -> None:
         help="Copy bundled index.html into out-dir (overwrites if present)",
     )
     mo.set_defaults(func=_cmd_money_about)
+
+    ld = sub.add_parser(
+        "listeners-dist",
+        help="Log-transformed listener distribution histogram with interactive top-N% highlight",
+    )
+    ld.add_argument(
+        "--parquet",
+        type=Path,
+        default=root / "nuam_artists.parquet",
+    )
+    ld.add_argument("--out-dir", type=Path, default=None)
+    ld.add_argument("--out-js",  type=Path, default=None)
+    ld.add_argument("--bins", type=int, default=30, help="Number of histogram bins (default 30)")
+    ld.add_argument(
+        "--sync-html",
+        action="store_true",
+        help="Copy bundled index.html into out-dir (overwrites if present)",
+    )
+    ld.set_defaults(func=_cmd_listeners_dist)
 
     args = p.parse_args(argv)
     args.func(args)

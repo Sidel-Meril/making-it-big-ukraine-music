@@ -15,8 +15,8 @@
       --ink: #e8e8e8;
       --ink-muted: #9aa0a6;
       --rule: #2a2a2a;
-      --accent: #7eb8ff;
-      --accent-soft: rgba(126, 184, 255, 0.1);
+      --accent: #c084fc;
+      --accent-soft: rgba(192, 132, 252, 0.13);
       --max-prose: 40rem;
       --max-chart: 72rem;
       --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
@@ -38,8 +38,8 @@
       pointer-events: none;
       z-index: 0;
       background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(44, 82, 130, 0.22), transparent 55%),
-        radial-gradient(ellipse 55% 40% at 100% 20%, rgba(126, 184, 255, 0.06), transparent 45%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(100, 40, 180, 0.30), transparent 55%),
+        radial-gradient(ellipse 55% 40% at 100% 20%, rgba(251, 191, 36, 0.07), transparent 45%),
         var(--paper);
     }
     .story { position: relative; z-index: 1; }
@@ -185,8 +185,8 @@
       --bg: #121212;
       --text: #f0f0f0;
       --muted: #9aa0a6;
-      --line-pre: #0072b2;
-      --line-2026: #2ecc71;
+      --line-pre: #8B5CF6;
+      --line-2026: #FDE047;
       --point: #f0f0f0;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
@@ -206,7 +206,7 @@
       margin: 0 0 0.35rem;
       letter-spacing: -0.02em;
     }
-    .subtitle { color: var(--muted); font-size: 0.9rem; max-width: 48rem; }
+    .subtitle { color: var(--muted); font-size: 0.9rem; }
     .legend-wrap {
       max-width: 72rem;
       margin: 0 auto 1rem;
@@ -280,14 +280,175 @@
       font-size: 0.8rem;
       color: var(--muted);
     }
+    /* === listeners_dist === */
+.nuam-ch-ld {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --muted: #9aa0a6;
+      --rule: #2a2a2a;
+      --on: #6D28D9;
+      --bar: #8B5CF6;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+.nuam-ch-ld, .nuam-ch-ld * { box-sizing: border-box; }
+.nuam-ch-ld {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.45;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+    header { max-width: 72rem; margin: 0 auto 1.25rem; }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle { color: var(--muted); font-size: 0.9rem; margin: 0; }
+    .chart-wrap { max-width: 72rem; margin: 0 auto; }
+
+    /* ── filter panel ── */
+    .filter-panel {
+      max-width: 100%;
+      margin: 0 0 0.75rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #181818;
+    }
+    .filter-panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .filter-readout {
+      font-size: 0.82rem;
+      color: #ccc;
+      margin-top: 0.35rem;
+      line-height: 1.35;
+    }
+
+    /* ── single-thumb range slider (milestones style) ── */
+    .single-track-wrap {
+      position: relative;
+      height: 36px;
+      margin: 0.65rem 0 0.15rem;
+    }
+    .track-bg {
+      position: absolute;
+      left: 0; right: 0; top: 15px;
+      height: 5px;
+      background: #333;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .track-active {
+      position: absolute;
+      top: 15px;
+      height: 5px;
+      left: 0;
+      background: var(--on);
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .single-track-wrap input[type="range"] {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: 6px;
+      height: 24px;
+      margin: 0;
+      background: none;
+      pointer-events: auto;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .single-track-wrap input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid var(--on);
+      cursor: pointer;
+    }
+    .single-track-wrap input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid var(--on);
+      cursor: pointer;
+    }
+    .single-track-wrap input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      background: transparent;
+    }
+    .single-track-wrap input[type="range"]::-moz-range-track {
+      height: 5px;
+      background: transparent;
+    }
+
+    /* ── slider axis row ── */
+    .slider-axis {
+      position: relative;
+      width: 100%;
+      height: 36px;
+      margin-top: 3px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .slider-tick {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .slider-tick .t-bar { width: 1px; height: 5px; background: #FBBF24; }
+    .slider-tick .t-lbl { font-size: 9px; color: #A16207; white-space: nowrap; margin-top: 1px; }
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      transition: left 0.04s linear;
+    }
+    .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
+    .slider-marker .m-lbl {
+      font-size: 10px; font-weight: 700; color: #FDE68A;
+      background: rgba(120,77,0,0.55);
+      padding: 0 5px; border-radius: 3px;
+      white-space: nowrap; line-height: 1.6;
+    }
+
+    /* ── chart ── */
+    .chart-host {
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      background: #141414;
+      padding: 0.5rem;
+      overflow-x: auto;
+    }
+    .axis text { fill: var(--muted); font-size: 11px; }
+    .axis line, .axis path { stroke: #444; }
+    .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
     /* === label_rosters === */
 .nuam-ch-lr {
       --bg: #121212;
       --text: #f0f0f0;
       --muted: #9aa0a6;
       /* Colorblind-safe accent, distinct from milestone chart blue (--on #0072b2) */
-      --accent: #009e73;
-      --accent-dim: #3d6b5c;
+      --accent: #DC2626;
+      --accent-dim: #7F1D1D;
       --hole-off: #2e2e2e;
       --gray-tick: #8a8a8a;
       --gray-hole: #4d4d4d;
@@ -312,7 +473,6 @@
     .subtitle {
       color: var(--muted);
       font-size: 0.9rem;
-      max-width: 44rem;
     }
     .controls {
       display: flex;
@@ -343,7 +503,6 @@
       font-size: 0.84rem;
       color: #c4c4c4;
       margin: 0 0 0.65rem;
-      max-width: 48rem;
       line-height: 1.45;
     }
     .legend-diagram-host {
@@ -395,10 +554,10 @@
       --bg: #121212;
       --text: #f0f0f0;
       --muted: #9aa0a6;
-      --on: #0072b2;
+      --on: #6D28D9;
       --off-tracked: #4d4d4d;
       --off-untracked: #252525;
-      --accent-lang: #e69f00;
+      --accent-lang: #f59e0b;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 .nuam-ch-ms, .nuam-ch-ms * { box-sizing: border-box; }
@@ -465,7 +624,6 @@
       position: relative;
       height: 36px;
       margin: 0.65rem 0 0.15rem;
-      max-width: 36rem;
     }
     .listener-track-bg {
       position: absolute;
@@ -531,6 +689,37 @@
     .listener-dual #ms-listen-min {
       z-index: 1;
     }
+    /* ── slider axis row ── */
+    .slider-axis {
+      position: relative;
+      height: 28px;
+      margin-top: 2px;
+    }
+    .slider-tick {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateX(-50%);
+    }
+    .slider-tick .t-bar { width: 2px; height: 5px; background: #FBBF24; border-radius: 1px; }
+    .slider-tick .t-lbl { font-size: 10px; color: #A16207; white-space: nowrap; line-height: 1.4; }
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      transition: left 0.04s linear;
+    }
+    .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
+    .slider-marker .m-lbl {
+      font-size: 10px; font-weight: 700; color: #FDE68A;
+      background: rgba(120,77,0,0.55);
+      padding: 0 5px; border-radius: 3px;
+      white-space: nowrap; line-height: 1.6;
+    }
     .gold-note {
       margin-top: 0.65rem;
       padding-top: 0.65rem;
@@ -558,7 +747,7 @@
       background: #181818;
     }
     .legend-lead {
-      font-size: 0.84rem;
+      font-size: 0.72rem;
       color: #c4c4c4;
       margin: 0 0 0.65rem;
       max-width: 48rem;
@@ -617,12 +806,12 @@
       --bg: #121212;
       --text: #f0f0f0;
       --muted: #9aa0a6;
-      --on: #0072b2;
+      --on: #6D28D9;
       --bubble-stroke: #1a1a1a;
-      /* Bubble fill scale: log(LPA) → blue→yellow→green; slider track uses --on like milestone chart */
-      --lpa-color-low: #0a8fe8;
-      --lpa-color-mid: #e6c229;
-      --lpa-color-high: #00d978;
+      /* Bubble fill scale: log(LPA) → violet→red→yellow */
+      --lpa-color-low: #5B21B6;
+      --lpa-color-mid: #DC2626;
+      --lpa-color-high: #FBBF24;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 .nuam-ch-gp, .nuam-ch-gp * { box-sizing: border-box; }
@@ -641,7 +830,7 @@
       margin: 0 0 0.35rem;
       letter-spacing: -0.02em;
     }
-    .subtitle { color: var(--muted); font-size: 0.9rem; max-width: 42rem; }
+    .subtitle { color: var(--muted); font-size: 0.9rem; }
     .filter-panel {
       max-width: 72rem;
       margin: 0 auto 1rem;
@@ -668,7 +857,6 @@
       position: relative;
       height: 36px;
       margin: 0.65rem 0 0.15rem;
-      max-width: 36rem;
     }
     .listener-track-bg {
       position: absolute;
@@ -730,6 +918,40 @@
     }
     .listener-dual #gp-lpa-max { z-index: 2; }
     .listener-dual #gp-lpa-min { z-index: 1; }
+    /* ── slider axis row ── */
+    .slider-axis {
+      position: relative;
+      width: 100%;
+      height: 36px;
+      margin-top: 3px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .slider-tick {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .slider-tick .t-bar { width: 1px; height: 5px; background: #FBBF24; }
+    .slider-tick .t-lbl { font-size: 9px; color: #A16207; white-space: nowrap; margin-top: 1px; }
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      transition: left 0.04s linear;
+    }
+    .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
+    .slider-marker .m-lbl {
+      font-size: 10px; font-weight: 700; color: #FDE68A;
+      background: rgba(120,77,0,0.55);
+      padding: 0 5px; border-radius: 3px;
+      white-space: nowrap; line-height: 1.6;
+    }
     .legend-wrap {
       max-width: 72rem;
       margin: 0 auto 1.5rem;
@@ -742,7 +964,6 @@
       font-size: 0.84rem;
       color: #c4c4c4;
       margin: 0 0 0.65rem;
-      max-width: 48rem;
       line-height: 1.45;
     }
     svg { display: block; margin: 0 auto; }
@@ -751,11 +972,15 @@
       margin: 0 auto;
       padding: 0;
       min-height: 200px;
+      /* Cap height so slider + chart share one screen */
+      max-height: calc(100vh - 22rem);
+      overflow: hidden;
     }
     .pack-host svg {
       display: block;
       width: 100%;
-      height: auto;
+      height: 100%;
+      max-height: calc(100vh - 22rem);
       vertical-align: top;
     }
     .pack-host circle.pack-boundary {
@@ -836,9 +1061,9 @@
       --bg: #121212;
       --text: #f0f0f0;
       --muted: #9aa0a6;
-      --on: #0072b2;
-      --bar: #4575b4;
-      --accent: #d95f02;
+      --on: #6D28D9;
+      --bar: #6D28D9;
+      --accent: #FBBF24;
       /* Same yellow as genre pack palette mid (--lpa-color-mid); solid fill, no gradient */
       --strange-pack-fill: #e6c229;
       --bubble-stroke: #1a1a1a;
@@ -860,7 +1085,7 @@
       margin: 0 0 0.35rem;
       letter-spacing: -0.02em;
     }
-    .subtitle { color: var(--muted); font-size: 0.9rem; max-width: 48rem; }
+    .subtitle { color: var(--muted); font-size: 0.9rem; }
     section.story-section {
       max-width: 72rem;
       margin: 0 auto 2.5rem;
@@ -874,7 +1099,6 @@
     .section-lead {
       font-size: 0.84rem;
       color: #c4c4c4;
-      max-width: 48rem;
       margin: 0 0 1rem;
       line-height: 1.5;
     }
@@ -885,7 +1109,6 @@
       padding: 0.85rem 1rem;
       font-size: 0.82rem;
       color: #ccc;
-      max-width: 48rem;
       margin-top: 0.75rem;
       line-height: 1.5;
     }
@@ -966,7 +1189,7 @@
     .pack-host text.genre-label {
       fill: #ddd;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 26px;
       font-family: var(--font);
       pointer-events: none;
       paint-order: stroke fill;
@@ -975,7 +1198,7 @@
     }
     .pack-host text.genre-label.genre-label--inside {
       fill: #000000;
-      font-size: 15px;
+      font-size: 30px;
       stroke: rgba(255, 255, 255, 0.88);
       stroke-width: 0.55px;
     }
@@ -985,16 +1208,32 @@
       color: var(--muted);
       font-size: 0.9rem;
     }
+    /* Bars + pack side by side */
+    .sd-pair {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+      max-width: 72rem;
+      margin: 0 auto 2.5rem;
+    }
+    .sd-pair > .story-section {
+      flex: 1;
+      min-width: 0;      /* prevent flex overflow */
+      margin: 0;
+    }
+    @media (max-width: 700px) {
+      .sd-pair { flex-direction: column; }
+    }
     /* === money_about === */
 .nuam-ch-ma {
       --bg: #121212;
       --text: #e8e8e8;
       --muted: #9aa0a6;
       --rule: #2a2a2a;
-      --accent: #7eb8ff;
-      --on: #0072b2;
-      --warn: rgba(220, 80, 80, 0.25);
-      --bar: #5a8fc9;
+      --accent: #A78BFA;
+      --on: #6D28D9;
+      --warn: rgba(251,191,36,0.15);
+      --bar: #8B5CF6;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
 .nuam-ch-ma, .nuam-ch-ma * { box-sizing: border-box; }
@@ -1014,7 +1253,7 @@
       margin: 0 0 0.35rem;
       letter-spacing: -0.02em;
     }
-    .block .subtitle { color: var(--muted); font-size: 0.88rem; max-width: 44rem; margin: 0 0 0.75rem; }
+    .block .subtitle { color: var(--muted); font-size: 0.88rem; margin: 0 0 0.75rem; }
     .chart-host {
       border: 1px solid var(--rule);
       border-radius: 8px;
@@ -1026,7 +1265,7 @@
     .axis line, .axis path { stroke: #444; }
     .grid line { stroke: #2a2a2a; }
     .filter-panel {
-      max-width: 36rem;
+      max-width: 100%;
       margin: 0 0 0.75rem;
       padding: 0.85rem 1rem;
       border: 1px solid #2a2a2a;
@@ -1051,7 +1290,6 @@
       position: relative;
       height: 36px;
       margin: 0.65rem 0 0.15rem;
-      max-width: 36rem;
     }
     .listener-track-bg {
       position: absolute;
@@ -1117,6 +1355,37 @@
     .listener-dual #ma-listen-min {
       z-index: 1;
     }
+    /* ── slider axis ── */
+    .slider-axis {
+      position: relative;
+      height: 28px;
+      margin-top: 2px;
+    }
+    .slider-tick {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateX(-50%);
+    }
+    .slider-tick .t-bar { width: 2px; height: 5px; background: #FBBF24; border-radius: 1px; }
+    .slider-tick .t-lbl { font-size: 10px; color: #A16207; white-space: nowrap; line-height: 1.4; }
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      transition: left 0.04s linear;
+    }
+    .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
+    .slider-marker .m-lbl {
+      font-size: 10px; font-weight: 700; color: #FDE68A;
+      background: rgba(120,77,0,0.55);
+      padding: 0 5px; border-radius: 3px;
+      white-space: nowrap; line-height: 1.6;
+    }
     .money-tip {
       position: fixed;
       pointer-events: none;
@@ -1131,10 +1400,11 @@
       max-width: 280px;
     }
     .money-tip strong { color: var(--accent); }
-    .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; max-width: 48rem; }
+    .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
 
   </style>
   <script src="../uk_listeners_growth/chart-data.js"></script>
+  <script src="../listeners_dist/chart-data.js"></script>
   <script src="../label_rosters/chart-data.js"></script>
   <script src="../milestones/chart-data.js"></script>
   <script src="../genres_popularity/chart-data.js"></script>
@@ -1493,7 +1763,7 @@
 
       const deltaRows = pts
         .map((d, j) => ({ d, j }))
-        .filter(({ d }) => d.deltaPrev != null && Number.isFinite(d.deltaPrev));
+        .filter(({ d, j }) => d.deltaPrev != null && Number.isFinite(d.deltaPrev) && j < pts.length - 1);
 
       g.selectAll("text.delta-label")
         .data(deltaRows)
@@ -1506,6 +1776,63 @@
         .attr("y", ({ d }) => y(d.total) - 10)
         .style("opacity", 0)
         .text(({ d }) => fmtDelta(d.deltaPrev));
+
+      /* ── Latest-month KPI badge ── */
+      const kpiG = g.append("g").attr("class", "latest-kpi").style("opacity", 0);
+      if (lastPt && lastPt.deltaPrev != null && Number.isFinite(lastPt.deltaPrev)) {
+        const lx = x(lastPt.t);
+        const ly = y(lastPt.total);
+        const BW = 182, BH = 72;
+        /* anchor in the bottom-right corner — space under the rising curve */
+        const bx = iw - BW - 8;
+        const by = ih - BH - 16;
+
+        /* dark pill */
+        kpiG.append("rect")
+          .attr("x", bx).attr("y", by)
+          .attr("width", BW).attr("height", BH)
+          .attr("rx", 5).attr("fill", "rgba(10,8,22,0.85)")
+          .attr("stroke", "rgba(251,191,36,0.38)").attr("stroke-width", 1);
+        /* yellow left accent stripe */
+        kpiG.append("rect")
+          .attr("x", bx).attr("y", by + 9)
+          .attr("width", 3).attr("height", BH - 18)
+          .attr("rx", 1.5).attr("fill", "#FBBF24");
+        /* big metric number */
+        const sign = lastPt.deltaPrev >= 0 ? "+" : "\u2212";
+        const abs  = Math.abs(lastPt.deltaPrev);
+        const numStr = abs >= 1e6 ? `${sign}${(abs/1e6).toFixed(2)}M`
+                     : abs >= 1e3 ? `${sign}${(abs/1e3).toFixed(0)}k`
+                     : `${sign}${Math.round(abs).toLocaleString()}`;
+        kpiG.append("text")
+          .attr("x", bx + 15).attr("y", by + 27)
+          .attr("dominant-baseline", "middle")
+          .attr("fill", "#FBBF24")
+          .style("font-size", "20px").style("font-weight", "800")
+          .style("letter-spacing", "-0.5px").style("font-family", "inherit")
+          .text(numStr);
+        /* sub-label */
+        const fmt = d3.timeFormat("%b %Y");
+        kpiG.append("text")
+          .attr("x", bx + 15).attr("y", by + 45)
+          .attr("dominant-baseline", "middle")
+          .attr("fill", "#FDE68A")
+          .style("font-size", "9.5px").style("font-weight", "600")
+          .text(`${fmt(lastPt.t)} \u00b7 vs prior month`);
+        /* footnote with ≠ */
+        kpiG.append("text")
+          .attr("x", bx + 15).attr("y", by + 59)
+          .attr("dominant-baseline", "middle")
+          .attr("fill", "#666")
+          .style("font-size", "8.5px").style("font-style", "italic")
+          .text("listeners \u2260 listenings");
+        /* dashed connector to last dot */
+        kpiG.append("line")
+          .attr("x1", bx + BW * 0.75).attr("y1", by)
+          .attr("x2", lx).attr("y2", ly)
+          .attr("stroke", "#FBBF24").attr("stroke-width", 1)
+          .attr("stroke-dasharray", "3,3").attr("opacity", 0.5);
+      }
 
       function revealPositiveDeltasWithLine() {
         g.selectAll("text.delta-label--pos").each(function (row) {
@@ -1526,6 +1853,7 @@
           g.selectAll("circle.pt").style("opacity", 1);
           g.selectAll("text.delta-label").style("opacity", 1);
           callLayer.style("opacity", 1);
+          kpiG.style("opacity", 1);
           return;
         }
 
@@ -1546,21 +1874,30 @@
         t.then(() => {
           g.selectAll("circle.pt").transition().duration(380).ease(d3.easeCubicOut).style("opacity", 1);
           g.selectAll("text.delta-label--neg")
-            .transition()
-            .duration(420)
-            .delay(90)
-            .ease(d3.easeCubicOut)
-            .style("opacity", 1);
+            .transition().duration(420).delay(90).ease(d3.easeCubicOut).style("opacity", 1);
           callLayer
-            .transition()
-            .duration(520)
-            .delay(220)
-            .ease(d3.easeCubicOut)
+            .transition().duration(520).delay(220).ease(d3.easeCubicOut).style("opacity", 1);
+          /* KPI badge pops in last — after dots + callouts have settled */
+          kpiG
+            .transition().duration(500).delay(900).ease(d3.easeBackOut.overshoot(1.4))
             .style("opacity", 1);
         });
       }
 
-      requestAnimationFrame(runIntro);
+      // Fire animation when the chart scrolls into view (not on page load)
+      const _introTarget = svg.node();
+      if ("IntersectionObserver" in window) {
+        const _io = new IntersectionObserver((entries, obs) => {
+          if (entries[0].isIntersecting) {
+            obs.disconnect();
+            requestAnimationFrame(runIntro);
+          }
+        }, { threshold: 0.2 });
+        _io.observe(_introTarget);
+      } else {
+        // Fallback for very old browsers
+        requestAnimationFrame(runIntro);
+      }
 
       document.getElementById("uklg-footnote").textContent =
         "Summed from NUAM’s Spotify fields — not unique listeners. Axis is cropped (not from zero) so the trend is easier to see.";
@@ -1614,12 +1951,335 @@
       </div>
       <div class="prose-block">
         <p>
-          We analyzed the listener distribution of Ukrainian artists over the past month to better understand the market’s potential. The results revealed that only <strong>about 5% of artists</strong> have surpassed the <strong>320,000 listener</strong> mark. The upper boundary for listeners is <strong>1.8 million</strong>, but we’ll leave the identity of that top performer a mystery for now.
+          The distribution is sharply skewed. A large share of artists in the NUAM catalogue attract only a handful of streams; the curve drops off steeply, and only a small slice ever breaks through to significant listener counts. The histogram below makes that shape visible — drag the slider to see where any top‑percentile cutoff lands in actual listener count terms.
         </p>
         <p>
-          For this analysis, we set a threshold of <strong>400,000 listeners</strong> to identify the most promising and successful artists in the Ukrainian market at present. Artists who reach this milestone are positioned as some of the most influential players in the industry, reflecting both established fan bases and the growing appeal of Ukrainian music.
+          For the analysis in this piece, we focus on artists who’ve crossed the <strong>400,000 monthly listener</strong> mark — a threshold that puts them among the most visible acts in the Ukrainian market today.
         </p>
       </div>
+      <p class="chart-dek">
+        Log-scaled histogram of monthly listeners across the full NUAM catalogue. Drag the blue band to see where any top-N% cutoff falls in real listener count.
+      </p>
+      <div class="chart-frame"><div class="chart-frame-inner">
+        <div class="nuam-ch nuam-ch-ld" id="nuam-b-ld">
+<header>
+    <h1 id="ld-chart-title">The audience curve is steep — most Ukrainian artists stay under 10k listeners</h1>
+    <p class="subtitle" id="ld-chart-subtitle"></p>
+  </header>
+
+  <div class="chart-wrap">
+    <div class="filter-panel">
+      <h2>Listener threshold</h2>
+      <p class="filter-readout" style="margin-top:0">
+        Drag to set the cutoff. The slider moves on a <strong>log scale</strong> — each step covers more listeners toward the right.
+      </p>
+      <div class="single-track-wrap" id="ld-track-wrap">
+        <div class="track-bg" aria-hidden="true"></div>
+        <div class="track-active" id="ld-track-active" aria-hidden="true"></div>
+        <input
+          type="range"
+          id="ld-pct-slider"
+          min="0" max="1000" step="1" value="634"
+          aria-label="Listener count threshold (log scale)"
+        />
+      </div>
+      <div class="slider-axis" id="ld-ld-axis" aria-hidden="true"></div>
+    </div>
+
+    <div class="chart-host">
+      <svg id="ld-chart-svg" role="img" aria-labelledby="ld-chart-title"></svg>
+    </div>
+    <p class="note" id="ld-chart-note"></p>
+  </div>
+        <script>(function () {
+  const root = document.getElementById("nuam-b-ld");
+  const raw = window.__NUAM_LISTENERS_DIST__;
+  if (!raw || !raw.bars) {
+    document.body.innerHTML = "<p style='padding:1rem;color:#888'>No chart data.</p>";
+    return;
+  }
+
+  const bars        = raw.bars        || [];
+  const quantiles   = raw.quantiles   || {};
+  const totalArtists = +(raw.totalArtists || 0);
+  const month       = raw.month       || "";
+  const maxLog      = +(raw.maxLog    || 1);
+  const minLog      = +(raw.minLog    || 0);
+
+  document.getElementById("ld-chart-subtitle").textContent =
+    `${totalArtists.toLocaleString()} artists · ${month.slice(0, 7)} snapshot. ` +
+    `The curve drops off sharply — most acts sit in the leftmost bars. X-axis labels show real counts.`;
+  document.getElementById("ld-chart-note").textContent =
+    "Log scale keeps quiet acts and chart-toppers visible in one view. " +
+    "Drag to shift the highlight band and see where any top-N% cutoff lands in actual listener count.";
+
+  /* ── dimensions ── */
+  const W = 880, H = 380;
+  const m = { top: 24, right: 24, bottom: 54, left: 56 };
+  const iw = W - m.left - m.right;
+  const ih = H - m.top  - m.bottom;
+
+  /* ── scales ── */
+  const maxCount = d3.max(bars, d => d.count) || 1;
+  const x = d3.scaleLinear().domain([minLog, maxLog]).range([0, iw]);
+  const y = d3.scaleLinear().domain([0, maxCount]).nice().range([ih, 0]);
+
+  /* ── SVG skeleton ── */
+  const svg = d3.select("#ld-chart-svg")
+    .attr("viewBox", `0 0 ${W} ${H}`)
+    .attr("width", W).attr("height", H);
+  const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+
+  /* bars */
+  g.selectAll("rect.bar")
+    .data(bars)
+    .join("rect")
+    .attr("class", "bar")
+    .attr("x",      d => x(d.logX0))
+    .attr("width",  d => Math.max(0, x(d.logX1) - x(d.logX0) - 0.5))
+    .attr("y",      d => y(d.count))
+    .attr("height", d => ih - y(d.count))
+    .attr("fill", "var(--bar)")
+    .attr("opacity", 0.85);
+
+  /* axes */
+  function fmtTick(v) {
+    const orig = Math.expm1(+v);
+    if (orig >= 1e6) return `${(orig / 1e6).toFixed(1)}M`;
+    if (orig >= 1e3) return `${Math.round(orig / 1e3)}k`;
+    return String(Math.round(orig));
+  }
+  g.append("g").attr("class", "axis").attr("transform", `translate(0,${ih})`)
+    .call(d3.axisBottom(x).ticks(8).tickFormat(fmtTick));
+  g.append("g").attr("class", "axis")
+    .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format("d")));
+
+  /* axis labels */
+  g.append("text").attr("fill", "#9aa0a6")
+    .attr("x", iw / 2).attr("y", ih + 42)
+    .attr("text-anchor", "middle").style("font-size", "11px")
+    .text("Monthly listeners (log scale · labels in real counts)");
+  g.append("text").attr("fill", "#9aa0a6")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -ih / 2).attr("y", -44)
+    .attr("text-anchor", "middle").style("font-size", "11px")
+    .text("Number of artists");
+
+  /* ── highlight band (rectangle + centred label) ── */
+  const hlG    = g.append("g").attr("class", "highlight-g");
+  const hlRect = hlG.append("rect")
+    .attr("y", 0).attr("height", ih)
+    .attr("fill",         "rgba(251,191,36,0.13)")
+    .attr("stroke",       "rgba(251,191,36,0.72)")
+    .attr("stroke-width", 1.5);
+  /* ── unified annotation block (two lines + background pill) ── */
+  const hlAnnotBg = hlG.append("rect")
+    .attr("rx", 5).attr("ry", 5)
+    .attr("fill", "rgba(10,8,22,0.85)")
+    .attr("stroke", "rgba(251,191,36,0.38)")
+    .attr("stroke-width", 1);
+  const hlAnnotL1 = hlG.append("text")   // "≥ X listeners"
+    .attr("y", 18)
+    .attr("dominant-baseline", "middle")
+    .attr("text-anchor", "middle")
+    .attr("fill", "#FDE68A")
+    .style("font-size", "13px")
+    .style("font-weight", "700")
+    .style("pointer-events", "none");
+  const hlAnnotL2 = hlG.append("text")   // "top Y% · Z artists"
+    .attr("y", 35)
+    .attr("dominant-baseline", "middle")
+    .attr("text-anchor", "middle")
+    .attr("fill", "#F59E0B")
+    .style("font-size", "10px")
+    .style("font-weight", "600")
+    .style("pointer-events", "none");
+  const hlAnnotL3 = hlG.append("text")   // "Est. payout: $Xk/mo"
+    .attr("y", 50)
+    .attr("dominant-baseline", "middle")
+    .attr("text-anchor", "middle")
+    .attr("fill", "#9CA3AF")
+    .style("font-size", "9px")
+    .style("font-weight", "500")
+    .style("pointer-events", "none");
+
+  /* ── slider elements ── */
+  const slider      = document.getElementById("ld-pct-slider");
+  const trackActive = document.getElementById("ld-track-active");
+
+  /* Slider 0–1000 maps linearly onto [minLog, maxLog] in log-listener space. */
+  const SLIDER_STEPS = 1000;
+
+  /* ── build tick axis + marker below the slider ── */
+  (function buildLdAxis() {
+    const axEl = document.getElementById("ld-ld-axis");
+    if (!axEl) return;
+    const realMin = Math.expm1(minLog);
+    const realMax = Math.expm1(maxLog);
+    const fmtT = v => v >= 1e6 ? `${(v/1e6).toFixed(1)}M`
+                    : v >= 1e3 ? `${Math.round(v/1e3)}k`
+                    : `${Math.round(v)}`;
+
+    function addTick(pct, lbl, edge) {
+      const div = document.createElement("div");
+      div.className = "slider-tick";
+      div.style.left = `${pct.toFixed(1)}%`;
+      // Edge ticks: left-align at 0%, right-align at 100% so labels stay in-bounds
+      if (edge === "start") div.style.transform = "translateX(0)";
+      else if (edge === "end") div.style.transform = "translateX(-100%)";
+      div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
+      axEl.appendChild(div);
+    }
+
+    // Always show the slider limits first (left and right endpoints)
+    addTick(0, fmtT(realMin), "start");
+    addTick(100, fmtT(realMax), "end");
+
+    // Intermediate ticks: one per decade + ×3 mid-decade, skipping if too close to edges
+    const MIN_GAP_PCT = 8; // don't draw intermediate tick within 8% of an edge
+    for (let e = 0; e <= 8; e++) {
+      for (const mult of [1, 3]) {
+        const val = mult * Math.pow(10, e);
+        if (val <= realMin || val >= realMax) continue;
+        const pct = (Math.log1p(val) - minLog) / (maxLog - minLog) * 100;
+        if (pct < MIN_GAP_PCT || pct > 100 - MIN_GAP_PCT) continue;
+        addTick(pct, fmtT(val), null);
+      }
+    }
+
+    // Single moving marker
+    const m = document.createElement("div");
+    m.id = "ld-marker";
+    m.className = "slider-marker";
+    m.innerHTML = `<div class="m-bar"></div><div class="m-lbl" id="ld-ld-marker-lbl">—</div>`;
+    axEl.appendChild(m);
+  })();
+
+  function sliderToLog(v) {
+    if (maxLog <= minLog) return maxLog;
+    return minLog + (maxLog - minLog) * (+v / SLIDER_STEPS);
+  }
+
+  /* ── payrate (Dynamoi Dec 2025, paid tier, Ukraine) ── */
+  const RATE_PER_1K = 1.33; // USD per 1,000 paid streams
+
+  /* Pre-compute per-bar listener estimates: count × expm1(bin midpoint). */
+  const barListenerEst = bars.map(d => {
+    const mid = (d.logX0 + d.logX1) / 2;
+    return d.count * Math.expm1(mid);
+  });
+
+  /* Count artists & sum estimated listeners above a log threshold from bar data directly. */
+  function countAndListeners(threshLog) {
+    let artists = 0, listeners = 0;
+    for (let i = 0; i < bars.length; i++) {
+      const b = bars[i];
+      if (b.logX0 >= threshLog) {
+        artists  += b.count;
+        listeners += barListenerEst[i];
+      } else if (b.logX1 > threshLog) {
+        const frac = (b.logX1 - threshLog) / (b.logX1 - b.logX0);
+        artists  += Math.round(b.count * frac);
+        listeners += barListenerEst[i] * frac;
+      }
+    }
+    return { artists, listeners };
+  }
+
+  function fmtListeners(logVal) {
+    const orig = Math.round(Math.expm1(+logVal));
+    if (orig >= 1e6) return `${(orig / 1e6).toFixed(2)}M`;
+    if (orig >= 1e3) return `${(orig / 1e3).toFixed(1)}k`;
+    return orig.toLocaleString();
+  }
+
+  function fmtUSD(v) {
+    if (v >= 1e6) return `$${(v / 1e6).toFixed(2)}M`;
+    if (v >= 1e3) return `$${Math.round(v / 1e3)}k`;
+    return `$${v.toFixed(0)}`;
+  }
+
+  function fmtPct(ratio) {
+    const p = ratio * 100;
+    if (p >= 1)   return `~${Math.round(p)}%`;
+    if (p >= 0.1) return `~${p.toFixed(1)}%`;
+    return "<0.1%";
+  }
+
+  /* Initialise default at top-5% (quantile["95"]). */
+  const _q95 = quantiles["95"] != null ? +quantiles["95"] : maxLog * 0.63;
+  const _defV = maxLog > minLog
+    ? Math.round((_q95 - minLog) / (maxLog - minLog) * SLIDER_STEPS)
+    : 634;
+  slider.value = String(Math.max(0, Math.min(SLIDER_STEPS, _defV)));
+
+  function update() {
+    const v         = +slider.value;
+    const threshLog = sliderToLog(v);
+    const { artists: artistsAbove, listeners: listenersAbove } = countAndListeners(threshLog);
+    const topRatio  = totalArtists > 0 ? artistsAbove / totalArtists : 0;
+    const pctStr    = fmtPct(topRatio);
+    const rev       = listenersAbove * RATE_PER_1K / 1000;
+
+
+    /* track-active fill */
+    trackActive.style.left  = "0";
+    trackActive.style.width = `${(v / SLIDER_STEPS) * 100}%`;
+
+    /* move axis marker */
+    const ldM = document.getElementById("ld-marker");
+    if (ldM) {
+      ldM.style.left = `${(v / SLIDER_STEPS * 100).toFixed(1)}%`;
+      document.getElementById("ld-ld-marker-lbl").textContent = fmtListeners(threshLog);
+    }
+
+    /* highlight rectangle */
+    const rx = x(threshLog);
+    const rw = Math.max(0, iw - rx);
+    hlRect.attr("x", rx).attr("width", rw);
+
+    /* unified annotation block — always visible, clamped inside chart */
+    const cx = rx + rw / 2;
+    if (rw > 0) {
+      hlAnnotL1.attr("x", cx).text(`≥ ${fmtListeners(threshLog)} listeners`).style("display", null);
+      hlAnnotL2.attr("x", cx).text(`top ${pctStr} · ${artistsAbove.toLocaleString()} artists`).style("display", null);
+      hlAnnotL3.attr("x", cx).text(`est. payout ${fmtUSD(rev)}/mo · $1.33/1k paid`).style("display", null);
+
+      const b1 = hlAnnotL1.node().getBBox();
+      const b2 = hlAnnotL2.node().getBBox();
+      const b3 = hlAnnotL3.node().getBBox();
+      const PAD = { x: 9, y: 6 };
+
+      const boxLeft = Math.min(b1.x, b2.x, b3.x) - PAD.x;
+      const boxW    = Math.max(b1.width, b2.width, b3.width) + PAD.x * 2;
+
+      /* shift text left to avoid right-edge clip; shift right to avoid left-edge clip */
+      const shift = Math.max(0, boxLeft + boxW - iw) - Math.max(0, -boxLeft);
+      if (shift !== 0) {
+        hlAnnotL1.attr("x", cx - shift);
+        hlAnnotL2.attr("x", cx - shift);
+        hlAnnotL3.attr("x", cx - shift);
+      }
+
+      hlAnnotBg
+        .attr("x",      boxLeft - shift)
+        .attr("y",      b1.y - PAD.y)
+        .attr("width",  boxW)
+        .attr("height", (b3.y + b3.height) - b1.y + PAD.y * 2)
+        .style("display", null);
+    } else {
+      hlAnnotL1.style("display", "none");
+      hlAnnotL2.style("display", "none");
+      hlAnnotL3.style("display", "none");
+      hlAnnotBg.style("display", "none");
+    }
+  }
+
+  slider.addEventListener("input", update);
+  update();
+})();</script>
+        </div>
+      </div></div>
     </section>
 
     <section class="chart-section" aria-labelledby="sec-labels">
@@ -1633,7 +2293,7 @@
       <div class="chart-frame"><div class="chart-frame-inner">
         <div class="nuam-ch nuam-ch-lr" id="nuam-b-lr">
 <header>
-    <h1>NUAM labels in a grid: bigger dot = more artists; green = “top-rated” by NUAM’s rule</h1>
+    <h1>Labels on the NUAM roster — bigger circle, more artists signed</h1>
     <p class="subtitle" id="lr-subtitle"></p>
   </header>
 
@@ -1650,7 +2310,7 @@
 
   <div class="legend-wrap">
     <p class="legend-lead">
-      <strong>Quick read.</strong> The number in the middle is how many artists NUAM ties to that label; the dot grows with that count. Each spoke is one artist who also clears NUAM’s “big listener” bar. <strong>Green</strong> = top-rated label; <strong>gray</strong> = not.
+      <strong>Quick read.</strong> The number in the center is how many artists are signed to that label. Each spoke is a standout artist with high monthly listeners. <strong>Red</strong> = top-rated label; <strong>gray</strong> = the rest.
     </p>
     <div class="legend-diagram-host" id="lr-legend-host"></div>
   </div>
@@ -1666,7 +2326,7 @@
   const data = window.__NUAM_LABEL_ROSTER_DATA__;
       const gridFooterEl = document.getElementById("lr-grid-footer");
       const accent =
-        getComputedStyle(root).getPropertyValue("--accent").trim() || "#009e73";
+        getComputedStyle(root).getPropertyValue("--accent").trim() || "#DC2626";
       const grayTick =
         getComputedStyle(root).getPropertyValue("--gray-tick").trim() || "#8a8a8a";
       const grayHole =
@@ -1696,7 +2356,7 @@
           ? ` “Big listener” = ≥${Number(thr).toLocaleString()} monthly listeners that month.`
           : "";
       document.getElementById("lr-subtitle").textContent =
-        `Snapshot ${ref}.${thrNote} ${nLabels.toLocaleString()} labels in the file; ${nTopRated.toLocaleString()} count as top-rated (≥${minA} pool artists). Gray tiles are not top-rated.`;
+        `Snapshot ${ref}. ${nLabels.toLocaleString()} labels · red = top-rated by NUAM, gray = the rest.`;
 
       /** Center hole scales with catalog size. Tick tips sit on a fixed outer ring; tick roots sit a fixed gap past the circle edge. */
       const W = 78;
@@ -1984,7 +2644,7 @@
       <div class="chart-frame"><div class="chart-frame-inner">
         <div class="nuam-ch nuam-ch-ms" id="nuam-b-ms">
 <header>
-    <h1>Five career signals per artist — NUAM’s “sun” glyph</h1>
+    <h1>Each artist as a little sun — five slices of their story</h1>
     <p class="subtitle" id="ms-subtitle"></p>
   </header>
 
@@ -1998,23 +2658,6 @@
     </select>
   </div>
 
-  <div class="filter-panel" id="ms-listener-filter-panel">
-    <h2>Peak monthly listeners</h2>
-    <p class="filter-readout" style="margin-top:0"><strong>Peak</strong> = their best month in the scrape. The blue strip is what you’re viewing; widen it to show more artists.</p>
-    <div class="listener-dual" id="ms-listener-dual-wrap">
-      <div class="listener-track-bg" aria-hidden="true"></div>
-      <div class="listener-track-active" id="ms-listener-track-active" aria-hidden="true"></div>
-      <input type="range" id="ms-listen-min" min="0" max="100" value="0" step="1" aria-label="Lower end of peak listener band shown" />
-      <input type="range" id="ms-listen-max" min="0" max="100" value="100" step="1" aria-label="Upper end of peak listener band shown" />
-    </div>
-    <p class="filter-readout"><span id="ms-listen-val-labels">Min: — · Max: —</span></p>
-    <p class="filter-readout" id="ms-listen-summary"></p>
-    <div class="gold-note">
-      <span class="gold-swatch" aria-hidden="true"></span>
-      <span><strong>Gold border:</strong> NUAM’s <code style="color:#ccc">RuLang</code> flag in the data — a catalog field, not our editorial call.</span>
-    </div>
-  </div>
-
   <div class="legend-wrap">
     <p class="legend-lead">
       <strong>Quick read.</strong> Inspired by <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#7eb8ff">The Pudding’s TikTok “flowers.”</a> Data: <a href="https://www.nuam.club/stat" style="color:#7eb8ff">NUAM</a>. From the top, clockwise: one wedge per milestone. Bright wedge = yes for that artist; the middle number counts how many of the five fired.
@@ -2024,6 +2667,25 @@
 
   <div id="ms-grid"></div>
   <p id="ms-grid-footer" class="grid-footer" aria-live="polite"></p>
+
+  <div class="filter-panel" id="ms-listener-filter-panel">
+    <h2>Peak monthly listeners</h2>
+    <p class="filter-readout" style="margin-top:0"><strong>Peak</strong> = their best month in the scrape. The blue strip is what you’re viewing; widen it to show more artists.</p>
+    <div class="listener-dual" id="ms-listener-dual-wrap">
+      <div class="listener-track-bg" aria-hidden="true"></div>
+      <div class="listener-track-active" id="ms-listener-track-active" aria-hidden="true"></div>
+      <input type="range" id="ms-listen-min" min="0" max="100" value="0" step="1" aria-label="Lower end of peak listener band shown" />
+      <input type="range" id="ms-listen-max" min="0" max="100" value="100" step="1" aria-label="Upper end of peak listener band shown" />
+    </div>
+    <span id="ms-listen-val-labels" style="display:none" aria-hidden="true">Min: — · Max: —</span>
+    <div class="slider-axis" id="ms-listen-axis" aria-hidden="true"></div>
+    <p class="filter-readout" id="ms-listen-summary"></p>
+    <div class="gold-note">
+      <span class="gold-swatch" aria-hidden="true"></span>
+      <span><strong>Gold border:</strong> NUAM’s <code style="color:#ccc">RuLang</code> flag in the data — a catalog field, not our editorial call.</span>
+    </div>
+  </div>
+
 
   <p class="note">
     Essay working title: <em>The Unlikely Odds of Making it Big on Ukraine</em>. Look: <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#6eb6ff">The Pudding — TikTok careers</a>.
@@ -2057,10 +2719,10 @@
           : "";
       const listenersRayNote =
         meta.spotifyListenersThreshold != null
-          ? ` The big-listener ray lights up at ≥${Number(meta.spotifyListenersThreshold).toLocaleString()} peak monthly listeners.`
+          ? ` One ray glows at ≥${Number(meta.spotifyListenersThreshold).toLocaleString()} peak listeners.`
           : "";
       document.getElementById("ms-subtitle").textContent =
-        `NUAM catalog, ref. ${ref}. Peak = each artist’s best month in the scrape.${exportFloor} Each tile: five wedges + center count of hits.${listenersRayNote} Grid shows the first 30 for your band and sort.`;
+        `NUAM roster, ${ref}. Every slice lights up when an artist hits that milestone — the number in the middle shows how many they’ve reached.${exportFloor}${listenersRayNote} Showing top 30 for your current sort.`;
 
       function legendRayPolygonPoints(ang, ringR, baseHalf, tipLen) {
         const rx = Math.cos(ang);
@@ -2221,7 +2883,7 @@
 
       function petalFill(on) {
         return on
-          ? (getComputedStyle(root).getPropertyValue("--on").trim() || "#0072b2")
+          ? (getComputedStyle(root).getPropertyValue("--on").trim() || "#6D28D9")
           : (getComputedStyle(root).getPropertyValue("--off-tracked").trim() || "#4d4d4d");
       }
 
@@ -2269,6 +2931,12 @@
         return Math.round(x).toLocaleString();
       }
 
+      function fmtListenShort(x) {
+        if (x >= 1e6) return `${+(x / 1e6).toPrecision(2)}M`;
+        if (x >= 1e3) return `${+(x / 1e3).toPrecision(2)}k`;
+        return `${Math.round(x)}`;
+      }
+
       function syncListenerSliders() {
         if (!numericListeners.length) {
           listenValLabels.textContent = "Peak listeners are missing from this export.";
@@ -2308,6 +2976,15 @@
         listenTrackActive.style.left = `${leftPct}%`;
         listenTrackActive.style.width = `${widthPct}%`;
 
+        const loM = document.getElementById("listen-marker-lo");
+        const hiM = document.getElementById("listen-marker-hi");
+        if (loM && hiM) {
+          loM.style.left = `${leftPct.toFixed(1)}%`;
+          hiM.style.left = `${(leftPct + widthPct).toFixed(1)}%`;
+          loM.querySelector(".m-lbl").textContent = fmtListenShort(lo);
+          hiM.querySelector(".m-lbl").textContent = fmtListenShort(hi);
+        }
+
         const filtered = data.artists.filter((a) => {
           const v = a.listenersMax;
           if (v == null || !Number.isFinite(v)) return false;
@@ -2337,10 +3014,49 @@
           listenMinEl.min = listenMaxEl.min = String(dataMin);
           listenMinEl.max = listenMaxEl.max = String(dataMax);
           listenMinEl.step = listenMaxEl.step = String(step);
-          listenMinEl.value = String(dataMin);
-          listenMaxEl.value = String(dataMax);
+          listenMinEl.value = String(Math.max(dataMin, 237480));
+          listenMaxEl.value = String(Math.min(dataMax, 1845544));
         }
         syncListenerSliders();
+        buildListenAxis();
+      }
+
+      function buildListenAxis() {
+        const axEl = document.getElementById("ms-listen-axis");
+        if (!axEl || !numericListeners.length || dataMin >= dataMax) return;
+        axEl.innerHTML = "";
+
+        const span = dataMax - dataMin;
+
+        function addTick(pct, lbl, edge) {
+          const div = document.createElement("div");
+          div.className = "slider-tick";
+          div.style.left = `${pct.toFixed(1)}%`;
+          if (edge === "start") div.style.transform = "translateX(0)";
+          else if (edge === "end") div.style.transform = "translateX(-100%)";
+          div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
+          axEl.appendChild(div);
+        }
+
+        addTick(0, fmtListenShort(dataMin), "start");
+        addTick(100, fmtListenShort(dataMax), "end");
+
+        const candidates = [10e3, 50e3, 100e3, 500e3, 1e6, 2e6, 5e6];
+        const MIN_GAP_PCT = 8;
+        for (const val of candidates) {
+          if (val <= dataMin || val >= dataMax) continue;
+          const pct = (val - dataMin) / span * 100;
+          if (pct < MIN_GAP_PCT || pct > 100 - MIN_GAP_PCT) continue;
+          addTick(pct, fmtListenShort(val), null);
+        }
+
+        for (const id of ["lo", "hi"]) {
+          const m = document.createElement("div");
+          m.id = `listen-marker-${id}`;
+          m.className = "slider-marker";
+          m.innerHTML = `<div class="m-bar"></div><div class="m-lbl">—</div>`;
+          axEl.appendChild(m);
+        }
       }
 
       const GRID_VISIBLE_MAX = 30;
@@ -2392,7 +3108,7 @@
             .attr("cx", cx)
             .attr("cy", cy)
             .attr("r", holeR)
-            .attr("fill", centerOn ? "#0072b2" : "#3a3a3a");
+            .attr("fill", centerOn ? "#6D28D9" : "#3a3a3a");
 
           g.append("text")
             .attr("x", cx)
@@ -2458,9 +3174,9 @@
   </header>
 
   <div class="filter-panel" id="gp-lpa-filter-panel">
-    <h2>Listeners per artist (log band)</h2>
+    <h2>Listeners per artist</h2>
     <p class="filter-readout" style="margin-top:0">
-      Sliders pick which genres show up. Bubble <strong>size</strong> still follows <span id="gp-metric-name"></span>. The band is <strong>log</strong>-scaled so tiny and huge acts are both reachable.
+      Sliders pick which genres appear. Bubble <strong>size</strong> still follows <span id="gp-metric-name"></span>. Both small and huge acts are reachable.
     </p>
     <div class="listener-dual" id="gp-lpa-dual-wrap">
       <div class="listener-track-bg" aria-hidden="true"></div>
@@ -2468,8 +3184,7 @@
       <input type="range" id="gp-lpa-min" min="0" max="1000" value="0" step="1" aria-label="Lower end of listeners-per-artist band" />
       <input type="range" id="gp-lpa-max" min="0" max="1000" value="1000" step="1" aria-label="Upper end of listeners-per-artist band" />
     </div>
-    <p class="filter-readout"><span id="gp-lpa-val-labels">Min: — · Max: —</span></p>
-    <p class="filter-readout" id="gp-lpa-summary"></p>
+    <div class="slider-axis" id="gp-lpa-axis" aria-hidden="true"></div>
   </div>
 
   <div class="legend-wrap">
@@ -2477,8 +3192,8 @@
     <div class="color-ramp-wrap" id="gp-color-ramp-block">
       <div class="color-ramp-bar" aria-hidden="true"></div>
       <div class="color-ramp-labels">
-        <span id="gp-ramp-low">Low in this file</span>
-        <span id="gp-ramp-high">High in this file</span>
+        <span id="gp-ramp-low">Fewer listeners per artist</span>
+        <span id="gp-ramp-high">More listeners per artist</span>
       </div>
     </div>
   </div>
@@ -2509,14 +3224,14 @@
       document.getElementById("gp-metric-name").textContent = metricLabel;
 
       document.getElementById("gp-subtitle").textContent =
-        `${(meta.genreCount != null ? meta.genreCount : raw.genres.length).toLocaleString()} genres; bubble area = ${metricLabel}. Band = listeners per artist (monthly listeners summed on tagged rows ÷ those rows).`;
+        `${(meta.genreCount != null ? meta.genreCount : raw.genres.length).toLocaleString()} genres · bubble size = ${metricLabel}.`;
 
       document.getElementById("gp-legend-lead").innerHTML =
-        "<strong>Quick read.</strong> Sliders choose <em>who</em> appears. <strong>Size</strong> = the metric above. <strong>Color</strong> = listeners per artist vs. the whole file (log scale, blue→yellow→green). Big genres label inside; small ones sit on the ring. Hover a bubble for detail.";
+        "<strong>Quick read.</strong> Sliders choose <em>who</em> appears. <strong>Size</strong> = the metric above. <strong>Color</strong> = listeners per artist (violet = few, yellow = many). Big genres label inside; small ones sit on the ring. Hover a bubble for detail.";
 
-      const W = 1380;
-      const H = 1380;
-      const outerPad = 270;
+      const W = 1760;
+      const H = 1760;
+      const outerPad = 200;
       const innerSize = W - 2 * outerPad;
       /** Pixels beyond pack boundary circle (`root.r`) where tick tips land. */
       const RING_OUTSET = 108;
@@ -2556,8 +3271,6 @@
       const lpaMaxEl = document.getElementById("gp-lpa-max");
       const lpaTrackActive = document.getElementById("gp-lpa-track-active");
       const lpaDualWrap = document.getElementById("gp-lpa-dual-wrap");
-      const lpaValLabels = document.getElementById("gp-lpa-val-labels");
-      const lpaSummary = document.getElementById("gp-lpa-summary");
 
       let logMin = 0;
       let logMax = 1;
@@ -2575,6 +3288,54 @@
         logMin = Math.log10(Math.max(linearMin, 1));
         logMax = Math.log10(linearMax);
         if (logMax <= logMin) logMax = logMin + 1e-6;
+
+        // Build HTML tick axis + handle-value markers below the slider
+        (function buildLpaAxis() {
+          const axEl = document.getElementById("gp-lpa-axis");
+          if (!axEl || linearMin <= 0 || linearMax <= linearMin) return;
+
+          const fmtAx = v => v >= 1e6 ? `${+(v/1e6).toPrecision(2)}M`
+                           : v >= 1e3 ? `${+(v/1e3).toPrecision(2)}k`
+                           : `${Math.round(v)}`;
+
+          function addTick(pct, lbl, edge) {
+            const div = document.createElement("div");
+            div.className = "slider-tick";
+            div.style.left = `${pct.toFixed(1)}%`;
+            if (edge === "start") div.style.transform = "translateX(0)";
+            else if (edge === "end") div.style.transform = "translateX(-100%)";
+            div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
+            axEl.appendChild(div);
+          }
+
+          // Always show the slider limits (left and right endpoints)
+          addTick(0, fmtAx(linearMin), "start");
+          addTick(100, fmtAx(linearMax), "end");
+
+          // Intermediate ticks: one per decade + ×3 mid-decade
+          const MIN_GAP_PCT = 8;
+          const expLo = Math.ceil(Math.log10(linearMin));
+          const expHi = Math.floor(Math.log10(linearMax));
+          for (let e = expLo; e <= expHi; e++) {
+            for (const mult of [1, 3]) {
+              if (mult === 3 && e >= expHi) continue;
+              const val = mult * Math.pow(10, e);
+              if (val <= linearMin || val >= linearMax) continue;
+              const pct = (Math.log10(val) - logMin) / (logMax - logMin) * 100;
+              if (pct < MIN_GAP_PCT || pct > 100 - MIN_GAP_PCT) continue;
+              addTick(pct, fmtAx(val), null);
+            }
+          }
+
+          // Two markers that follow each handle (updated by syncLpaSliders)
+          for (const id of ["lo", "hi"]) {
+            const m = document.createElement("div");
+            m.id = `lpa-marker-${id}`;
+            m.className = "slider-marker";
+            m.innerHTML = `<div class="m-bar"></div><div class="m-lbl">—</div>`;
+            axEl.appendChild(m);
+          }
+        })();
       }
 
       function tToLpa(t) {
@@ -2589,11 +3350,11 @@
       }
 
       const COLOR_LOW =
-        getComputedStyle(root).getPropertyValue("--lpa-color-low").trim() || "#0a8fe8";
+        getComputedStyle(root).getPropertyValue("--lpa-color-low").trim() || "#5B21B6";
       const COLOR_MID =
-        getComputedStyle(root).getPropertyValue("--lpa-color-mid").trim() || "#e6c229";
+        getComputedStyle(root).getPropertyValue("--lpa-color-mid").trim() || "#DC2626";
       const COLOR_HIGH =
-        getComputedStyle(root).getPropertyValue("--lpa-color-high").trim() || "#00d978";
+        getComputedStyle(root).getPropertyValue("--lpa-color-high").trim() || "#FBBF24";
       const _lpaAll = allRows.map((r) => r.lpa).filter((v) => v != null && Number.isFinite(v));
       let globalLpaFill = () => "#656565";
       if (_lpaAll.length) {
@@ -2652,13 +3413,13 @@
         const lines = [o.name];
         if (o.topArtistNames && o.topArtistNames.length) {
           const ranked = o.topArtistNames.map((n, i) => `${i + 1}. ${n}`).join("\n");
-          lines.push(`Top acts here (by monthly listeners in file):\n${ranked}`);
+          lines.push(`Top artists here:\n${ranked}`);
         }
         lines.push(
           `${metricLabel} (bubble size): ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
-          `Color = listeners per artist vs. full file (log; blue→yellow→green)`,
+          `Color = listeners per artist vs. full file (log; violet→red→yellow)`,
           `Listeners per artist: ${o.lpa != null ? o.lpa.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "—"}`,
-          `Rows (artist–genre): ${o.artistCount.toLocaleString()}`,
+          
           `Monthly listeners summed: ${Math.round(o.listenersSum).toLocaleString()}`
         );
         return lines.join("\n");
@@ -2669,7 +3430,7 @@
         let s = `${o.name}. ${metricLabel} (size) ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}.`;
         if (o.topArtistNames && o.topArtistNames.length) {
           const tail = o.topArtistNames.map((n, i) => `${i + 1}) ${n}`).join("; ");
-          s += ` Top ${o.topArtistNames.length} in file: ${tail}.`;
+          s += ` Top ${o.topArtistNames.length}: ${tail}.`;
         }
         return s;
       }
@@ -2679,7 +3440,7 @@
         emptyEl.style.display = "none";
 
         if (children.length === 0) {
-          emptyEl.textContent = "Nothing in this band — widen the blue span on the sliders.";
+          emptyEl.textContent = "Nothing here — widen the slider range to show more genres.";
           emptyEl.style.display = "block";
           return;
         }
@@ -2831,8 +3592,6 @@
 
       function syncLpaSliders() {
         if (lpas.length === 0) {
-          lpaValLabels.textContent = "Listeners per artist are not available in this export.";
-          lpaSummary.textContent = "";
           lpaTrackActive.style.width = "100%";
           lpaTrackActive.style.left = "0%";
           drawPack(allRows);
@@ -2851,7 +3610,6 @@
         }
 
         const { vmin, vmax } = getBandLpas();
-        lpaValLabels.textContent = `Minimum ${fmtLpa(vmin)} · maximum ${fmtLpa(vmax)} listeners per artist row`;
 
         const span = logMax - logMin;
         const p0 = (Math.log10(Math.max(vmin, Math.pow(10, logMin))) - logMin) / span;
@@ -2862,8 +3620,17 @@
         lpaTrackActive.style.left = `${leftPct}%`;
         lpaTrackActive.style.width = `${widthPct}%`;
 
+        // Move handle markers to current slider positions
+        const loM = document.getElementById("lpa-marker-lo");
+        const hiM = document.getElementById("lpa-marker-hi");
+        if (loM && hiM) {
+          loM.style.left = `${(lo / SLIDER_MAX * 100).toFixed(1)}%`;
+          hiM.style.left = `${(hi / SLIDER_MAX * 100).toFixed(1)}%`;
+          loM.querySelector(".m-lbl").textContent = fmtLpa(vmin);
+          hiM.querySelector(".m-lbl").textContent = fmtLpa(vmax);
+        }
+
         const filtered = filterRows(vmin, vmax);
-        lpaSummary.textContent = `${filtered.length.toLocaleString()} genre${filtered.length === 1 ? "" : "s"} here (${fmtLpa(vmin)}–${fmtLpa(vmax)}), of ${allRows.length.toLocaleString()} total.`;
         drawPack(filtered);
       }
 
@@ -2915,7 +3682,7 @@
       <div class="chart-frame"><div class="chart-frame-inner">
         <div class="nuam-ch nuam-ch-sd" id="nuam-b-sd">
 <header>
-    <h1>Peer-rated labels: many artists land before big streaming numbers</h1>
+    <h1>Many artists get signed before they build a real audience</h1>
     <p class="subtitle" id="sd-subtitle"></p>
   </header>
 
@@ -2926,20 +3693,22 @@
     <div class="callout" id="sd-anomaly-note"></div>
   </section>
 
-  <section class="story-section" aria-labelledby="sd-h-pack">
-    <h2 id="sd-h-pack">Genres in the “strange deal” slice (still under the cutoff)</h2>
-    <p class="section-lead" id="sd-pack-lead"></p>
-    <div class="chart-host chart-host--intrinsic-pack">
-      <div class="pack-host" id="sd-pack-host"></div>
-      <div class="pack-empty" id="sd-pack-empty" style="display: none"></div>
-    </div>
-  </section>
+  <div class="sd-pair">
+    <section class="story-section" aria-labelledby="sd-h-bars">
+      <h2 id="sd-h-bars">Which labels sign the most — and how many “strange” cases</h2>
+      <p class="section-lead" id="sd-bars-lead"></p>
+      <div class="chart-host"><svg id="sd-svg-bars" role="img" aria-label="Horizontal bars and strange-deal counts"></svg></div>
+    </section>
 
-  <section class="story-section" aria-labelledby="sd-h-bars">
-    <h2 id="sd-h-bars">Which labels sign the most — and how many “strange” cases</h2>
-    <p class="section-lead" id="sd-bars-lead"></p>
-    <div class="chart-host"><svg id="sd-svg-bars" role="img" aria-label="Horizontal bars and strange-deal counts"></svg></div>
-  </section>
+    <section class="story-section" aria-labelledby="sd-h-pack">
+      <h2 id="sd-h-pack">Genres in the “strange deal” slice</h2>
+      <p class="section-lead" id="sd-pack-lead"></p>
+      <div class="chart-host chart-host--intrinsic-pack">
+        <div class="pack-host" id="sd-pack-host"></div>
+        <div class="pack-empty" id="sd-pack-empty" style="display: none"></div>
+      </div>
+    </section>
+  </div>
 
   <p class="note">
     Data: NUAM · “Signed” = on a label that also has ≥2 “big listener” acts (same rule as the milestone chart).
@@ -2956,16 +3725,16 @@
       const LABEL_MIN = meta.labelMinPeakListeners;
 
       document.getElementById("sd-subtitle").textContent =
-        `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} artists on peer-rated labels; ${meta.strangeArtistCount.toLocaleString()} never peaked above ${STRANGE.toLocaleString()} monthly listeners — our “strange deals.”`;
+        `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} artists on recognized labels; ${meta.strangeArtistCount.toLocaleString()} never topped ${STRANGE.toLocaleString()} monthly listeners — the “strange deal” group.`;
 
       document.getElementById("sd-hist-lead").textContent =
-        `One row per artist. “Peak” = their best month in the file. On a log scale, the orange band marks peaks still under ${STRANGE.toLocaleString()} when they first hit a peer-rated label.`;
+        `One artist per row. Peak = their best month ever. The orange band marks artists still under ${STRANGE.toLocaleString()} listeners at the time of signing.`;
 
       document.getElementById("sd-anomaly-note").innerHTML =
         "<strong>About that band.</strong> NUAM only spots a label once someone is on the roster — often while listeners are still tiny. That is not proof the deal signed that week; it’s how often the <em>first snapshot we have</em> is still a small audience, unlike many majors that show up later with bigger numbers.";
 
       document.getElementById("sd-bars-lead").textContent =
-        `We drop a label unless someone on it peaked ≥ ${LABEL_MIN.toLocaleString()} listeners. Blue = every signed artist there; orange = those who peaked below ${STRANGE.toLocaleString()}.`;
+        `Only labels with at least one artist above ${LABEL_MIN.toLocaleString()} listeners are shown. Blue = all signed artists; orange = the low-reach group.`;
 
       document.getElementById("sd-pack-lead").textContent =
         "Bigger bubble = more monthly listeners summed in that genre for this slice only. Same yellow accent as elsewhere on the page.";
@@ -2993,8 +3762,57 @@
         .attr("width", sx(bandEnd) - sx(0))
         .attr("y", 0)
         .attr("height", ih)
-        .attr("fill", "#d95f02")
+        .attr("fill", "#FBBF24")
         .attr("opacity", 0.22);
+
+      /* ── band annotation ── */
+      (function addBandAnnotation() {
+        const bx = (sx(bandEnd) - sx(0)) / 2;   // centre of yellow region
+        const LINE1 = "never hit 1k listeners";
+        const LINE2 = "label signed them from scratch";
+        const FONT  = "system-ui,-apple-system,sans-serif";
+        const PAD   = { x: 8, y: 5 };
+
+        const ag = gH.append("g").attr("class", "band-annot");
+
+        const tL1 = ag.append("text")
+          .attr("x", bx).attr("y", 18)
+          .attr("text-anchor", "middle").attr("dominant-baseline", "middle")
+          .attr("fill", "#FDE68A")
+          .style("font-size", "10.5px").style("font-weight", "700")
+          .style("font-family", FONT).style("pointer-events", "none")
+          .text(LINE1);
+
+        const tL2 = ag.append("text")
+          .attr("x", bx).attr("y", 33)
+          .attr("text-anchor", "middle").attr("dominant-baseline", "middle")
+          .attr("fill", "#F59E0B")
+          .style("font-size", "9.5px").style("font-weight", "500")
+          .style("font-family", FONT).style("pointer-events", "none")
+          .text(LINE2);
+
+        /* dark pill behind the two lines */
+        try {
+          const b1 = tL1.node().getBBox();
+          const b2 = tL2.node().getBBox();
+          const bLeft  = Math.min(b1.x, b2.x) - PAD.x;
+          const bTop   = b1.y - PAD.y;
+          const bW     = Math.max(b1.width, b2.width) + PAD.x * 2;
+          const bH     = (b2.y + b2.height) - b1.y + PAD.y * 2;
+          ag.insert("rect", "text")
+            .attr("x", bLeft).attr("y", bTop)
+            .attr("width", bW).attr("height", bH)
+            .attr("rx", 4).attr("ry", 4)
+            .attr("fill", "rgba(10,8,22,0.72)");
+        } catch (_) { /* getBBox unavailable server-side */ }
+
+        /* small downward tick from bottom of pill to histogram bars */
+        ag.append("line")
+          .attr("x1", bx).attr("y1", 42)
+          .attr("x2", bx).attr("y2", 54)
+          .attr("stroke", "#F59E0B").attr("stroke-width", 1.5)
+          .attr("stroke-dasharray", "3,2").attr("opacity", 0.7);
+      })();
 
       const bw = sx(edges[1]) - sx(edges[0]);
       gH.selectAll("rect.bar")
@@ -3005,7 +3823,7 @@
         .attr("width", Math.max(0.5, bw - 0.5))
         .attr("y", (d) => sy(d))
         .attr("height", (d) => ih - sy(d))
-        .attr("fill", "#4575b4")
+        .attr("fill", "#6D28D9")
         .attr("stroke", "#0d0d0d")
         .attr("stroke-width", 0.4);
 
@@ -3025,7 +3843,7 @@
         .attr("y", ih + 36)
         .attr("text-anchor", "middle")
         .style("font-size", "11px")
-        .text("Peak monthly listeners (log axis; ticks = real counts)");
+        .text("Peak monthly listeners");
       gH.append("text")
         .attr("fill", "#9aa0a6")
         .attr("transform", "rotate(-90)")
@@ -3069,13 +3887,13 @@
         const lines = [o.name];
         if (o.topArtistNames && o.topArtistNames.length) {
           const ranked = o.topArtistNames.map((n, i) => `${i + 1}. ${n}`).join("\n");
-          lines.push(`Top acts here (by monthly listeners in file):\n${ranked}`);
+          lines.push(`Top artists here:\n${ranked}`);
         }
         lines.push(
           `Listeners summed (bubble size): ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
           `Yellow fill; strange-deal slice only (peak < ${STRANGE.toLocaleString()})`,
           `Listeners per artist: ${o.lpa != null ? o.lpa.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "—"}`,
-          `Rows (artist–genre): ${o.artistCount.toLocaleString()}`,
+          
           `Monthly listeners summed: ${Math.round(o.listenersSum).toLocaleString()}`
         );
         return lines.join("\n");
@@ -3086,7 +3904,7 @@
         let s = `${o.name}. Listeners summed (size) ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}.`;
         if (o.topArtistNames && o.topArtistNames.length) {
           const tail = o.topArtistNames.map((n, i) => `${i + 1}) ${n}`).join("; ");
-          s += ` Top ${o.topArtistNames.length} in file: ${tail}.`;
+          s += ` Top ${o.topArtistNames.length}: ${tail}.`;
         }
         return s;
       }
@@ -3099,7 +3917,7 @@
       const PACK_LAYOUT_SCALE = 0.72;
       const RING_OUTSET = 108;
       const TEXT_RING_PAD = 22;
-      const INSIDE_LABEL_R_RATIO = 0.17;
+      const INSIDE_LABEL_R_RATIO = 0.175;
 
       function drawStrangePack(children) {
         host.selectAll("*").remove();
@@ -3292,12 +4110,18 @@
 
       /* —— 3) Bars + line —— */
       const rows = raw.labelBars || [];
-      const WB = 720;
-      const HB = Math.max(220, 28 * rows.length + 80);
-      const mb = { top: 28, right: 36, bottom: 40, left: 168 };
+      const WB = 960;
+      const HB = WB; // square — matches the pack SVG aspect ratio so both sections render at the same height
+      const mb = { top: 36, right: 48, bottom: 60, left: 220 };
       const ibw = WB - mb.left - mb.right;
       const ibh = HB - mb.top - mb.bottom;
-      const svgB = d3.select("#sd-svg-bars").attr("viewBox", `0 0 ${WB} ${HB}`).attr("width", WB).attr("height", HB);
+      const svgB = d3
+        .select("#sd-svg-bars")
+        .attr("viewBox", `0 0 ${WB} ${HB}`)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .style("width", "100%")
+        .style("height", "auto")
+        .style("display", "block");
       const gB = svgB.append("g").attr("transform", `translate(${mb.left},${mb.top})`);
 
       if (!rows.length) {
@@ -3332,7 +4156,7 @@
           .attr("y", (d) => yb(d.label))
           .attr("height", yb.bandwidth())
           .attr("width", (d) => xb(d.signedCount))
-          .attr("fill", "#4575b4")
+          .attr("fill", "#6D28D9")
           .attr("rx", 2)
           .append("title")
           .text((d) => `${d.label}\nSigned artists: ${d.signedCount}\n“Strange” (peak < ${STRANGE}): ${d.strangeCount}`);
@@ -3345,9 +4169,13 @@
           .curve(d3.curveLinear);
         gB.append("path")
           .attr("fill", "none")
-          .attr("stroke", "#d95f02")
+          .attr("stroke", "#FBBF24")
           .attr("stroke-width", 2)
           .attr("d", ln(linePts));
+
+        const rScale = d3.scaleSqrt()
+          .domain([0, d3.max(display, (d) => d.strangeCount) || 1])
+          .range([3, 9]);
 
         gB.selectAll("circle.str")
           .data(display)
@@ -3355,34 +4183,36 @@
           .attr("class", "str")
           .attr("cx", (d) => xb(d.strangeCount))
           .attr("cy", (d) => yb(d.label) + yb.bandwidth() / 2)
-          .attr("r", 5)
-          .attr("fill", "#d95f02")
-          .attr("stroke", "#1a1a1a")
-          .attr("stroke-width", 1)
+          .attr("r", (d) => rScale(d.strangeCount))
+          .attr("fill", "#DC2626")
+          .attr("stroke", "#FBBF24")
+          .attr("stroke-width", 2.5)
           .append("title")
           .text((d) => `${d.label} — “strange” count: ${d.strangeCount}`);
 
-        gB.append("g").attr("class", "axis").call(d3.axisLeft(yb));
+        gB.append("g").attr("class", "axis").call(d3.axisLeft(yb).tickSize(6))
+          .call((g) => g.selectAll("text").style("font-size", "14px"));
         gB.append("g")
           .attr("class", "axis")
           .attr("transform", `translate(0,${ibh})`)
-          .call(d3.axisBottom(xb).ticks(6));
+          .call(d3.axisBottom(xb).ticks(6))
+          .call((g) => g.selectAll("text").style("font-size", "13px"));
 
         gB.append("text")
           .attr("x", ibw / 2)
-          .attr("y", ibh + 30)
+          .attr("y", ibh + 46)
           .attr("text-anchor", "middle")
           .attr("fill", "#9aa0a6")
-          .style("font-size", "11px")
-          .text("Signed artists per label (count)");
+          .style("font-size", "14px")
+          .text("Signed artists per label");
 
         svgB.append("text")
           .attr("x", mb.left)
-          .attr("y", 16)
+          .attr("y", 24)
           .attr("fill", "#e8e8e8")
-          .style("font-size", "13px")
+          .style("font-size", "16px")
           .style("font-weight", "650")
-          .text("Blue = all signings; orange = “strange” slice");
+          .text("Blue = all signed; orange = low-reach at signing");
       }
     })();</script>
         </div>
@@ -3439,18 +4269,19 @@
       <div class="filter-panel" id="ma-listener-filter-panel">
         <h2>Peak monthly listeners</h2>
         <p class="filter-readout" style="margin-top:0">
-          <strong>Peak</strong> = that artist’s best month in the file. The blue strip is what you’re viewing; widen it to bring more lines back.
+          <strong>Peak</strong> = artist’s best month. The highlighted strip is what you’re seeing — widen it to bring more lines back.
         </p>
         <div class="listener-dual" id="ma-listener-dual-wrap">
           <div class="listener-track-bg" aria-hidden="true"></div>
           <div class="listener-track-active" id="ma-listener-track-active" aria-hidden="true"></div>
           <input type="range" id="ma-listen-min" min="0" max="100" value="0" step="1" aria-label="Lower end of peak listener band shown" />
-          <input type="range" id="ma-listen-max" min="0" max="100" value="100" step="1" aria-label="Upper end of peak listener band shown" />
+          <input type="range" id="ma-listen-max" min="0" max="100" value="10000" step="1" aria-label="Upper end of peak listener band shown" />
         </div>
-        <p class="filter-readout"><span id="ma-listen-val-labels">Min: — · Max: —</span></p>
+        <div class="slider-axis" id="ma-listen-axis" aria-hidden="true"></div>
+        <p class="note" id="ma-lines-filter-note" style="margin-top:0.35rem;margin-bottom:0"></p>
+        <span id="ma-listen-val-labels" style="display:none" aria-live="polite"></span>
       </div>
-      <p class="note" id="ma-lines-filter-note" style="margin-top:0;margin-bottom:0.5rem"></p>
-      <div class="chart-host" style="position:relative"><svg id="ma-lines-svg" role="img" aria-labelledby="ma-lines-title"></svg></div>
+      <div class="chart-host"><svg id="ma-lines-svg" role="img" aria-labelledby="ma-lines-title"></svg></div>
       <p class="note" id="ma-lines-note"></p>
     </div>
   </div>
@@ -3476,10 +4307,10 @@
   const nArt = hist.artistCount || 0;
 
   document.getElementById("ma-hist-subtitle").textContent =
-    `X: estimated lifetime payout per artist (USD, log scale). Y: how many artists. ${nArt.toLocaleString()} artists. Shaded = under $${hist.thresholdUsd || 300}.`;
+    `${nArt.toLocaleString()} artists. X = estimated lifetime payout (USD). Most earn very little — the shaded area is below $${hist.thresholdUsd || 300}.`;
 
   document.getElementById("ma-hist-note").textContent =
-    `${pct.toFixed(1)}% sit under $${hist.thresholdUsd || 300} with this rough model (${meta.subtitleMetric || ""}). Not unique listeners; not Spotify’s real checks.`;
+    `${pct.toFixed(1)}% of artists sit below $${hist.thresholdUsd || 300} in estimated lifetime earnings. Numbers are rough — real payouts vary by deal.`;
 
   const W1 = 880;
   const H1 = 340;
@@ -3501,7 +4332,9 @@
     .attr("width", Math.max(0, x1(tLog) - x1(0)))
     .attr("y", 0)
     .attr("height", i1h)
-    .attr("fill", "var(--warn)");
+    .attr("fill", "var(--warn)")
+    .attr("stroke", "rgba(251,191,36,0.45)")
+    .attr("stroke-width", 1);
 
   g1.selectAll("rect.bar")
     .data(bars)
@@ -3537,7 +4370,7 @@
     .attr("y", i1h + 40)
     .attr("text-anchor", "middle")
     .style("font-size", "11px")
-    .text("Estimated lifetime payout per artist (USD; log scale; ticks = dollars)");
+    .text("Estimated lifetime earnings per artist (USD)");
 
   g1.append("text")
     .attr("fill", "#9aa0a6")
@@ -3571,9 +4404,16 @@
   const listenTrackActive = document.getElementById("ma-listener-track-active");
   const listenerDualWrap = document.getElementById("ma-listener-dual-wrap");
   const filterNoteEl = document.getElementById("ma-lines-filter-note");
+  let _loMarker = null, _hiMarker = null;
 
   function fmtListen(x) {
     return Math.round(x).toLocaleString();
+  }
+
+  function fmtListenShort(x) {
+    if (x >= 1e6) return `${+(x / 1e6).toPrecision(2)}M`;
+    if (x >= 1e3) return `${+(x / 1e3).toPrecision(2)}k`;
+    return `${Math.round(x)}`;
   }
 
   function syncListenerTrack(lo, hi) {
@@ -3586,18 +4426,58 @@
     else if (widthPct === 0) widthPct = 0.6;
     listenTrackActive.style.left = `${leftPct}%`;
     listenTrackActive.style.width = `${widthPct}%`;
+
+    if (_loMarker && _hiMarker) {
+      _loMarker.style.left = `${leftPct.toFixed(1)}%`;
+      _hiMarker.style.left = `${(leftPct + widthPct).toFixed(1)}%`;
+      _loMarker.querySelector(".m-lbl").textContent = fmtListenShort(lo);
+      _hiMarker.querySelector(".m-lbl").textContent = fmtListenShort(hi);
+    }
+  }
+
+  function buildListenAxis() {
+    const axEl = document.getElementById("ma-listen-axis");
+    if (!axEl || dataMin >= dataMax) return;
+    axEl.innerHTML = "";
+
+    const span = dataMax - dataMin;
+
+    function addTick(pct, lbl, edge) {
+      const div = document.createElement("div");
+      div.className = "slider-tick";
+      div.style.left = `${pct.toFixed(1)}%`;
+      if (edge === "start") div.style.transform = "translateX(0)";
+      else if (edge === "end") div.style.transform = "translateX(-100%)";
+      div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
+      axEl.appendChild(div);
+    }
+
+    addTick(0, fmtListenShort(dataMin), "start");
+    addTick(100, fmtListenShort(dataMax), "end");
+
+    // evenly-spaced linear ticks (4 interior steps at 20%, 40%, 60%, 80%)
+    const N_TICKS = 4;
+    for (let i = 1; i <= N_TICKS; i++) {
+      const val = dataMin + span * (i / (N_TICKS + 1));
+      const pct = (val - dataMin) / span * 100;
+      addTick(pct, fmtListenShort(val), null);
+    }
+
+    _loMarker = document.createElement("div");
+    _loMarker.className = "slider-marker";
+    _loMarker.innerHTML = `<div class="m-bar"></div><div class="m-lbl">—</div>`;
+    axEl.appendChild(_loMarker);
+
+    _hiMarker = document.createElement("div");
+    _hiMarker.className = "slider-marker";
+    _hiMarker.innerHTML = `<div class="m-bar"></div><div class="m-lbl">—</div>`;
+    axEl.appendChild(_hiMarker);
   }
 
   function initPeakSliders() {
-    const span0 = Math.max(dataMax - dataMin, 0);
-    const step =
-      span0 > 2_000_000
-        ? Math.ceil(span0 / 400)
-        : span0 > 200_000
-          ? Math.max(1, Math.ceil(span0 / 400))
-          : span0 > 20_000
-            ? Math.max(1, Math.ceil(span0 / 400))
-            : 1;
+    // Step of 1 000 lets 10 000 be exactly reachable (10 steps)
+    const step = 1000;
+    const DEFAULT_INIT_MAX = 10000;
 
     if (dataMin === dataMax) {
       listenMinEl.min = listenMaxEl.min = String(dataMin);
@@ -3607,10 +4487,10 @@
       listenMaxEl.value = String(dataMin);
     } else {
       listenMinEl.min = listenMaxEl.min = String(dataMin);
-      listenMinEl.max = listenMaxEl.max = String(dataMax);
+      listenMinEl.max = listenMaxEl.max = String(dataMax);   // full range preserved
       listenMinEl.step = listenMaxEl.step = String(step);
-      listenMinEl.value = String(dataMin);
-      listenMaxEl.value = String(dataMax);
+      listenMinEl.value = String(dataMin);                    // min starts at 0
+      listenMaxEl.value = String(Math.min(dataMax, DEFAULT_INIT_MAX)); // max starts at 10 000
     }
     listenerDualWrap.style.opacity = "1";
     listenMinEl.disabled = false;
@@ -3618,14 +4498,15 @@
   }
 
   initPeakSliders();
+  buildListenAxis();
 
   const nExported = seriesAll.length;
   const nMeta = lm.artistSeriesCount != null ? +lm.artistSeriesCount : nExported;
   document.getElementById("ma-lines-subtitle").textContent =
-    `Rough monthly USD from ${lm.startMonth || "2025-01"}; ${nMeta.toLocaleString()} artist series in the file. Drag the handles to pick a peak band, then hover a line.`;
+    `Estimated monthly earnings from ${lm.startMonth || "2025-01"}; ${nMeta.toLocaleString()} artists. Drag the handles to pick a listener band, then hover a line.`;
 
   document.getElementById("ma-lines-note").textContent =
-    "Heavy bands only draw the top earners (speed limit). Hover picks the nearest month and line. Peak = max monthly listeners for that artist in NUAM.";
+    "When many artists match, only the top earners are drawn. Hover to identify a line.";
 
   const monthDates = monthStrs.map((s) => new Date(s + "T12:00:00"));
   const bisectMonth = d3.bisector((d) => d.getTime()).center;
@@ -3652,7 +4533,11 @@
     .y((d) => y2(d.usd))
     .curve(d3.curveMonotoneX);
 
-  const color = d3.scaleOrdinal(d3.schemeTableau10);
+  const color = d3.scaleOrdinal([
+    "#8B5CF6","#FBBF24","#A78BFA","#FDE047",
+    "#6D28D9","#FDE68A","#C084FC","#FCD34D",
+    "#7C3AED","#F59E0B"
+  ]);
   const pathsG = g2.append("g").attr("class", "paths");
   const gx = g2.append("g").attr("class", "axis").attr("transform", `translate(0,${i2h})`);
   const gy = g2.append("g").attr("class", "axis");
@@ -3681,13 +4566,14 @@
     let lo = +listenMinEl.value;
     let hi = +listenMaxEl.value;
     if (lo > hi) {
-      listenMaxEl.value = String(lo);
-      hi = lo;
-    }
-    if (hi < lo) {
+      // pull min down to hi — keep max in place
       listenMinEl.value = String(hi);
       lo = hi;
     }
+    // dynamic z-index: give min higher priority when thumbs nearly overlap
+    // so the user can always pull min leftward away from max
+    const step = +(listenMinEl.step) || 1;
+    listenMinEl.style.zIndex = lo >= hi - step * 2 ? 3 : 1;
   }
 
   /** @returns {{ draw: typeof seriesAll, inBandCount: number, capped: boolean }} */
@@ -3742,8 +4628,8 @@
       .merge(pth)
       .attr("stroke", (d) => color(String(d.id)))
       .attr("d", (d) => lineGen(d.points))
-      .style("opacity", (d) => (activeId == null || d.id === activeId ? 1 : 0.12))
-      .style("stroke-width", (d) => (d.id === activeId ? 3.2 : 2));
+      .style("opacity", (d) => (activeId == null ? 0.25 : d.id === activeId ? 1 : 0.07))
+      .style("stroke-width", (d) => (d.id === activeId ? 3.8 : 1.5));
   }
 
   function redrawLines() {
@@ -3806,6 +4692,25 @@
       tip.style("display", "none");
       redrawLines();
     });
+
+  /* ── proximity-based z-index so the correct thumb is always on top ── */
+  listenerDualWrap.addEventListener("mousemove", function (e) {
+    const rect = listenerDualWrap.getBoundingClientRect();
+    const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const span = Math.max(dataMax - dataMin, 1);
+    const pLo  = (+listenMinEl.value - dataMin) / span;
+    const pHi  = (+listenMaxEl.value - dataMin) / span;
+    listenMinEl.style.zIndex = Math.abs(pct - pLo) <= Math.abs(pct - pHi) ? 3 : 1;
+  });
+  listenerDualWrap.addEventListener("touchmove", function (e) {
+    const touch = e.touches[0];
+    const rect  = listenerDualWrap.getBoundingClientRect();
+    const pct   = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+    const span  = Math.max(dataMax - dataMin, 1);
+    const pLo   = (+listenMinEl.value - dataMin) / span;
+    const pHi   = (+listenMaxEl.value - dataMin) / span;
+    listenMinEl.style.zIndex = Math.abs(pct - pLo) <= Math.abs(pct - pHi) ? 3 : 1;
+  }, { passive: true });
 
   function onSliderInput() {
     activeId = null;

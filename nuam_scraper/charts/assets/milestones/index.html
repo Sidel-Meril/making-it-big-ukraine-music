@@ -100,7 +100,7 @@
 </head>
 <body>
   <header>
-    <h1>Five scraped milestones per artist, drawn as a compact flower glyph</h1>
+    <h1>Each artist as a little sun — five slices of their story</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
@@ -140,7 +140,7 @@
       const ref = meta.refMonth ? String(meta.refMonth).slice(0, 7) : "—";
       const nPetals = data.milestones.length;
       document.getElementById("subtitle").textContent =
-        `Peak monthly listeners from the NUAM scrape, reference month ${ref}; the center counts milestones achieved out of ${nPetals} extracted fields${meta.spotifyListenersThreshold != null ? ` (the listeners petal lights when peak monthly listeners reach at least ${Number(meta.spotifyListenersThreshold).toLocaleString()})` : ""}.`;
+        `NUAM roster, ${ref}. Every slice lights up when an artist hits that milestone — the number in the middle shows how many they’ve reached${meta.spotifyListenersThreshold != null ? ". One ray glows at \u2265" + Number(meta.spotifyListenersThreshold).toLocaleString() + " peak listeners" : ""}.`;
 
       const legend = d3.select("#legend");
       data.milestones.forEach((m, i) => {

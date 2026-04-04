@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NUAM — Listener Distribution</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --muted: #9aa0a6;
+      --rule: #2a2a2a;
+      --on: #6D28D9;
+      --bar: #8B5CF6;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.45;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+    header { max-width: 72rem; margin: 0 auto 1.25rem; }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle { color: var(--muted); font-size: 0.9rem; margin: 0; }
+    .chart-wrap { max-width: 72rem; margin: 0 auto; }
+
+    /* ── filter panel ── */
+    .filter-panel {
+      max-width: 100%;
+      margin: 0 0 0.75rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #181818;
+    }
+    .filter-panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .filter-readout {
+      font-size: 0.82rem;
+      color: #ccc;
+      margin-top: 0.35rem;
+      line-height: 1.35;
+    }
+
+    /* ── single-thumb range slider (milestones style) ── */
+    .single-track-wrap {
+      position: relative;
+      height: 36px;
+      margin: 0.65rem 0 0.15rem;
+    }
+    .track-bg {
+      position: absolute;
+      left: 0; right: 0; top: 15px;
+      height: 5px;
+      background: #333;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .track-active {
+      position: absolute;
+      top: 15px;
+      height: 5px;
+      left: 0;
+      background: var(--on);
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .single-track-wrap input[type="range"] {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: 6px;
+      height: 24px;
+      margin: 0;
+      background: none;
+      pointer-events: auto;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .single-track-wrap input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid var(--on);
+      cursor: pointer;
+    }
+    .single-track-wrap input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid var(--on);
+      cursor: pointer;
+    }
+    .single-track-wrap input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      background: transparent;
+    }
+    .single-track-wrap input[type="range"]::-moz-range-track {
+      height: 5px;
+      background: transparent;
+    }
+
+    /* ── slider axis row ── */
+    .slider-axis {
+      position: relative;
+      width: 100%;
+      height: 36px;
+      margin-top: 3px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .slider-tick {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .slider-tick .t-bar { width: 1px; height: 5px; background: #FBBF24; }
+    .slider-tick .t-lbl { font-size: 9px; color: #A16207; white-space: nowrap; margin-top: 1px; }
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      transition: left 0.04s linear;
+    }
+    .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
+    .slider-marker .m-lbl {
+      font-size: 10px; font-weight: 700; color: #FDE68A;
+      background: rgba(120,77,0,0.55);
+      padding: 0 5px; border-radius: 3px;
+      white-space: nowrap; line-height: 1.6;
+    }
+
+    /* ── chart ── */
+    .chart-host {
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      background: #141414;
+      padding: 0.5rem;
+      overflow-x: auto;
+    }
+    .axis text { fill: var(--muted); font-size: 11px; }
+    .axis line, .axis path { stroke: #444; }
+    .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="chart-title">The audience curve is steep — most Ukrainian artists stay under 10k listeners</h1>
+    <p class="subtitle" id="chart-subtitle"></p>
+  </header>
+
+  <div class="chart-wrap">
+    <div class="filter-panel">
+      <h2>Listener threshold</h2>
+      <p class="filter-readout" style="margin-top:0">
+        Drag to set the cutoff. The slider moves on a <strong>log scale</strong> — each step covers more listeners toward the right.
+      </p>
+      <div class="single-track-wrap" id="track-wrap">
+        <div class="track-bg" aria-hidden="true"></div>
+        <div class="track-active" id="track-active" aria-hidden="true"></div>
+        <input
+          type="range"
+          id="pct-slider"
+          min="0" max="1000" step="1" value="634"
+          aria-label="Listener count threshold (log scale)"
+        />
+      </div>
+      <div class="slider-axis" id="ld-axis" aria-hidden="true"></div>
+    </div>
+
+    <div class="chart-host">
+      <svg id="chart-svg" role="img" aria-labelledby="chart-title"></svg>
+    </div>
+    <p class="note" id="chart-note"></p>
+  </div>
+
+  <script src="chart-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+(function () {
+  const raw = window.__NUAM_LISTENERS_DIST__;
+  if (!raw || !raw.bars) {
+    document.body.innerHTML = "<p style='padding:1rem;color:#888'>No chart data.</p>";
+    return;
+  }
+
+  const bars        = raw.bars        || [];
+  const quantiles   = raw.quantiles   || {};
+  const totalArtists = +(raw.totalArtists || 0);
+  const month       = raw.month       || "";
+  const maxLog      = +(raw.maxLog    || 1);
+  const minLog      = +(raw.minLog    || 0);
+
+  document.getElementById("chart-subtitle").textContent =
+    `${totalArtists.toLocaleString()} artists · ${month.slice(0, 7)} snapshot. ` +
+    `The curve drops off sharply — most acts sit in the leftmost bars. X-axis labels show real counts.`;
+  document.getElementById("chart-note").textContent =
+    "Log scale keeps quiet acts and chart-toppers visible in one view. " +
+    "Drag to shift the highlight band and see where any top-N% cutoff lands in actual listener count.";
+
+  /* ── dimensions ── */
+  const W = 880, H = 380;
+  const m = { top: 24, right: 24, bottom: 54, left: 56 };
+  const iw = W - m.left - m.right;
+  const ih = H - m.top  - m.bottom;
+
+  /* ── scales ── */
+  const maxCount = d3.max(bars, d => d.count) || 1;
+  const x = d3.scaleLinear().domain([minLog, maxLog]).range([0, iw]);
+  const y = d3.scaleLinear().domain([0, maxCount]).nice().range([ih, 0]);
+
+  /* ── SVG skeleton ── */
+  const svg = d3.select("#chart-svg")
+    .attr("viewBox", `0 0 ${W} ${H}`)
+    .attr("width", W).attr("height", H);
+  const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+
+  /* bars */
+  g.selectAll("rect.bar")
+    .data(bars)
+    .join("rect")
+    .attr("class", "bar")
+    .attr("x",      d => x(d.logX0))
+    .attr("width",  d => Math.max(0, x(d.logX1) - x(d.logX0) - 0.5))
+    .attr("y",      d => y(d.count))
+    .attr("height", d => ih - y(d.count))
+    .attr("fill", "var(--bar)")
+    .attr("opacity", 0.85);
+
+  /* axes */
+  function fmtTick(v) {
+    const orig = Math.expm1(+v);
+    if (orig >= 1e6) return `${(orig / 1e6).toFixed(1)}M`;
+    if (orig >= 1e3) return `${Math.round(orig / 1e3)}k`;
+    return String(Math.round(orig));
+  }
+  g.append("g").attr("class", "axis").attr("transform", `translate(0,${ih})`)
+    .call(d3.axisBottom(x).ticks(8).tickFormat(fmtTick));
+  g.append("g").attr("class", "axis")
+    .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format("d")));
+
+  /* axis labels */
+  g.append("text").attr("fill", "#9aa0a6")
+    .attr("x", iw / 2).attr("y", ih + 42)
+    .attr("text-anchor", "middle").style("font-size", "11px")
+    .text("Monthly listeners (log scale · labels in real counts)");
+  g.append("text").attr("fill", "#9aa0a6")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -ih / 2).attr("y", -44)
+    .attr("text-anchor", "middle").style("font-size", "11px")
+    .text("Number of artists");
+
+  /* ── highlight band (rectangle + centred label) ── */
+  const hlG    = g.append("g").attr("class", "highlight-g");
+  const hlRect = hlG.append("rect")
+    .attr("y", 0).attr("height", ih)
+    .attr("fill",         "rgba(251,191,36,0.13)")
+    .attr("stroke",       "rgba(251,191,36,0.72)")
+    .attr("stroke-width", 1.5);
+  /* ── unified annotation block (two lines + background pill) ── */
+  const hlAnnotBg = hlG.append("rect")
+    .attr("rx", 5).attr("ry", 5)
+    .attr("fill", "rgba(10,8,22,0.85)")
+    .attr("stroke", "rgba(251,191,36,0.38)")
+    .attr("stroke-width", 1);
+  const hlAnnotL1 = hlG.append("text")   // "≥ X listeners"
+    .attr("y", 18)
+    .attr("dominant-baseline", "middle")
+    .attr("text-anchor", "middle")
+    .attr("fill", "#FDE68A")
+    .style("font-size", "13px")
+    .style("font-weight", "700")
+    .style("pointer-events", "none");
+  const hlAnnotL2 = hlG.append("text")   // "top Y% · Z artists"
+    .attr("y", 35)
+    .attr("dominant-baseline", "middle")
+    .attr("text-anchor", "middle")
+    .attr("fill", "#F59E0B")
+    .style("font-size", "10px")
+    .style("font-weight", "600")
+    .style("pointer-events", "none");
+  const hlAnnotL3 = hlG.append("text")   // "Est. payout: $Xk/mo"
+    .attr("y", 50)
+    .attr("dominant-baseline", "middle")
+    .attr("text-anchor", "middle")
+    .attr("fill", "#9CA3AF")
+    .style("font-size", "9px")
+    .style("font-weight", "500")
+    .style("pointer-events", "none");
+
+  /* ── slider elements ── */
+  const slider      = document.getElementById("pct-slider");
+  const trackActive = document.getElementById("track-active");
+
+  /* Slider 0–1000 maps linearly onto [minLog, maxLog] in log-listener space. */
+  const SLIDER_STEPS = 1000;
+
+  /* ── build tick axis + marker below the slider ── */
+  (function buildLdAxis() {
+    const axEl = document.getElementById("ld-axis");
+    if (!axEl) return;
+    const realMin = Math.expm1(minLog);
+    const realMax = Math.expm1(maxLog);
+    const fmtT = v => v >= 1e6 ? `${(v/1e6).toFixed(1)}M`
+                    : v >= 1e3 ? `${Math.round(v/1e3)}k`
+                    : `${Math.round(v)}`;
+
+    function addTick(pct, lbl, edge) {
+      const div = document.createElement("div");
+      div.className = "slider-tick";
+      div.style.left = `${pct.toFixed(1)}%`;
+      // Edge ticks: left-align at 0%, right-align at 100% so labels stay in-bounds
+      if (edge === "start") div.style.transform = "translateX(0)";
+      else if (edge === "end") div.style.transform = "translateX(-100%)";
+      div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
+      axEl.appendChild(div);
+    }
+
+    // Always show the slider limits first (left and right endpoints)
+    addTick(0, fmtT(realMin), "start");
+    addTick(100, fmtT(realMax), "end");
+
+    // Intermediate ticks: one per decade + ×3 mid-decade, skipping if too close to edges
+    const MIN_GAP_PCT = 8; // don't draw intermediate tick within 8% of an edge
+    for (let e = 0; e <= 8; e++) {
+      for (const mult of [1, 3]) {
+        const val = mult * Math.pow(10, e);
+        if (val <= realMin || val >= realMax) continue;
+        const pct = (Math.log1p(val) - minLog) / (maxLog - minLog) * 100;
+        if (pct < MIN_GAP_PCT || pct > 100 - MIN_GAP_PCT) continue;
+        addTick(pct, fmtT(val), null);
+      }
+    }
+
+    // Single moving marker
+    const m = document.createElement("div");
+    m.id = "ld-marker";
+    m.className = "slider-marker";
+    m.innerHTML = `<div class="m-bar"></div><div class="m-lbl" id="ld-marker-lbl">—</div>`;
+    axEl.appendChild(m);
+  })();
+
+  function sliderToLog(v) {
+    if (maxLog <= minLog) return maxLog;
+    return minLog + (maxLog - minLog) * (+v / SLIDER_STEPS);
+  }
+
+  /* ── payrate (Dynamoi Dec 2025, paid tier, Ukraine) ── */
+  const RATE_PER_1K = 1.33; // USD per 1,000 paid streams
+
+  /* Pre-compute per-bar listener estimates: count × expm1(bin midpoint). */
+  const barListenerEst = bars.map(d => {
+    const mid = (d.logX0 + d.logX1) / 2;
+    return d.count * Math.expm1(mid);
+  });
+
+  /* Count artists & sum estimated listeners above a log threshold from bar data directly. */
+  function countAndListeners(threshLog) {
+    let artists = 0, listeners = 0;
+    for (let i = 0; i < bars.length; i++) {
+      const b = bars[i];
+      if (b.logX0 >= threshLog) {
+        artists  += b.count;
+        listeners += barListenerEst[i];
+      } else if (b.logX1 > threshLog) {
+        const frac = (b.logX1 - threshLog) / (b.logX1 - b.logX0);
+        artists  += Math.round(b.count * frac);
+        listeners += barListenerEst[i] * frac;
+      }
+    }
+    return { artists, listeners };
+  }
+
+  function fmtListeners(logVal) {
+    const orig = Math.round(Math.expm1(+logVal));
+    if (orig >= 1e6) return `${(orig / 1e6).toFixed(2)}M`;
+    if (orig >= 1e3) return `${(orig / 1e3).toFixed(1)}k`;
+    return orig.toLocaleString();
+  }
+
+  function fmtUSD(v) {
+    if (v >= 1e6) return `$${(v / 1e6).toFixed(2)}M`;
+    if (v >= 1e3) return `$${Math.round(v / 1e3)}k`;
+    return `$${v.toFixed(0)}`;
+  }
+
+  function fmtPct(ratio) {
+    const p = ratio * 100;
+    if (p >= 1)   return `~${Math.round(p)}%`;
+    if (p >= 0.1) return `~${p.toFixed(1)}%`;
+    return "<0.1%";
+  }
+
+  /* Initialise default at top-5% (quantile["95"]). */
+  const _q95 = quantiles["95"] != null ? +quantiles["95"] : maxLog * 0.63;
+  const _defV = maxLog > minLog
+    ? Math.round((_q95 - minLog) / (maxLog - minLog) * SLIDER_STEPS)
+    : 634;
+  slider.value = String(Math.max(0, Math.min(SLIDER_STEPS, _defV)));
+
+  function update() {
+    const v         = +slider.value;
+    const threshLog = sliderToLog(v);
+    const { artists: artistsAbove, listeners: listenersAbove } = countAndListeners(threshLog);
+    const topRatio  = totalArtists > 0 ? artistsAbove / totalArtists : 0;
+    const pctStr    = fmtPct(topRatio);
+    const rev       = listenersAbove * RATE_PER_1K / 1000;
+
+
+    /* track-active fill */
+    trackActive.style.left  = "0";
+    trackActive.style.width = `${(v / SLIDER_STEPS) * 100}%`;
+
+    /* move axis marker */
+    const ldM = document.getElementById("ld-marker");
+    if (ldM) {
+      ldM.style.left = `${(v / SLIDER_STEPS * 100).toFixed(1)}%`;
+      document.getElementById("ld-marker-lbl").textContent = fmtListeners(threshLog);
+    }
+
+    /* highlight rectangle */
+    const rx = x(threshLog);
+    const rw = Math.max(0, iw - rx);
+    hlRect.attr("x", rx).attr("width", rw);
+
+    /* unified annotation block — always visible, clamped inside chart */
+    const cx = rx + rw / 2;
+    if (rw > 0) {
+      hlAnnotL1.attr("x", cx).text(`≥ ${fmtListeners(threshLog)} listeners`).style("display", null);
+      hlAnnotL2.attr("x", cx).text(`top ${pctStr} · ${artistsAbove.toLocaleString()} artists`).style("display", null);
+      hlAnnotL3.attr("x", cx).text(`est. payout ${fmtUSD(rev)}/mo · $1.33/1k paid`).style("display", null);
+
+      const b1 = hlAnnotL1.node().getBBox();
+      const b2 = hlAnnotL2.node().getBBox();
+      const b3 = hlAnnotL3.node().getBBox();
+      const PAD = { x: 9, y: 6 };
+
+      const boxLeft = Math.min(b1.x, b2.x, b3.x) - PAD.x;
+      const boxW    = Math.max(b1.width, b2.width, b3.width) + PAD.x * 2;
+
+      /* shift text left to avoid right-edge clip; shift right to avoid left-edge clip */
+      const shift = Math.max(0, boxLeft + boxW - iw) - Math.max(0, -boxLeft);
+      if (shift !== 0) {
+        hlAnnotL1.attr("x", cx - shift);
+        hlAnnotL2.attr("x", cx - shift);
+        hlAnnotL3.attr("x", cx - shift);
+      }
+
+      hlAnnotBg
+        .attr("x",      boxLeft - shift)
+        .attr("y",      b1.y - PAD.y)
+        .attr("width",  boxW)
+        .attr("height", (b3.y + b3.height) - b1.y + PAD.y * 2)
+        .style("display", null);
+    } else {
+      hlAnnotL1.style("display", "none");
+      hlAnnotL2.style("display", "none");
+      hlAnnotL3.style("display", "none");
+      hlAnnotBg.style("display", "none");
+    }
+  }
+
+  slider.addEventListener("input", update);
+  update();
+})();
+  </script>
+</body>
+</html>
