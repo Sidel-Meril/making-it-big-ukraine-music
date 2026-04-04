@@ -1,5 +1,5 @@
 """Chart data preparation and export (outputs under data/charts/)."""
 
-from nuam_scraper.charts.paths import charts_root, repo_root
+from making_it_big_ukraine_music.charts.paths import charts_root, repo_root
 
 __all__ = ["charts_root", "repo_root"]

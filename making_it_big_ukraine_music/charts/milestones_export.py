@@ -8,7 +8,7 @@ from typing import Any
 
 import pandas as pd
 
-from nuam_scraper.charts.milestones import FLOWER_MILESTONES, MILESTONE_COLUMNS
+from making_it_big_ukraine_music.charts.milestones import FLOWER_MILESTONES, MILESTONE_COLUMNS
 
 
 def achievement_frame_to_chart_payload(

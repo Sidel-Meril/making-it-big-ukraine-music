@@ -7,9 +7,9 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from nuam_scraper.charts.genres_popularity import build_genre_popularity_table, build_genres_long_df
-from nuam_scraper.charts.genres_popularity_export import genre_table_to_payload
-from nuam_scraper.charts.milestones import (
+from making_it_big_ukraine_music.charts.genres_popularity import build_genre_popularity_table, build_genres_long_df
+from making_it_big_ukraine_music.charts.genres_popularity_export import genre_table_to_payload
+from making_it_big_ukraine_music.charts.milestones import (
     compute_top_rated_labels,
     listeners_threshold_from_quantile,
     top_artist_ids_at_threshold,

@@ -3,9 +3,9 @@ requires = ["hatchling>=1.24.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nuam-scraper"
+name = "making-it-big-ukraine-music"
 version = "0.1.0"
-description = "Scrape NUAM (nuam.club) for a Pudding-style Ukrainian music data story; charts + Parquet."
+description = "Scrape NUAM (nuam.club) for a Pudding-style Ukrainian music data story; charts + Parquet. The Unlikely Odds of Making It Big in Ukraine."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -20,9 +20,9 @@ dependencies = [
 ]
 
 [project.scripts]
-nuam-scrape = "nuam_scraper.cli:main"
-nuam-chart = "nuam_scraper.charts.cli:main"
-nuam-milestones-export = "nuam_scraper.charts.cli:milestones_legacy_main"
+nuam-scrape = "making_it_big_ukraine_music.cli:main"
+nuam-chart = "making_it_big_ukraine_music.charts.cli:main"
+nuam-milestones-export = "making_it_big_ukraine_music.charts.cli:milestones_legacy_main"
 
 [tool.pytest.ini_options]
 markers = [
@@ -33,4 +33,4 @@ markers = [
 dev = []
 
 [tool.hatch.build.targets.wheel.force-include]
-"nuam_scraper/charts/assets" = "nuam_scraper/charts/assets"
+"making_it_big_ukraine_music/charts/assets" = "making_it_big_ukraine_music/charts/assets"

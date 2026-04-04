@@ -1,0 +1,40 @@
+name: Deploy data story to GitHub Pages
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build public directory
+        run: |
+          mkdir -p public
+          cp data/charts/ukraine-music-story/index.html public/index.html
+          for chart in uk_listeners_growth listeners_dist label_rosters milestones genres_popularity signed_deals money_about; do
+            mkdir -p public/$chart
+            cp data/charts/$chart/chart-data.js public/$chart/chart-data.js
+          done
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - uses: actions/deploy-pages@v4
+        id: deployment
