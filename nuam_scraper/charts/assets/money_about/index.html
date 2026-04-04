@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NUAM — What about money?</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --text: #e8e8e8;
+      --muted: #9aa0a6;
+      --rule: #2a2a2a;
+      --accent: #7eb8ff;
+      --on: #0072b2;
+      --warn: rgba(220, 80, 80, 0.25);
+      --bar: #5a8fc9;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.5;
+      padding: 1rem 1.25rem 2.5rem;
+    }
+    .money-wrap { max-width: 72rem; margin: 0 auto; }
+    .block { margin-bottom: 2.5rem; }
+    .block h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .block .subtitle { color: var(--muted); font-size: 0.88rem; max-width: 44rem; margin: 0 0 0.75rem; }
+    .chart-host {
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      background: #141414;
+      padding: 0.5rem;
+      overflow-x: auto;
+    }
+    .axis text { fill: var(--muted); font-size: 11px; }
+    .axis line, .axis path { stroke: #444; }
+    .grid line { stroke: #2a2a2a; }
+    .filter-panel {
+      max-width: 36rem;
+      margin: 0 0 0.75rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #181818;
+    }
+    .filter-panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .filter-readout {
+      font-size: 0.82rem;
+      color: #ccc;
+      margin-top: 0.35rem;
+      line-height: 1.35;
+    }
+    .listener-dual {
+      position: relative;
+      height: 36px;
+      margin: 0.65rem 0 0.15rem;
+      max-width: 36rem;
+    }
+    .listener-track-bg {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 15px;
+      height: 5px;
+      background: #333;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .listener-track-active {
+      position: absolute;
+      top: 15px;
+      height: 5px;
+      background: var(--on);
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .listener-dual input[type="range"] {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: 6px;
+      height: 24px;
+      margin: 0;
+      background: none;
+      pointer-events: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .listener-dual input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid var(--on);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .listener-dual input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid var(--on);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .listener-dual input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      background: transparent;
+    }
+    .listener-dual input[type="range"]::-moz-range-track {
+      height: 5px;
+      background: transparent;
+    }
+    .listener-dual #listen-max {
+      z-index: 2;
+    }
+    .listener-dual #listen-min {
+      z-index: 1;
+    }
+    .money-tip {
+      position: fixed;
+      pointer-events: none;
+      z-index: 50;
+      padding: 0.45rem 0.65rem;
+      background: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      max-width: 280px;
+    }
+    .money-tip strong { color: var(--accent); }
+    .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; max-width: 48rem; }
+  </style>
+</head>
+<body>
+  <div class="money-wrap">
+    <div class="block" id="hist-block">
+      <h2 id="hist-title">Estimated lifetime payouts pile up on the low end</h2>
+      <p class="subtitle" id="hist-subtitle"></p>
+      <div class="chart-host"><svg id="hist-svg" role="img" aria-labelledby="hist-title"></svg></div>
+      <p class="note" id="hist-note"></p>
+    </div>
+    <div class="block" id="lines-block">
+      <h2 id="lines-title">Monthly estimates — slide the peak band, hover a line</h2>
+      <p class="subtitle" id="lines-subtitle"></p>
+      <div class="filter-panel" id="listener-filter-panel">
+        <h2>Peak monthly listeners</h2>
+        <p class="filter-readout" style="margin-top:0">
+          <strong>Peak</strong> = that artist’s best month in the file. The blue strip is what you’re viewing; widen it to bring more lines back.
+        </p>
+        <div class="listener-dual" id="listener-dual-wrap">
+          <div class="listener-track-bg" aria-hidden="true"></div>
+          <div class="listener-track-active" id="listener-track-active" aria-hidden="true"></div>
+          <input type="range" id="listen-min" min="0" max="100" value="0" step="1" aria-label="Lower end of peak listener band shown" />
+          <input type="range" id="listen-max" min="0" max="100" value="100" step="1" aria-label="Upper end of peak listener band shown" />
+        </div>
+        <p class="filter-readout"><span id="listen-val-labels">Min: — · Max: —</span></p>
+      </div>
+      <p class="note" id="lines-filter-note" style="margin-top:0;margin-bottom:0.5rem"></p>
+      <div class="chart-host" style="position:relative"><svg id="lines-svg" role="img" aria-labelledby="lines-title"></svg></div>
+      <p class="note" id="lines-note"></p>
+    </div>
+  </div>
+  <div id="money-tip" class="money-tip" style="display:none" aria-hidden="true"></div>
+
+  <script src="chart-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+(function () {
+  const raw = window.__NUAM_MONEY_ABOUT__;
+  if (!raw || !raw.meta) {
+    document.body.innerHTML = "<p style='padding:1rem;color:#888'>No money chart data.</p>";
+    return;
+  }
+
+  const hist = raw.histogram || {};
+  const linesPack = raw.lines || {};
+  const meta = raw.meta;
+
+  const fmtUsd2 = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  /* —— histogram —— */
+  const bars = hist.bars || [];
+  const tLog = hist.thresholdLog != null ? +hist.thresholdLog : Math.log1p(300);
+  const pct = hist.pctUnderThreshold != null ? +hist.pctUnderThreshold : 0;
+  const nArt = hist.artistCount || 0;
+
+  document.getElementById("hist-subtitle").textContent =
+    `X: estimated lifetime payout per artist (USD, log scale). Y: how many artists. ${nArt.toLocaleString()} artists. Shaded = under $${hist.thresholdUsd || 300}.`;
+
+  document.getElementById("hist-note").textContent =
+    `${pct.toFixed(1)}% sit under $${hist.thresholdUsd || 300} with this rough model (${meta.subtitleMetric || ""}). Not unique listeners; not Spotify’s real checks.`;
+
+  const W1 = 880;
+  const H1 = 340;
+  const m1 = { top: 18, right: 20, bottom: 52, left: 52 };
+  const i1w = W1 - m1.left - m1.right;
+  const i1h = H1 - m1.top - m1.bottom;
+
+  const maxLog = Math.max(tLog + 0.5, +(hist.maxLog || 12), ...bars.map((b) => b.logX1));
+  const maxC = d3.max(bars, (d) => d.count) || 1;
+
+  const x1 = d3.scaleLinear().domain([0, maxLog]).nice().range([0, i1w]);
+  const y1 = d3.scaleLinear().domain([0, maxC]).nice().range([i1h, 0]);
+
+  const svg1 = d3.select("#hist-svg").attr("viewBox", `0 0 ${W1} ${H1}`).attr("width", W1).attr("height", H1);
+  const g1 = svg1.append("g").attr("transform", `translate(${m1.left},${m1.top})`);
+
+  g1.append("rect")
+    .attr("x", x1(0))
+    .attr("width", Math.max(0, x1(tLog) - x1(0)))
+    .attr("y", 0)
+    .attr("height", i1h)
+    .attr("fill", "var(--warn)");
+
+  g1.selectAll("rect.bar")
+    .data(bars)
+    .join("rect")
+    .attr("class", "bar")
+    .attr("x", (d) => x1(d.logX0))
+    .attr("width", (d) => Math.max(0, x1(d.logX1) - x1(d.logX0) - 0.5))
+    .attr("y", (d) => y1(d.count))
+    .attr("height", (d) => i1h - y1(d.count))
+    .attr("fill", "var(--bar)")
+    .attr("opacity", 0.85);
+
+  g1.append("g")
+    .attr("class", "axis")
+    .attr("transform", `translate(0,${i1h})`)
+    .call(
+      d3
+        .axisBottom(x1)
+        .ticks(8)
+        .tickFormat((v) => {
+          const x = Math.expm1(+v);
+          if (x >= 1e6) return `${(x / 1e6).toFixed(1)}M`;
+          if (x >= 1e3) return `${Math.round(x / 1e3)}k`;
+          return String(Math.round(x));
+        })
+    );
+
+  g1.append("g").attr("class", "axis").call(d3.axisLeft(y1).ticks(5).tickFormat(d3.format("d")));
+
+  g1.append("text")
+    .attr("fill", "#9aa0a6")
+    .attr("x", i1w / 2)
+    .attr("y", i1h + 40)
+    .attr("text-anchor", "middle")
+    .style("font-size", "11px")
+    .text("Estimated lifetime payout per artist (USD; log scale; ticks = dollars)");
+
+  g1.append("text")
+    .attr("fill", "#9aa0a6")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -i1h / 2)
+    .attr("y", -40)
+    .attr("text-anchor", "middle")
+    .style("font-size", "11px")
+    .text("Artists (count)");
+
+  g1.append("text")
+    .attr("fill", "#c77")
+    .attr("x", x1(tLog * 0.45))
+    .attr("y", y1(maxC * 0.88))
+    .attr("text-anchor", "middle")
+    .style("font-size", "12px")
+    .text(`Below $${hist.thresholdUsd || 300}: ${pct.toFixed(1)}% of artists`);
+
+  /* —— multi-line + peak listener band —— */
+  const seriesAll = linesPack.series || [];
+  const monthStrs = linesPack.monthExtents || [];
+  const lm = linesPack.meta || {};
+  const sliderMax = Math.max(100000, +(lm.sliderMaxPeakListeners || 1_500_000));
+  const MAX_DRAW_LINES = 350;
+  const dataMin = 0;
+  const dataMax = sliderMax;
+
+  const listenMinEl = document.getElementById("listen-min");
+  const listenMaxEl = document.getElementById("listen-max");
+  const listenValLabels = document.getElementById("listen-val-labels");
+  const listenTrackActive = document.getElementById("listener-track-active");
+  const listenerDualWrap = document.getElementById("listener-dual-wrap");
+  const filterNoteEl = document.getElementById("lines-filter-note");
+
+  function fmtListen(x) {
+    return Math.round(x).toLocaleString();
+  }
+
+  function syncListenerTrack(lo, hi) {
+    const span = Math.max(dataMax - dataMin, 1e-9);
+    const p0 = (lo - dataMin) / span;
+    const p1 = (hi - dataMin) / span;
+    const leftPct = 100 * Math.max(0, Math.min(1, p0));
+    let widthPct = 100 * Math.max(0, Math.min(1, p1) - Math.min(1, p0));
+    if (widthPct === 0 && dataMin === dataMax) widthPct = 100;
+    else if (widthPct === 0) widthPct = 0.6;
+    listenTrackActive.style.left = `${leftPct}%`;
+    listenTrackActive.style.width = `${widthPct}%`;
+  }
+
+  function initPeakSliders() {
+    const span0 = Math.max(dataMax - dataMin, 0);
+    const step =
+      span0 > 2_000_000
+        ? Math.ceil(span0 / 400)
+        : span0 > 200_000
+          ? Math.max(1, Math.ceil(span0 / 400))
+          : span0 > 20_000
+            ? Math.max(1, Math.ceil(span0 / 400))
+            : 1;
+
+    if (dataMin === dataMax) {
+      listenMinEl.min = listenMaxEl.min = String(dataMin);
+      listenMinEl.max = listenMaxEl.max = String(dataMin);
+      listenMinEl.step = listenMaxEl.step = "1";
+      listenMinEl.value = String(dataMin);
+      listenMaxEl.value = String(dataMin);
+    } else {
+      listenMinEl.min = listenMaxEl.min = String(dataMin);
+      listenMinEl.max = listenMaxEl.max = String(dataMax);
+      listenMinEl.step = listenMaxEl.step = String(step);
+      listenMinEl.value = String(dataMin);
+      listenMaxEl.value = String(dataMax);
+    }
+    listenerDualWrap.style.opacity = "1";
+    listenMinEl.disabled = false;
+    listenMaxEl.disabled = false;
+  }
+
+  initPeakSliders();
+
+  const nExported = seriesAll.length;
+  const nMeta = lm.artistSeriesCount != null ? +lm.artistSeriesCount : nExported;
+  document.getElementById("lines-subtitle").textContent =
+    `Rough monthly USD from ${lm.startMonth || "2025-01"}; ${nMeta.toLocaleString()} artist series in the file. Drag the handles to pick a peak band, then hover a line.`;
+
+  document.getElementById("lines-note").textContent =
+    "Heavy bands only draw the top earners (speed limit). Hover picks the nearest month and line. Peak = max monthly listeners for that artist in NUAM.";
+
+  const monthDates = monthStrs.map((s) => new Date(s + "T12:00:00"));
+  const bisectMonth = d3.bisector((d) => d.getTime()).center;
+
+  const W2 = 920;
+  const H2 = 420;
+  const m2 = { top: 12, right: 28, bottom: 48, left: 64 };
+  const i2w = W2 - m2.left - m2.right;
+  const i2h = H2 - m2.top - m2.bottom;
+
+  const svg2 = d3.select("#lines-svg").attr("viewBox", `0 0 ${W2} ${H2}`).attr("width", W2).attr("height", H2);
+  const g2 = svg2.append("g").attr("transform", `translate(${m2.left},${m2.top})`);
+
+  const x2 = d3
+    .scaleTime()
+    .domain(d3.extent(monthDates))
+    .range([0, i2w]);
+
+  let y2 = d3.scaleLinear().domain([0, 1]).range([i2h, 0]);
+
+  const lineGen = d3
+    .line()
+    .x((d) => x2(new Date(d.month + "T12:00:00")))
+    .y((d) => y2(d.usd))
+    .curve(d3.curveMonotoneX);
+
+  const color = d3.scaleOrdinal(d3.schemeTableau10);
+  const pathsG = g2.append("g").attr("class", "paths");
+  const gx = g2.append("g").attr("class", "axis").attr("transform", `translate(0,${i2h})`);
+  const gy = g2.append("g").attr("class", "axis");
+
+  g2.append("text")
+    .attr("fill", "#9aa0a6")
+    .attr("x", i2w / 2)
+    .attr("y", i2h + 36)
+    .attr("text-anchor", "middle")
+    .style("font-size", "11px")
+    .text("Month");
+
+  g2.append("text")
+    .attr("fill", "#9aa0a6")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -i2h / 2)
+    .attr("y", -48)
+    .attr("text-anchor", "middle")
+    .style("font-size", "11px")
+    .text("Estimated payout (USD / month)");
+
+  const tip = d3.select("#money-tip");
+  let activeId = null;
+
+  function clampListenerSliders() {
+    let lo = +listenMinEl.value;
+    let hi = +listenMaxEl.value;
+    if (lo > hi) {
+      listenMaxEl.value = String(lo);
+      hi = lo;
+    }
+    if (hi < lo) {
+      listenMinEl.value = String(hi);
+      lo = hi;
+    }
+  }
+
+  /** @returns {{ draw: typeof seriesAll, inBandCount: number, capped: boolean }} */
+  function computeDraw(updateUi) {
+    clampListenerSliders();
+    const lo = +listenMinEl.value;
+    const hi = +listenMaxEl.value;
+    const inBand = seriesAll.filter((s) => s.peakListeners >= lo && s.peakListeners <= hi);
+    let draw = inBand;
+    let capped = false;
+    if (draw.length > MAX_DRAW_LINES) {
+      draw = draw.slice().sort((a, b) => (+(b.totalUsd || 0)) - (+(a.totalUsd || 0))).slice(0, MAX_DRAW_LINES);
+      capped = true;
+    }
+    if (updateUi) {
+      listenValLabels.textContent = `Min: ${fmtListen(lo)} · Max: ${fmtListen(hi)}`;
+      syncListenerTrack(lo, hi);
+      if (inBand.length === 0) {
+        filterNoteEl.textContent = "Nobody in this peak band.";
+      } else if (capped) {
+        filterNoteEl.textContent = `${inBand.length.toLocaleString()} match; showing top ${MAX_DRAW_LINES} by estimated payout — narrow the band to see more.`;
+      } else {
+        filterNoteEl.textContent = `${inBand.length.toLocaleString()} in this band; all drawn.`;
+      }
+    }
+    return { draw, inBandCount: inBand.length, capped };
+  }
+
+  function valueAtMonth(pts, tMs) {
+    if (!pts.length) return null;
+    const ts = pts.map((p) => new Date(p.month + "T12:00:00").getTime());
+    const i = d3.bisector((u) => u).center(ts, tMs);
+    const j = Math.max(0, Math.min(pts.length - 1, i));
+    return pts[j];
+  }
+
+  function redrawLinesWithVis(vis) {
+    const maxY = d3.max(vis, (s) => d3.max(s.points, (p) => p.usd)) || 1;
+    y2.domain([0, maxY * 1.06]).nice();
+
+    gx.call(d3.axisBottom(x2).ticks(d3.timeMonth.every(2)).tickFormat(d3.timeFormat("%b %y")));
+    gy.call(d3.axisLeft(y2).ticks(6).tickFormat((v) => (v >= 1e6 ? `${v / 1e6}M` : v >= 1e3 ? `${v / 1e3}k` : v)));
+
+    const pth = pathsG.selectAll("path.artist-line").data(vis, (d) => d.id);
+    pth.exit().remove();
+    pth
+      .enter()
+      .append("path")
+      .attr("class", "artist-line")
+      .attr("fill", "none")
+      .attr("stroke-width", 2)
+      .merge(pth)
+      .attr("stroke", (d) => color(String(d.id)))
+      .attr("d", (d) => lineGen(d.points))
+      .style("opacity", (d) => (activeId == null || d.id === activeId ? 1 : 0.12))
+      .style("stroke-width", (d) => (d.id === activeId ? 3.2 : 2));
+  }
+
+  function redrawLines() {
+    const { draw } = computeDraw(true);
+    redrawLinesWithVis(draw);
+  }
+
+  const overlay = g2
+    .append("rect")
+    .attr("width", i2w)
+    .attr("height", i2h)
+    .attr("fill", "transparent")
+    .style("cursor", "crosshair")
+    .on("mousemove", function (event) {
+      const { draw: vis } = computeDraw(false);
+      if (!vis.length) {
+        tip.style("display", "none");
+        return;
+      }
+      const [mx, my] = d3.pointer(event, this);
+      const t0 = x2.invert(mx).getTime();
+      const mi = bisectMonth(monthDates, t0);
+      const pick = monthDates[Math.max(0, Math.min(monthDates.length - 1, mi))];
+      const tM = pick.getTime();
+
+      let best = null;
+      let bestD = 1e18;
+      for (const s of vis) {
+        const pt = valueAtMonth(s.points, tM);
+        if (!pt) continue;
+        const px = x2(new Date(pt.month + "T12:00:00"));
+        const py = y2(pt.usd);
+        const dd = (px - mx) ** 2 + (py - my) ** 2;
+        if (dd < bestD && dd < 900) {
+          bestD = dd;
+          best = { s, pt, px, py };
+        }
+      }
+
+      if (!best) {
+        activeId = null;
+        tip.style("display", "none");
+        redrawLinesWithVis(vis);
+        return;
+      }
+
+      activeId = best.s.id;
+      redrawLinesWithVis(vis);
+
+      const mo = d3.timeFormat("%b %Y")(new Date(best.pt.month + "T12:00:00"));
+      tip
+        .style("display", "block")
+        .html(
+          `<strong>${best.s.name}</strong><br/>${mo}<br/>${fmtUsd2.format(best.pt.usd)} <span style="color:#888">est. / month</span>`
+        );
+      tip.style("left", event.clientX + 14 + "px").style("top", event.clientY + 14 + "px");
+    })
+    .on("mouseleave", () => {
+      activeId = null;
+      tip.style("display", "none");
+      redrawLines();
+    });
+
+  function onSliderInput() {
+    activeId = null;
+    tip.style("display", "none");
+    redrawLines();
+  }
+  listenMinEl.addEventListener("input", onSliderInput);
+  listenMaxEl.addEventListener("input", onSliderInput);
+
+  redrawLines();
+})();
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NUAM — Ukrainian music listeners & signed deals</title>
+  <title>NUAM — signed deals & “strange” early signings</title>
   <style>
     :root {
       --bg: #121212;
@@ -71,13 +71,13 @@
       padding: 0.75rem;
       overflow-x: auto;
     }
-    /* Pack: SVG sizes to drawn content, not full box width */
+    /* Pack: fill column width; SVG uses viewBox so it scales down on narrow viewports */
     .chart-host--intrinsic-pack {
-      width: fit-content;
+      width: 100%;
       max-width: 100%;
       margin-left: auto;
       margin-right: auto;
-      overflow-x: auto;
+      overflow-x: hidden;
     }
     .axis text { fill: var(--muted); font-size: 11px; }
     .axis line, .axis path { stroke: #444; }
@@ -108,9 +108,10 @@
       vertical-align: top;
     }
     .chart-host--intrinsic-pack .pack-host svg {
-      width: auto;
+      width: 100%;
       max-width: 100%;
       height: auto;
+      display: block;
     }
     .pack-host circle.pack-boundary {
       fill: none;
@@ -157,40 +158,23 @@
       color: var(--muted);
       font-size: 0.9rem;
     }
-    .growth-line-pre { stroke: #6497b1; stroke-width: 2.5px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .growth-line-2026 { stroke: #00b070; stroke-width: 2.5px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .growth-dot { fill: #f0f0f0; stroke: #1a1a1a; stroke-width: 1px; }
-    .growth-delta {
-      fill: #c8cdd5;
-      font-size: 11px;
-      font-weight: 600;
-      paint-order: stroke fill;
-      stroke: #121212;
-      stroke-width: 0.35px;
-    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Why we study Ukrainian music on Spotify — summed roster listeners keep climbing</h1>
+    <h1>Peer-rated labels: many artists land before big streaming numbers</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
-  <section class="story-section" aria-labelledby="h-growth">
-    <h2 id="h-growth">Roster-wide monthly listeners trend sets the scene</h2>
-    <p class="section-lead" id="growth-lead"></p>
-    <div class="chart-host"><svg id="svg-growth" role="img" aria-label="Summed monthly listeners over time"></svg></div>
-  </section>
-
   <section class="story-section" aria-labelledby="h-hist">
-    <h2 id="h-hist">Peer-label signings skew toward lower peak listeners (histogram)</h2>
+    <h2 id="h-hist">How high did monthly listeners ever get?</h2>
     <p class="section-lead" id="hist-lead"></p>
     <div class="chart-host"><svg id="svg-hist" role="img" aria-label="Histogram of peak listeners"></svg></div>
     <div class="callout" id="anomaly-note"></div>
   </section>
 
   <section class="story-section" aria-labelledby="h-pack">
-    <h2 id="h-pack">Genres for “strange deals” (signed on peer label while peak listeners &lt; 1,000)</h2>
+    <h2 id="h-pack">Genres in the “strange deal” slice (still under the cutoff)</h2>
     <p class="section-lead" id="pack-lead"></p>
     <div class="chart-host chart-host--intrinsic-pack">
       <div class="pack-host" id="pack-host"></div>
@@ -199,14 +183,13 @@
   </section>
 
   <section class="story-section" aria-labelledby="h-bars">
-    <h2 id="h-bars">Top labels by roster size among filtered labels — strange count overlaid</h2>
+    <h2 id="h-bars">Which labels sign the most — and how many “strange” cases</h2>
     <p class="section-lead" id="bars-lead"></p>
     <div class="chart-host"><svg id="svg-bars" role="img" aria-label="Horizontal bars and strange-deal counts"></svg></div>
   </section>
 
   <p class="note">
-    Data: NUAM export · “Signed” = appears on a label that also signs ≥2 top-listener-pool artists (same rule as milestone flower).
-    Regenerate: <code style="color:#ccc">uv run nuam-chart signed-deals --sync-html</code>
+    Data: NUAM · “Signed” = on a label that also has ≥2 “big listener” acts (same rule as the milestone chart).
   </p>
 
   <script src="chart-data.js"></script>
@@ -223,154 +206,19 @@
       const LABEL_MIN = meta.labelMinPeakListeners;
 
       document.getElementById("subtitle").textContent =
-        `Export through ${String(meta.refMonthIso).slice(0, 7)}: full-roster listener totals (first chart), then ${meta.signedArtistCount.toLocaleString()} artists on peer-rated labels — ${meta.strangeArtistCount.toLocaleString()} with peak monthly listeners below ${STRANGE.toLocaleString()} (“strange deals”).`;
-
-      const gStart = meta.ukraineGrowthStartIso || "";
-      const gEnd = meta.ukraineGrowthEndIso || String(meta.refMonthIso).slice(0, 10);
-      const hiYear = meta.ukraineGrowthHighlightYear ?? 2026;
-      document.getElementById("growth-lead").textContent =
-        `January 2024 through the latest month in the file (${gStart.slice(0, 7)}–${gEnd.slice(0, 7)} in this export). Each value is the sum of monthly listener counts across all artist–month rows in NUAM. Callouts show month-to-month change (+ additional listeners vs previous month). Line color is blue before ${hiYear} and green for segments ending in ${hiYear}.`;
-
-      /* —— 0) Ukraine roster listener growth —— */
-      const ug = raw.ukraineListenersGrowth;
-      const GW = 900;
-      const GH = 400;
-      const gm = { top: 52, right: 28, bottom: 52, left: 72 };
-      const giw = GW - gm.left - gm.right;
-      const gih = GH - gm.top - gm.bottom;
-      const svgG = d3.select("#svg-growth").attr("viewBox", `0 0 ${GW} ${GH}`).attr("width", GW).attr("height", GH);
-      const gG = svgG.append("g").attr("transform", `translate(${gm.left},${gm.top})`);
-
-      function fmtListeners(n) {
-        if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
-        if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
-        if (n >= 1e3) return `${(n / 1e3).toFixed(1)}k`;
-        return Math.round(n).toLocaleString();
-      }
-
-      if (!ug || !ug.points || !ug.points.length) {
-        gG.append("text").attr("x", giw / 2).attr("y", gih / 2).attr("text-anchor", "middle").attr("fill", "#888").text("No monthly listener series in export.");
-      } else {
-        const pts = ug.points.map((p) => ({
-          t: new Date(p.monthIso + "T12:00:00"),
-          total: p.total,
-          delta: p.delta,
-          year: p.year,
-        }));
-        const x = d3
-          .scaleTime()
-          .domain(d3.extent(pts, (d) => d.t))
-          .range([0, giw]);
-        const y = d3
-          .scaleLinear()
-          .domain([0, d3.max(pts, (d) => d.total) * 1.04])
-          .nice()
-          .range([gih, 0]);
-
-        gG.append("g")
-          .attr("class", "grid")
-          .attr("transform", `translate(0,${gih})`)
-          .call(d3.axisBottom(x).ticks(Math.min(12, pts.length)).tickSize(-gih).tickFormat(""))
-          .call((ax) => ax.select(".domain").remove());
-
-        const lineGen = d3
-          .line()
-          .x((d) => x(d.t))
-          .y((d) => y(d.total))
-          .curve(d3.curveMonotoneX);
-
-        for (let i = 0; i < pts.length - 1; i++) {
-          const a = pts[i];
-          const b = pts[i + 1];
-          const seg = [a, b];
-          const use2026 = b.year >= hiYear;
-          gG.append("path")
-            .attr("class", use2026 ? "growth-line-2026" : "growth-line-pre")
-            .attr("d", lineGen(seg));
-        }
-
-        gG.selectAll("circle.growth-dot")
-          .data(pts)
-          .join("circle")
-          .attr("class", "growth-dot")
-          .attr("cx", (d) => x(d.t))
-          .attr("cy", (d) => y(d.total))
-          .attr("r", 4)
-          .append("title")
-          .text((d) => {
-            const base = `${d.t.toISOString().slice(0, 7)}: Σ ${fmtListeners(d.total)} listeners`;
-            return d.delta == null ? base : `${base}\nΔ vs prior month: ${d.delta >= 0 ? "+" : ""}${fmtListeners(d.delta)}`;
-          });
-
-        gG.selectAll("text.growth-delta")
-          .data(pts.filter((d) => d.delta != null && Number.isFinite(d.delta)))
-          .join("text")
-          .attr("class", "growth-delta")
-          .attr("text-anchor", "middle")
-          .attr("x", (d) => x(d.t))
-          .attr("y", (d) => y(d.total) - 10)
-          .text((d) => `${d.delta >= 0 ? "+" : ""}${fmtListeners(d.delta)}`);
-
-        gG.append("g")
-          .attr("class", "axis")
-          .attr("transform", `translate(0,${gih})`)
-          .call(d3.axisBottom(x).ticks(Math.min(14, pts.length)).tickFormat(d3.timeFormat("%b %Y")));
-        gG.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(6).tickFormat((v) => fmtListeners(v)));
-
-        gG.append("text")
-          .attr("fill", "#9aa0a6")
-          .attr("x", giw / 2)
-          .attr("y", gih + 40)
-          .attr("text-anchor", "middle")
-          .style("font-size", "11px")
-          .text("Month (calendar)");
-        gG.append("text")
-          .attr("fill", "#9aa0a6")
-          .attr("transform", "rotate(-90)")
-          .attr("x", -gih / 2)
-          .attr("y", -56)
-          .attr("text-anchor", "middle")
-          .style("font-size", "11px")
-          .text("Summed monthly listeners across NUAM roster (count)");
-
-        const t0 = pts[0].t;
-        const t1 = pts[pts.length - 1].t;
-        const net = pts[pts.length - 1].total - pts[0].total;
-        const netPhrase =
-          net >= 0
-            ? `net +${fmtListeners(net)} summed listeners`
-            : `net ${fmtListeners(net)} summed listeners`;
-        const insightTitle = `${netPhrase} from ${d3.timeFormat("%b %Y")(t0)} to ${d3.timeFormat("%b %Y")(t1)} (callouts = change vs prior month)`;
-        svgG
-          .append("text")
-          .attr("x", gm.left)
-          .attr("y", 22)
-          .attr("fill", "#e8e8e8")
-          .style("font-size", "13px")
-          .style("font-weight", "650")
-          .text(insightTitle);
-
-        svgG
-          .append("text")
-          .attr("x", gm.left + giw - 4)
-          .attr("y", 38)
-          .attr("text-anchor", "end")
-          .attr("fill", "#9aa0a6")
-          .style("font-size", "10px")
-          .text(`Green = segment ends in ${hiYear}`);
-      }
+        `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} artists on peer-rated labels; ${meta.strangeArtistCount.toLocaleString()} never peaked above ${STRANGE.toLocaleString()} monthly listeners — our “strange deals.”`;
 
       document.getElementById("hist-lead").textContent =
-        `Each artist is counted once; peak = maximum monthly listeners in the export. Orange band: log₁p scale from 0 to log₁p(${STRANGE.toLocaleString()}) — artists whose career-month peak never reached ${STRANGE.toLocaleString()} before appearing on a peer-rated label.`;
+        `One row per artist. “Peak” = their best month in the file. On a log scale, the orange band marks peaks still under ${STRANGE.toLocaleString()} when they first hit a peer-rated label.`;
 
       document.getElementById("anomaly-note").innerHTML =
-        "<strong>What the band means.</strong> Labels in NUAM are observed when an artist appears in the roster. Many Ukrainian acts show up on a peer-rated label while monthly listener counts are still in the hundreds. That does not prove the deal closed at that instant, but it shows how often the <em>first NUAM snapshot on such a label</em> sits in a low-listener regime — worth contrasting with majors that appear only after streaming scale.";
+        "<strong>About that band.</strong> NUAM only spots a label once someone is on the roster — often while listeners are still tiny. That is not proof the deal signed that week; it’s how often the <em>first snapshot we have</em> is still a small audience, unlike many majors that show up later with bigger numbers.";
 
       document.getElementById("bars-lead").textContent =
-        `Labels kept only if at least one artist on that label has peak monthly listeners ≥ ${LABEL_MIN.toLocaleString()}. Bars: all signed artists on the label. Orange markers + line: subset with peak &lt; ${STRANGE.toLocaleString()}.`;
+        `We drop a label unless someone on it peaked ≥ ${LABEL_MIN.toLocaleString()} listeners. Blue = every signed artist there; orange = those who peaked below ${STRANGE.toLocaleString()}.`;
 
       document.getElementById("pack-lead").textContent =
-        "Circle area ∝ summed monthly listeners (same metric as the main genre pack). Bubbles use a single highlight fill (#e6c229, the yellow from the main chart’s blue→yellow→green ramp). The graphic uses a fixed-size SVG (no viewBox); the pack is scaled and centered inside that frame. Outer label type size matches the main chart (13px ring / 15px inside). Radial ticks, ring placement, and overlap hiding follow the same rules.";
+        "Bigger bubble = more monthly listeners summed in that genre for this slice only. Same yellow accent as elsewhere on the page.";
 
       /* —— 1) Histogram —— */
       const h = raw.histogram;
@@ -427,7 +275,7 @@
         .attr("y", ih + 36)
         .attr("text-anchor", "middle")
         .style("font-size", "11px")
-        .text("Peak monthly listeners in export (tick labels use original count, not log)");
+        .text("Peak monthly listeners (log axis; ticks = real counts)");
       gH.append("text")
         .attr("fill", "#9aa0a6")
         .attr("transform", "rotate(-90)")
@@ -435,7 +283,7 @@
         .attr("y", -40)
         .attr("text-anchor", "middle")
         .style("font-size", "11px")
-        .text("Number of signed artists (count)");
+        .text("Artists (count)");
 
       svgH.append("text")
         .attr("x", margin.left)
@@ -443,7 +291,7 @@
         .attr("fill", "#e8e8e8")
         .style("font-size", "13px")
         .style("font-weight", "650")
-        .text("Many peer-label appearances sit left of the band edge (low peak listeners)");
+        .text("Most first snapshots sit left of the band");
 
       /* —— 2) Strange-deal genre pack (same layout / ticks / labels as genres_popularity) —— */
       const packRaw = raw.strangeGenrePack || { genres: [] };
@@ -471,31 +319,29 @@
         const lines = [o.name];
         if (o.topArtistNames && o.topArtistNames.length) {
           const ranked = o.topArtistNames.map((n, i) => `${i + 1}. ${n}`).join("\n");
-          lines.push(
-            `Top ${o.topArtistNames.length} in this genre (by Σ monthly listeners in file):\n${ranked}`
-          );
+          lines.push(`Top acts here (by monthly listeners in file):\n${ranked}`);
         }
         lines.push(
-          `${metricLabelPack} (pack): ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
-          `Fill = solid highlight (#e6c229); strange-deal artists only (peak listeners < ${STRANGE.toLocaleString()})`,
-          `Listeners / artist row: ${o.lpa != null ? o.lpa.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "—"}`,
-          `Artist–genre rows: ${o.artistCount.toLocaleString()}`,
-          `Σ monthly listeners: ${Math.round(o.listenersSum).toLocaleString()}`
+          `Listeners summed (bubble size): ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+          `Yellow fill; strange-deal slice only (peak < ${STRANGE.toLocaleString()})`,
+          `Listeners per artist: ${o.lpa != null ? o.lpa.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "—"}`,
+          `Rows (artist–genre): ${o.artistCount.toLocaleString()}`,
+          `Monthly listeners summed: ${Math.round(o.listenersSum).toLocaleString()}`
         );
         return lines.join("\n");
       }
 
       function bubbleAriaLabelPack(d) {
         const o = d.data;
-        let s = `${o.name}. ${metricLabelPack} (pack) ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}.`;
+        let s = `${o.name}. Listeners summed (size) ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}.`;
         if (o.topArtistNames && o.topArtistNames.length) {
           const tail = o.topArtistNames.map((n, i) => `${i + 1}) ${n}`).join("; ");
-          s += ` Top ${o.topArtistNames.length} by monthly listeners in file: ${tail}.`;
+          s += ` Top ${o.topArtistNames.length} in file: ${tail}.`;
         }
         return s;
       }
 
-      /** Fixed pixel canvas — no viewBox; pack is scaled/translated to sit inside this box. */
+      /** Logical pixel canvas; viewBox + CSS width 100% scales the pack to the container. */
       const SVG_W = 960;
       const SVG_H = 960;
       const BOX_PAD = 36;
@@ -510,8 +356,7 @@
         emptyPackEl.style.display = "none";
 
         if (!children.length) {
-          emptyPackEl.textContent =
-            "No genres in the strange-deal subset (or no tagged genres). Regenerate after updating parquet.";
+          emptyPackEl.textContent = "No genres tagged in this slice, or nothing matches.";
           emptyPackEl.style.display = "block";
           return;
         }
@@ -527,7 +372,14 @@
 
         d3.pack().size([packLayoutSize, packLayoutSize]).padding(0)(root);
 
-        const svgP = host.append("svg").attr("role", "img").attr("width", SVG_W).attr("height", SVG_H);
+        const svgP = host
+          .append("svg")
+          .attr("role", "img")
+          .attr("viewBox", `0 0 ${SVG_W} ${SVG_H}`)
+          .attr("preserveAspectRatio", "xMidYMid meet")
+          .style("width", "100%")
+          .style("height", "auto")
+          .style("display", "block");
         const g = svgP.append("g").attr("class", "strange-pack-root");
 
         g.append("circle")
@@ -699,7 +551,7 @@
       const gB = svgB.append("g").attr("transform", `translate(${mb.left},${mb.top})`);
 
       if (!rows.length) {
-        gB.append("text").attr("fill", "#888").text("No labels after filters.");
+        gB.append("text").attr("fill", "#888").text("No labels left after filters.");
       } else {
         const display = [...rows].reverse();
         const xMaxB = d3.max(display, (d) => d.signedCount) || 1;
@@ -733,7 +585,7 @@
           .attr("fill", "#4575b4")
           .attr("rx", 2)
           .append("title")
-          .text((d) => `${d.label}\nSigned on label: ${d.signedCount}\nStrange (< ${STRANGE} peak): ${d.strangeCount}`);
+          .text((d) => `${d.label}\nSigned artists: ${d.signedCount}\n“Strange” (peak < ${STRANGE}): ${d.strangeCount}`);
 
         const linePts = display.map((d) => [xb(d.strangeCount), yb(d.label) + yb.bandwidth() / 2]);
         const ln = d3
@@ -758,7 +610,7 @@
           .attr("stroke", "#1a1a1a")
           .attr("stroke-width", 1)
           .append("title")
-          .text((d) => `Strange deals on ${d.label}: ${d.strangeCount}`);
+          .text((d) => `${d.label} — “strange” count: ${d.strangeCount}`);
 
         gB.append("g").attr("class", "axis").call(d3.axisLeft(yb));
         gB.append("g")
@@ -772,7 +624,7 @@
           .attr("text-anchor", "middle")
           .attr("fill", "#9aa0a6")
           .style("font-size", "11px")
-          .text("Artist count on label (signed artists, count)");
+          .text("Signed artists per label (count)");
 
         svgB.append("text")
           .attr("x", mb.left)
@@ -780,7 +632,7 @@
           .attr("fill", "#e8e8e8")
           .style("font-size", "13px")
           .style("font-weight", "650")
-          .text("Blue bar = all signed roster; orange = strange-deal count (same vertical order)");
+          .text("Blue = all signings; orange = “strange” slice");
       }
     })();
   </script>

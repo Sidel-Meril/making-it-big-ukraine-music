@@ -100,7 +100,7 @@
 </head>
 <body>
   <header>
-    <h1>Five scraped milestones per artist, shown as a compact flower glyph</h1>
+    <h1>Five scraped milestones per artist, drawn as a compact flower glyph</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
@@ -115,7 +115,7 @@
   </div>
 
   <div class="legend-wrap">
-    <div class="legend-title">Petals — clockwise from top (equal spacing)</div>
+    <div class="legend-title">Petals, clockwise from the top (even spacing)</div>
     <div class="legend-grid" id="legend"></div>
   </div>
 
@@ -123,10 +123,7 @@
 
   <p class="note">
     Reference layout and metaphor: <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#6eb6ff">The Pudding — TikTok emerging artists</a>.
-    Data: <code style="color:#ccc">data/charts/milestones/chart-data.js</code> — regenerate with <code style="color:#ccc">uv run nuam-chart milestones</code>
-    (or <code style="color:#ccc">uv run python scripts/charts/export_milestones.py</code>).
-    Refresh this HTML from the package template: <code style="color:#ccc">uv run nuam-chart milestones --sync-html</code>.
-    Serve this directory with <code style="color:#ccc">python -m http.server</code> if the browser blocks local scripts.
+    Data: NUAM artist export with peak monthly listeners and five boolean milestone fields.
   </p>
 
   <script src="chart-data.js"></script>
@@ -135,8 +132,7 @@
     (function () {
       const data = window.__NUAM_MILESTONE_DATA__;
       if (!data || !data.artists || !data.milestones) {
-        document.getElementById("grid").textContent =
-          "Missing chart-data.js — run: uv run nuam-chart milestones";
+        document.getElementById("grid").textContent = "Chart data did not load.";
         return;
       }
 
@@ -144,7 +140,7 @@
       const ref = meta.refMonth ? String(meta.refMonth).slice(0, 7) : "—";
       const nPetals = data.milestones.length;
       document.getElementById("subtitle").textContent =
-        `Peak monthly listeners (NUAM scrape, ref. month ${ref}); center text is milestones achieved out of ${nPetals} extracted fields${meta.spotifyListenersThreshold != null ? ` (listeners petal: peak ≥ ${Number(meta.spotifyListenersThreshold).toLocaleString()})` : ""}.`;
+        `Peak monthly listeners from the NUAM scrape, reference month ${ref}; the center counts milestones achieved out of ${nPetals} extracted fields${meta.spotifyListenersThreshold != null ? ` (the listeners petal lights when peak monthly listeners reach at least ${Number(meta.spotifyListenersThreshold).toLocaleString()})` : ""}.`;
 
       const legend = d3.select("#legend");
       data.milestones.forEach((m, i) => {

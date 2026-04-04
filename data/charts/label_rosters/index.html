@@ -118,24 +118,24 @@
 </head>
 <body>
   <header>
-    <h1>Every NUAM label: center size shows roster depth; green only when several high-listener artists share the imprint</h1>
+    <h1>NUAM labels in a grid: bigger dot = more artists; green = “top-rated” by NUAM’s rule</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
   <div class="controls">
     <label for="sort">Order tiles by</label>
     <select id="sort">
-      <option value="roster-desc">Catalog size (most artists first)</option>
-      <option value="roster-asc">Catalog size (fewest first)</option>
-      <option value="hits-desc">High-listener matches (most ticks)</option>
-      <option value="hits-asc">High-listener matches (fewest ticks)</option>
+      <option value="roster-desc">Most artists on label first</option>
+      <option value="roster-asc">Fewest artists first</option>
+      <option value="hits-desc">Most “big listener” ticks first</option>
+      <option value="hits-asc">Fewest ticks first</option>
       <option value="name-asc">Label name (A–Z)</option>
     </select>
   </div>
 
   <div class="legend-wrap">
     <p class="legend-lead">
-      <strong>How to read the glyphs.</strong> <strong>Center circle</strong> scales with how many distinct artists NUAM lists on that label (the number inside is that count). <strong>Each radial tick</strong> is one high-listener-pool artist on that imprint; tick tips share one <strong>fixed outer radius</strong>, and tick roots sit a <strong>constant gap</strong> outside the circle edge so small and large centers stay visually aligned. <strong>Green</strong> = top-rated (≥ threshold pool artists). <strong>Gray</strong> = otherwise.
+      <strong>Quick read.</strong> The number in the middle is how many artists NUAM ties to that label; the dot grows with that count. Each spoke is one artist who also clears NUAM’s “big listener” bar. <strong>Green</strong> = top-rated label; <strong>gray</strong> = not.
     </p>
     <div class="legend-diagram-host" id="legend-host"></div>
   </div>
@@ -144,7 +144,7 @@
   <p id="grid-footer" class="grid-footer" aria-live="polite"></p>
 
   <p class="note">
-    Data: NUAM scrape — <a href="https://www.nuam.club/stat" style="color:#6eb6ff">nuam.club/stat</a>. “Top listeners” uses the same last-month quantile threshold as the milestone export. Companion view: milestone sun chart.
+    Data: NUAM — <a href="https://www.nuam.club/stat" style="color:#6eb6ff">nuam.club/stat</a>. “Big listener” pool matches the milestone chart’s cutoff. Pair with the milestone sun view.
   </p>
 
   <script src="chart-data.js"></script>
@@ -181,10 +181,10 @@
       const maxCatalog = Math.max(1, meta.maxArtistCountOnLabel | 0);
       const thrNote =
         thr != null && Number.isFinite(thr)
-          ? ` Top-listener pool = artists at or above ${Number(thr).toLocaleString()} monthly listeners in the reference month.`
+          ? ` “Big listener” = ≥${Number(thr).toLocaleString()} monthly listeners that month.`
           : "";
       document.getElementById("subtitle").textContent =
-        `Reference month ${ref}.${thrNote} ${nLabels.toLocaleString()} labels in export; ${nTopRated.toLocaleString()} are top-rated (≥${minA} pool artists on the imprint). Center number = total artists on that label in NUAM; center radius scales with that count. Each tick = one pool artist on the label. Gray glyphs are not top-rated.`;
+        `Snapshot ${ref}.${thrNote} ${nLabels.toLocaleString()} labels in the file; ${nTopRated.toLocaleString()} count as top-rated (≥${minA} pool artists). Gray tiles are not top-rated.`;
 
       /** Center hole scales with catalog size. Tick tips sit on a fixed outer ring; tick roots sit a fixed gap past the circle edge. */
       const W = 78;
@@ -324,7 +324,7 @@
             ? d.artistCountOnLabel
             : d.artists.length;
         const pool = d.artists || [];
-        const head = `Artists on label in NUAM: ${total}\nHigh-listener pool on label: ${pool.length}\n`;
+        const head = `Artists on this label (NUAM): ${total}\nAlso in the “big listener” pool: ${pool.length}\n`;
         if (!pool.length) return head.trimEnd();
         return head + pool.map((a) => a.name || "(unnamed)").join("\n");
       }
@@ -366,9 +366,9 @@
         const rest = sorted.length - toShow.length;
 
         if (rest > 0) {
-          gridFooterEl.textContent = `${rest.toLocaleString()} more label${rest === 1 ? "" : "s"} match this sort but are not drawn above (grid shows ${GRID_VISIBLE_MAX} tiles).`;
+          gridFooterEl.textContent = `${rest.toLocaleString()} more label${rest === 1 ? "" : "s"} match this sort; showing ${GRID_VISIBLE_MAX} at a time.`;
         } else {
-          gridFooterEl.textContent = `All ${sorted.length.toLocaleString()} labels in the export appear above.`;
+          gridFooterEl.textContent = `All ${sorted.length.toLocaleString()} labels from this export are above.`;
         }
 
         grid.selectAll("div.card").remove();

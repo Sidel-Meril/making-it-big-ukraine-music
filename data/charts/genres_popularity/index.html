@@ -227,14 +227,14 @@
 </head>
 <body>
   <header>
-    <h1>Genre popularity — pack tight circles; drag the band to filter by listeners per artist</h1>
+    <h1>Genres as bubbles — drag the band to filter by listeners per artist</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
   <div class="filter-panel" id="lpa-filter-panel">
-    <h2>Listeners per artist (log-scaled band)</h2>
+    <h2>Listeners per artist (log band)</h2>
     <p class="filter-readout" style="margin-top:0">
-      The slider sets which genres enter the pack. Circle <strong>areas</strong> still match the export metric (<span id="metric-name"></span>). Band position uses a <strong>logarithmic</strong> scale so both niche tags and blockbusters stay reachable.
+      Sliders pick which genres show up. Bubble <strong>size</strong> still follows <span id="metric-name"></span>. The band is <strong>log</strong>-scaled so tiny and huge acts are both reachable.
     </p>
     <div class="listener-dual" id="lpa-dual-wrap">
       <div class="listener-track-bg" aria-hidden="true"></div>
@@ -251,8 +251,8 @@
     <div class="color-ramp-wrap" id="color-ramp-block">
       <div class="color-ramp-bar" aria-hidden="true"></div>
       <div class="color-ramp-labels">
-        <span id="ramp-low">Low listeners/artist (file min)</span>
-        <span id="ramp-high">High (file max)</span>
+        <span id="ramp-low">Low in this file</span>
+        <span id="ramp-high">High in this file</span>
       </div>
     </div>
   </div>
@@ -260,7 +260,7 @@
   <div class="pack-empty" id="pack-empty" style="display:none"></div>
 
   <p class="note">
-    Packing uses D3’s circle-pack (related idea to R <a href="https://www.r-bloggers.com/2017/04/packcircles-version-0-2-0-released/" style="color:#6eb6ff">packcircles</a>). Data: NUAM — <a href="https://www.nuam.club/stat" style="color:#6eb6ff">nuam.club/stat</a>. Regenerate: <code style="color:#ccc">uv run nuam-chart genres-popularity --sync-html</code> (use <code style="color:#ccc">--top 0</code> for all genres).
+    Layout: D3 circle-pack. Data: NUAM — <a href="https://www.nuam.club/stat" style="color:#6eb6ff">nuam.club/stat</a>.
   </p>
 
   <script src="chart-data.js"></script>
@@ -272,7 +272,7 @@
       const emptyEl = document.getElementById("pack-empty");
 
       if (!raw || !raw.genres || !raw.genres.length) {
-        host.text("Chart data did not load or no genres after filters.");
+        host.text("Data missing or every genre is filtered out.");
         return;
       }
 
@@ -286,11 +286,10 @@
       document.getElementById("metric-name").textContent = metricLabel;
 
       document.getElementById("subtitle").textContent =
-        `${(meta.genreCount != null ? meta.genreCount : raw.genres.length).toLocaleString()} genres in file · pack area = ${metricLabel}. ` +
-        `The band filters by listeners per artist (Σ monthly listeners on tagged rows ÷ artist–genre rows).`;
+        `${(meta.genreCount != null ? meta.genreCount : raw.genres.length).toLocaleString()} genres; bubble area = ${metricLabel}. Band = listeners per artist (monthly listeners summed on tagged rows ÷ those rows).`;
 
       document.getElementById("legend-lead").innerHTML =
-        "<strong>Reading the pack.</strong> Band = who appears; bubble <strong>area</strong> = export metric; bubble <strong>fill</strong> = global LPA on a <strong>logarithmic</strong> scale (blue→yellow→green, fixed to whole file), so a doubling in listeners/artist moves hue about as much whether you are niche or mainstream. <strong>Large</strong> bubbles (relative to the current pack) show the genre name <strong>inside</strong> the circle; smaller ones use radial ticks to a shared outer ring. When many genres qualify, outer ring names are dropped where they would overlap (larger bubbles win); hover any circle for the full name.";
+        "<strong>Quick read.</strong> Sliders choose <em>who</em> appears. <strong>Size</strong> = the metric above. <strong>Color</strong> = listeners per artist vs. the whole file (log scale, blue→yellow→green). Big genres label inside; small ones sit on the ring. Hover a bubble for detail.";
 
       const W = 1380;
       const H = 1380;
@@ -430,26 +429,24 @@
         const lines = [o.name];
         if (o.topArtistNames && o.topArtistNames.length) {
           const ranked = o.topArtistNames.map((n, i) => `${i + 1}. ${n}`).join("\n");
-          lines.push(
-            `Top ${o.topArtistNames.length} in this genre (by Σ monthly listeners in file):\n${ranked}`
-          );
+          lines.push(`Top acts here (by monthly listeners in file):\n${ranked}`);
         }
         lines.push(
-          `${metricLabel} (pack): ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
-          `Fill = log-scaled listeners/artist vs whole file (blue→yellow→green); large bubbles label inside, others on outer ring`,
-          `Listeners / artist row: ${o.lpa != null ? o.lpa.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "—"}`,
-          `Artist–genre rows: ${o.artistCount.toLocaleString()}`,
-          `Σ monthly listeners: ${Math.round(o.listenersSum).toLocaleString()}`
+          `${metricLabel} (bubble size): ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+          `Color = listeners per artist vs. full file (log; blue→yellow→green)`,
+          `Listeners per artist: ${o.lpa != null ? o.lpa.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "—"}`,
+          `Rows (artist–genre): ${o.artistCount.toLocaleString()}`,
+          `Monthly listeners summed: ${Math.round(o.listenersSum).toLocaleString()}`
         );
         return lines.join("\n");
       }
 
       function bubbleAriaLabel(d) {
         const o = d.data;
-        let s = `${o.name}. ${metricLabel} (pack) ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}.`;
+        let s = `${o.name}. ${metricLabel} (size) ${d.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}.`;
         if (o.topArtistNames && o.topArtistNames.length) {
           const tail = o.topArtistNames.map((n, i) => `${i + 1}) ${n}`).join("; ");
-          s += ` Top ${o.topArtistNames.length} by monthly listeners in file: ${tail}.`;
+          s += ` Top ${o.topArtistNames.length} in file: ${tail}.`;
         }
         return s;
       }
@@ -459,8 +456,7 @@
         emptyEl.style.display = "none";
 
         if (children.length === 0) {
-          emptyEl.textContent =
-            "No genres fall in this listeners-per-artist band. Widen the blue highlighted span on the slider.";
+          emptyEl.textContent = "Nothing in this band — widen the blue span on the sliders.";
           emptyEl.style.display = "block";
           return;
         }
@@ -612,7 +608,7 @@
 
       function syncLpaSliders() {
         if (lpas.length === 0) {
-          lpaValLabels.textContent = "Listeners per artist not available in this export.";
+          lpaValLabels.textContent = "Listeners per artist are not available in this export.";
           lpaSummary.textContent = "";
           lpaTrackActive.style.width = "100%";
           lpaTrackActive.style.left = "0%";
@@ -632,7 +628,7 @@
         }
 
         const { vmin, vmax } = getBandLpas();
-        lpaValLabels.textContent = `Min: ${fmtLpa(vmin)} · Max: ${fmtLpa(vmax)} listeners/artist row`;
+        lpaValLabels.textContent = `Minimum ${fmtLpa(vmin)} · maximum ${fmtLpa(vmax)} listeners per artist row`;
 
         const span = logMax - logMin;
         const p0 = (Math.log10(Math.max(vmin, Math.pow(10, logMin))) - logMin) / span;
@@ -644,7 +640,7 @@
         lpaTrackActive.style.width = `${widthPct}%`;
 
         const filtered = filterRows(vmin, vmax);
-        lpaSummary.textContent = `${filtered.length.toLocaleString()} genre${filtered.length === 1 ? "" : "s"} in band (${fmtLpa(vmin)}–${fmtLpa(vmax)}). ${allRows.length.toLocaleString()} in file.`;
+        lpaSummary.textContent = `${filtered.length.toLocaleString()} genre${filtered.length === 1 ? "" : "s"} here (${fmtLpa(vmin)}–${fmtLpa(vmax)}), of ${allRows.length.toLocaleString()} total.`;
         drawPack(filtered);
       }
 

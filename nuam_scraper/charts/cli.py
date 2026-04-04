@@ -13,6 +13,8 @@ from nuam_scraper.charts.signed_deals_story import build_signed_deals_story_payl
 from nuam_scraper.charts.signed_deals_story_export import write_signed_deals_story_js_bundle
 from nuam_scraper.charts.uk_listeners_growth import build_uk_listeners_growth_payload
 from nuam_scraper.charts.uk_listeners_growth_export import write_uk_listeners_growth_js_bundle
+from nuam_scraper.charts.money_about import build_money_about_payload
+from nuam_scraper.charts.money_about_export import write_money_about_js_bundle
 from nuam_scraper.charts.labels_roster import build_label_roster_entries
 from nuam_scraper.charts.labels_roster_export import (
     label_roster_entries_to_payload,
@@ -34,6 +36,7 @@ _ASSET_LABEL_ROSTERS_INDEX = Path(__file__).resolve().parent / "assets" / "label
 _ASSET_GENRES_PACK_INDEX = Path(__file__).resolve().parent / "assets" / "genres_popularity" / "index.html"
 _ASSET_SIGNED_DEALS_INDEX = Path(__file__).resolve().parent / "assets" / "signed_deals" / "index.html"
 _ASSET_UK_LISTENERS_GROWTH_INDEX = Path(__file__).resolve().parent / "assets" / "uk_listeners_growth" / "index.html"
+_ASSET_MONEY_ABOUT_INDEX = Path(__file__).resolve().parent / "assets" / "money_about" / "index.html"
 
 
 def _cmd_milestones(args: argparse.Namespace) -> None:
@@ -190,6 +193,30 @@ def _cmd_uk_listeners_growth(args: argparse.Namespace) -> None:
     write_uk_listeners_growth_js_bundle(out_js, payload)
     n = len(payload["points"])
     print(f"Wrote {out_js} ({n} month(s))")
+
+
+def _cmd_money_about(args: argparse.Namespace) -> None:
+    out_dir = Path(args.out_dir) if args.out_dir else charts_root() / "money_about"
+    out_js = Path(args.out_js) if args.out_js else out_dir / "chart-data.js"
+
+    if args.sync_html:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        if not _ASSET_MONEY_ABOUT_INDEX.is_file():
+            raise FileNotFoundError(f"Missing bundled template: {_ASSET_MONEY_ABOUT_INDEX}")
+        shutil.copyfile(_ASSET_MONEY_ABOUT_INDEX, out_dir / "index.html")
+
+    frames = load_nuam_parquet(args.parquet)
+    payload = build_money_about_payload(
+        frames.listeners_df,
+        paid_premium_per_1k_streams=float(args.paid_per_1k),
+        hist_threshold_usd=float(args.hist_threshold),
+        hist_bins=int(args.hist_bins),
+        lines_start_month=str(args.lines_start),
+        lines_max_artists=int(args.lines_max_artists),
+    )
+    write_money_about_js_bundle(out_js, payload)
+    nlines = len(payload.get("lines", {}).get("series", []))
+    print(f"Wrote {out_js} (hist bars + {nlines} line series)")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -413,6 +440,56 @@ def main(argv: list[str] | None = None) -> None:
         help="Copy bundled index.html into out-dir (overwrites if present)",
     )
     uk.set_defaults(func=_cmd_uk_listeners_growth)
+
+    mo = sub.add_parser(
+        "money-about",
+        help="Money section: payout histogram + per-artist monthly lines (listener band + hover)",
+    )
+    mo.add_argument(
+        "--parquet",
+        type=Path,
+        default=root / "nuam_artists.parquet",
+        help="Path to nuam_artists.parquet",
+    )
+    mo.add_argument(
+        "--out-dir",
+        type=Path,
+        default=None,
+        help="Chart folder (default: <repo>/data/charts/money_about)",
+    )
+    mo.add_argument(
+        "--out-js",
+        type=Path,
+        default=None,
+        help="Output JS path (default: <out-dir>/chart-data.js)",
+    )
+    mo.add_argument(
+        "--paid-per-1k",
+        type=float,
+        default=1.33,
+        help="Premium USD per 1,000 streams (default 1.33, Ukraine estimate)",
+    )
+    mo.add_argument(
+        "--hist-threshold",
+        type=float,
+        default=300.0,
+        help="Histogram shaded threshold in USD (default 300)",
+    )
+    mo.add_argument("--hist-bins", type=int, default=72)
+    mo.add_argument("--lines-start", type=str, default="2025-01-01")
+    mo.add_argument(
+        "--lines-max-artists",
+        type=int,
+        default=0,
+        metavar="K",
+        help="Cap line series in export (0 = all artists with data in the window; use >0 to shrink chart-data.js)",
+    )
+    mo.add_argument(
+        "--sync-html",
+        action="store_true",
+        help="Copy bundled index.html into out-dir (overwrites if present)",
+    )
+    mo.set_defaults(func=_cmd_money_about)
 
     args = p.parse_args(argv)
     args.func(args)

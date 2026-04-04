@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Merge standalone NUAM chart pages into ukraine-music-story/index.html (inline + light theme)."""
+"""Merge standalone NUAM chart pages into ukraine-music-story/index.html (inline, dark theme)."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ CHARTS: list[tuple[str, str, str]] = [
     ("milestones", "ms", "nuam-b-ms"),
     ("genres_popularity", "gp", "nuam-b-gp"),
     ("signed_deals", "sd", "nuam-b-sd"),
+    ("money_about", "ma", "nuam-b-ma"),
 ]
 
 
@@ -70,61 +71,8 @@ def scope_css(css: str, scope: str, pfx: str, ids: list[str]) -> str:
     return css
 
 
-def light_theme_css(css: str) -> str:
-    reps = [
-        ("--bg: #121212;", "--bg: #f7f2ea;"),
-        ("--text: #f0f0f0;", "--text: #1a1814;"),
-        ("--muted: #9aa0a6;", "--muted: #5e584d;"),
-        ("--off-tracked: #4d4d4d;", "--off-tracked: #8a8278;"),
-        ("--off-untracked: #252525;", "--off-untracked: #e5ddd2;"),
-        ("--bubble-stroke: #1a1a1a;", "--bubble-stroke: #3d3830;"),
-        ("#181818", "#ede6db"),
-        ("#141414", "#ebe4d8"),
-        ("#1e1e1e", "#f3ebe0"),
-        ("#2a2a2a", "#c9bfb0"),
-        ("#333", "#a69e91"),
-        ("#444", "#8a8278"),
-        ("#252525", "#e8e0d4"),
-        ("#0d0d0d", "#3d3830"),
-        ("#0a0a0a", "#f7f2ea"),
-        ("#1a1a1a", "#f7f2ea"),
-        ("#121212", "#f7f2ea"),
-        ("color: #ccc", "color: #4a453c"),
-        ("color: #c4c4c4", "color: #4a453c"),
-        ("color: #ddd", "color: #3d3830"),
-        ("color: #bbb", "color: #5e584d"),
-        ("color: #e8e8e8", "color: #1a1814"),
-        ("#e8e8e8", "#1a1814"),
-        (".callout strong { color: #eee; }", ".callout strong { color: #1a1814; }"),
-        ("#eee", "#1a1814"),
-        ("fill: #ddd", "fill: #3d3830"),
-        ("stroke: #0a0a0a", "stroke: #f7f2ea"),
-        ("stroke: #1a1a1a", "stroke: #f7f2ea"),
-    ]
-    for a, b in reps:
-        css = css.replace(a, b)
-    css = css.replace(
-        """.growth-delta {
-      fill: #c8cdd5;
-      font-size: 11px;
-      font-weight: 600;
-      paint-order: stroke fill;
-      stroke: #121212;
-      stroke-width: 0.35px;
-    }""",
-        """.growth-delta {
-      fill: #3d3830;
-      font-size: 11px;
-      font-weight: 600;
-      paint-order: stroke fill;
-      stroke: #f7f2ea;
-      stroke-width: 0.35px;
-    }""",
-    )
-    css = css.replace(
-        ".growth-dot { fill: #f0f0f0; stroke: #1a1a1a; stroke-width: 1px; }",
-        ".growth-dot { fill: #1a1814; stroke: #f7f2ea; stroke-width: 1px; }",
-    )
+def chart_css_preserve_dark(css: str) -> str:
+    """Keep original chart palette (standalone pages are already dark)."""
     return css
 
 
@@ -133,20 +81,28 @@ def patch_script(script: str, block_id: str) -> str:
         "getComputedStyle(document.documentElement)",
         "getComputedStyle(root)",
     )
-    script = "(function () {\n  const root = document.getElementById(\"" + block_id + '");\n' + script
-    if not script.rstrip().endswith("})();"):
-        script = script.rstrip().rstrip(";") + "\n})();"
-    else:
-        script = re.sub(r"\}\)\(\);\s*$", "})(root);", script)
+    script = re.sub(
+        r"\(function\s*\(\)\s*\{\s*",
+        '(function () {\n  const root = document.getElementById("' + block_id + '");\n  ',
+        script,
+        count=1,
+    )
     return script
 
 
 def strip_regenerate_notes(frag: str) -> str:
+    # Paragraph that is only Regenerate / CLI instructions
     frag = re.sub(
         r'<p class="note">\s*Regenerate:.*?</p>\s*',
         "",
         frag,
         flags=re.DOTALL,
+    )
+    # Trailing "Regenerate: …" clause inside a longer <p class="note">…</p>
+    frag = re.sub(
+        r'(<p class="note">[\s\S]*?)\s*Regenerate:[\s\S]*?(</p>)',
+        r"\1\2",
+        frag,
     )
     return frag
 
@@ -170,20 +126,20 @@ def main() -> None:
 
     story_css = """
     :root {
-      --paper: #faf7f2;
-      --paper2: #f0ebe3;
-      --ink: #1a1814;
-      --ink-muted: #4a453c;
-      --rule: #d4cdc0;
-      --accent: #2c5282;
-      --accent-soft: rgba(44, 82, 130, 0.12);
+      --paper: #0a0a0a;
+      --paper2: #121212;
+      --ink: #e8e8e8;
+      --ink-muted: #9aa0a6;
+      --rule: #2a2a2a;
+      --accent: #7eb8ff;
+      --accent-soft: rgba(126, 184, 255, 0.1);
       --max-prose: 40rem;
       --max-chart: 72rem;
       --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
       --font-sans: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; color-scheme: dark; }
     body {
       margin: 0;
       color: var(--ink);
@@ -198,8 +154,8 @@ def main() -> None:
       pointer-events: none;
       z-index: 0;
       background:
-        radial-gradient(ellipse 90% 55% at 50% -15%, rgba(230, 210, 180, 0.45), transparent 55%),
-        radial-gradient(ellipse 70% 40% at 100% 30%, rgba(44, 82, 130, 0.06), transparent 50%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(44, 82, 130, 0.22), transparent 55%),
+        radial-gradient(ellipse 55% 40% at 100% 20%, rgba(126, 184, 255, 0.06), transparent 45%),
         var(--paper);
     }
     .story { position: relative; z-index: 1; }
@@ -264,6 +220,14 @@ def main() -> None:
       text-decoration-thickness: 1px;
       text-underline-offset: 3px;
     }
+    .prose-block code {
+      font-size: 0.92em;
+      padding: 0.12em 0.4em;
+      border-radius: 4px;
+      background: #1a1a1a;
+      color: #d4d4d4;
+      border: 1px solid #333;
+    }
     .section-label {
       font-size: 0.72rem;
       font-weight: 700;
@@ -289,8 +253,8 @@ def main() -> None:
     .chart-frame-inner {
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      border: 1px solid var(--rule);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      border: 1px solid #1f1f1f;
     }
     .nuam-ch {
       position: relative;
@@ -344,7 +308,7 @@ def main() -> None:
         scope = f".nuam-ch-{pfx}"
         css = extract_style(html)
         css = scope_css(css, scope, pfx, ids)
-        css = light_theme_css(css)
+        css = chart_css_preserve_dark(css)
         chart_css_parts.append(f"    /* === {folder} === */\n{css}\n")
 
         frag = extract_body_fragment(html)
@@ -367,8 +331,13 @@ def main() -> None:
         f'  <script src="../{folder}/chart-data.js"></script>' for folder, _, _ in CHARTS
     )
 
-    middle = """
+    middle = (
+        """
   </style>
+"""
+        + data_scripts
+        + """
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 </head>
 <body>
   <div class="ambient" aria-hidden="true"></div>
@@ -377,9 +346,46 @@ def main() -> None:
       <p class="kicker">Ukrainian music market · NUAM</p>
       <h1>The unlikely odds of making it big in Ukraine</h1>
       <p class="lede">
-        A scroll-through look at roster scale, labels, milestones, genres, and the tail of “strange” signings — same charts as the notebook, in the same order, recolored for this page.
+        How listening stacks up on Spotify, which labels cluster serious reach, what “career signals” look like in the data, where genres lean, and what early label appearances can mean — drawn from NUAM’s public catalogue.
       </p>
     </header>
+
+    <section class="chart-section" aria-labelledby="sec-listeners">
+      <div class="prose-block" style="padding-bottom:1rem">
+        <p class="section-label">Section 1 · Time series</p>
+        <h2 id="sec-listeners">Total listeners over time (2024–2026)</h2>
+      </div>
+      <p class="chart-dek">
+        Summed monthly listeners across artists in NUAM. The vertical scale is trimmed to the visible range (not zero); month-to-month change is labeled on the chart.
+      </p>
+"""
+    )
+
+    s1 = chart_blocks[0]
+
+    # %% → % when using old-style formatting; keeps a literal percent in the HTML output.
+    _dist_listeners_share = "about 5%% of artists" % ()
+
+    listeners_followup = (
+        """
+      <div class="prose-block">
+        <p>
+          The chart illustrates the growth in total listeners in the Ukrainian music scene from 2024 to early 2026, based on data from <strong>NUAM (New UA Music)</strong> — a leading Ukrainian online music resource. The dataset, with a snapshot from April 2026, shows a steady rise in listener engagement, reflecting the ongoing transformation of the local music market.
+        </p>
+        <p>
+          <a href="https://www.nuam.club/stat">NUAM</a> is one of the largest publicly accessible databases of Ukrainian musicians, maintaining detailed profiles of tens of thousands of artists and their releases. It allows users to explore and filter music by genre, popularity, release date, and more. The platform also provides playlists, yearly charts, and genre collections. Through its web app, <strong>NUAM Base</strong>, it offers analytics for both artists and fans.
+        </p>
+        <p>In recent months, the number of listeners has been consistently growing. Several factors may explain this trend:</p>
+        <ol>
+          <li><strong>Increasing number of artists.</strong> As more artists join the scene and release music, the total number of listeners naturally increases. Since NUAM began tracking the platform, the number of active Ukrainian musicians has surged, with over 16,500 artists and more than 9,200 releasing music in 2025 alone.</li>
+          <li><strong>Aggregation across artists.</strong> The listener count aggregates data across all artists, which means that if the same listener discovers multiple artists, this could inflate the total listener count.</li>
+          <li><strong>Genuine growth in audience.</strong> If the listener bases of artists significantly do not overlap, the chart might reflect real growth in the number of unique listeners.</li>
+        </ol>
+        <p>
+          Regardless of these technical nuances, all signs point to a <strong>growing interest in local music</strong>. The rise of streaming platforms such as <a href="https://www.spotify.com/">Spotify</a> and <a href="https://www.apple.com/apple-music/">Apple Music</a> has played a significant role in amplifying this growth.
+        </p>
+      </div>
+    </section>
 
     <div class="prose-block">
       <p>
@@ -402,38 +408,6 @@ def main() -> None:
       </p>
     </div>
 
-    <section class="chart-section" aria-labelledby="sec-listeners">
-      <div class="prose-block" style="padding-bottom:1rem">
-        <p class="section-label">Section 1 · Time series</p>
-        <h2 id="sec-listeners">Total listeners over time (2024–2026)</h2>
-      </div>
-      <p class="chart-dek">
-        <strong>Insight:</strong> summed monthly listeners across NUAM’s export are still climbing. The vertical scale is trimmed to the plotted range (not zero); axes and deltas are on the graphic.
-      </p>
-"""
-
-    s1 = chart_blocks[0]
-
-    block2 = """
-      <div class="prose-block">
-        <p>
-          The chart illustrates the growth in total listeners in the Ukrainian music scene from 2024 to early 2026, based on data from <strong>NUAM (New UA Music)</strong> — a leading Ukrainian online music resource. The dataset, with a snapshot from April 2026, shows a steady rise in listener engagement, reflecting the ongoing transformation of the local music market.
-        </p>
-        <p>
-          <a href="https://www.nuam.club/stat">NUAM</a> is one of the largest publicly accessible databases of Ukrainian musicians, maintaining detailed profiles of tens of thousands of artists and their releases. It allows users to explore and filter music by genre, popularity, release date, and more. The platform also provides playlists, yearly charts, and genre collections. Through its web app, <strong>NUAM Base</strong>, it offers analytics for both artists and fans.
-        </p>
-        <p>In recent months, the number of listeners has been consistently growing. Several factors may explain this trend:</p>
-        <ol>
-          <li><strong>Increasing number of artists.</strong> As more artists join the scene and release music, the total number of listeners naturally increases. Since NUAM began tracking the platform, the number of active Ukrainian musicians has surged, with over 16,500 artists and more than 9,200 releasing music in 2025 alone.</li>
-          <li><strong>Aggregation across artists.</strong> The listener count aggregates data across all artists, which means that if the same listener discovers multiple artists, this could inflate the total listener count.</li>
-          <li><strong>Genuine growth in audience.</strong> If the listener bases of artists significantly do not overlap, the chart might reflect real growth in the number of unique listeners.</li>
-        </ol>
-        <p>
-          Regardless of these technical nuances, all signs point to a <strong>growing interest in local music</strong>. The rise of streaming platforms such as <a href="https://www.spotify.com/">Spotify</a> and <a href="https://www.apple.com/apple-music/">Apple Music</a> has played a significant role in amplifying this growth.
-        </p>
-      </div>
-    </section>
-
     <section class="chart-section" aria-labelledby="sec-distribution">
       <div class="prose-block" style="padding-bottom:1rem">
         <p class="section-label">Section 2 · Distribution</p>
@@ -441,7 +415,9 @@ def main() -> None:
       </div>
       <div class="prose-block">
         <p>
-          We analyzed the listener distribution of Ukrainian artists over the past month to better understand the market’s potential. The results revealed that only <strong>about 5% of artists</strong> have surpassed the <strong>320,000 listener</strong> mark. The upper boundary for listeners is <strong>1.8 million</strong>, but we’ll leave the identity of that top performer a mystery for now.
+          We analyzed the listener distribution of Ukrainian artists over the past month to better understand the market’s potential. The results revealed that only <strong>"""
+        + _dist_listeners_share
+        + """</strong> have surpassed the <strong>320,000 listener</strong> mark. The upper boundary for listeners is <strong>1.8 million</strong>, but we’ll leave the identity of that top performer a mystery for now.
         </p>
         <p>
           For this analysis, we set a threshold of <strong>400,000 listeners</strong> to identify the most promising and successful artists in the Ukrainian market at present. Artists who reach this milestone are positioned as some of the most influential players in the industry, reflecting both established fan bases and the growing appeal of Ukrainian music.
@@ -455,9 +431,10 @@ def main() -> None:
         <h2 id="sec-labels">Top‑rated Ukrainian labels</h2>
       </div>
       <p class="chart-dek">
-        <strong>Insight:</strong> center size encodes roster depth; green “top‑rated” means several high‑listener artists share the imprint. Legend and sort are in the block below.
+        Each glyph is a label: the center scales with how many artists sit on that imprint; green marks labels with several high-listener acts. Legend and sort sit with the graphic.
       </p>
 """
+    )
 
     s3 = chart_blocks[1]
 
@@ -474,7 +451,7 @@ def main() -> None:
           <li><strong>PLAN</strong> — very high signing volume (<strong>379 deals in two years</strong>); mainstream breakout still an open story.</li>
           <li><strong>UA Phonk Community</strong> — community‑driven, phonk‑focused; high performers inside a niche.</li>
         </ul>
-        <p>Top‑rated labels in this export also include, among others:</p>
+        <p>Top‑rated labels on NUAM also include, among others:</p>
         <ul>
           <li>UA PHONK COMMUNITY, ENKO, BEST MUSIC, YATOMI HOUSE RECORDS, SUNDAY, TAVR Records, CVRSED, pomitni, Comp Music, House of Culture and Дім Звукозапису, RADAR RECORDS, OBNYAV, Phonk Workshop, FoxLab, Berserk Records</li>
         </ul>
@@ -506,7 +483,7 @@ def main() -> None:
         </ul>
       </div>
       <p class="chart-dek">
-        <strong>Insight:</strong> each tile is one artist; triangular rays are the five signals; the center counts how many are true. Gold frame = NUAM’s <code>RuLang</code> flag. Listener band slider filters the grid.
+        Each tile is one artist. Triangular rays are five catalogue signals; the number in the center is how many are true. A gold border marks Russian-language rows in NUAM. Use the listener band to narrow who appears in the grid.
       </p>
 """
 
@@ -531,7 +508,7 @@ def main() -> None:
         <h2 id="sec-genres">Genres</h2>
       </div>
       <p class="chart-dek">
-        <strong>Insight:</strong> bubble <em>area</em> follows the export metric; fill encodes listeners per artist on a log scale. Ramp and slider are in the block below.
+        Circle area reflects the chosen size metric from NUAM; color shows listeners per artist on a logarithmic scale. The gradient key and range sliders sit with the pack.
       </p>
 """
 
@@ -562,13 +539,15 @@ def main() -> None:
         <h2 id="sec-deals">Strange deals</h2>
       </div>
       <p class="chart-dek">
-        <strong>Insight:</strong> roster growth, log‑scaled peak‑listener histogram (orange band), strange‑deal genre pack, and label bars — same layout as the standalone export.
+        Roster growth, then a peak-listener histogram (orange band), a genre pack for the low-listener signing subset, and label totals — read as one continuous thread.
       </p>
 """
 
     s9 = chart_blocks[4]
+    s10 = chart_blocks[5]
 
-    tail = """
+    # Strange-deals prose closes section 6; must come *after* s9 (chart follows chart-dek).
+    block_deals_prose = r"""
       <div class="prose-block">
         <p>
           Have you noticed the small details on the chart about signed deals? We definitely did.
@@ -582,11 +561,37 @@ def main() -> None:
       </div>
     </section>
 
-    <section class="chart-section" aria-labelledby="sec-royalties">
+"""
+
+    block_money = """
+    <section class="chart-section" aria-labelledby="sec-money">
+      <div class="prose-block" style="padding-bottom:1rem">
+        <p class="section-label">Section 7 · Money</p>
+        <h2 id="sec-money">Where's the money, Lebowski?</h2>
+      </div>
       <div class="prose-block">
-        <p class="section-label">Appendix · Money</p>
-        <h2 id="sec-royalties">Verified / reported figures for Ukraine (2025)</h2>
-        <h3>Spotify royalty rate estimates for Ukraine (Dec&nbsp;2025)</h3>
+        <p>
+          Listener counts do not translate directly into bank deposits. In the last couple of years, trade press and artist statements have often linked the same frustration to two threads:
+          <strong>per‑stream payouts that stay small</strong> for many acts, and worry that <strong>AI‑generated or bulk‑uploaded catalog</strong> could dilute attention (and, indirectly, how royalty pools are shared)—part of the backdrop to <strong>high‑profile pullbacks or threats to leave Spotify</strong> that surfaced around 2024–2026. None of that shows up line‑by‑line in NUAM; it is context for why “streams up” and “rent paid” are different questions.
+        </p>
+        <p>
+          The views below apply one <strong>Ukraine premium‑stream shortcut</strong> (~$1.33 per 1,000 paid streams, from third‑party royalty tables such as Dynamoi)
+          to <strong>each month in the NUAM export</strong>. That yields a rough <em>lower‑bound style</em> estimate — not an official Spotify statement, and not a split between free and premium plays.
+        </p>
+        <p>
+          The <strong>histogram</strong> asks how concentrated total estimated payouts are across artists (with a shaded band below $300).
+          The <strong>line chart</strong> follows the top earners by month from 2025 onward: use the dual sliders to keep only acts whose
+          <strong>peak monthly listeners</strong> fall in a range, then hover a line — other artists fade to gray and a tooltip shows the <strong>estimated dollars for that month</strong>.
+        </p>
+      </div>
+      <p class="chart-dek">
+        Log-scaled payout histogram with a sub-$300 band; interactive monthly payout lines with a peak-listener range (min/max) and hover for exact month estimates.
+      </p>
+"""
+
+    block_money_close = """
+      <div class="prose-block" style="margin-top:1.5rem">
+        <h3 id="sec-royalties">Spotify royalty rate estimates for Ukraine (Dec&nbsp;2025)</h3>
         <p>According to <a href="https://dynamoi.com/data/royalties/spotify/ua">Dynamoi</a> data, Spotify pays roughly:</p>
         <ul>
           <li><strong>~$1.33 per 1,000 paid (premium) streams</strong> in Ukraine</li>
@@ -598,7 +603,9 @@ def main() -> None:
       </div>
     </section>
 
-    <footer class="sources-footer">
+"""
+
+    article_end = r"""    <footer class="sources-footer">
       <h2>Sources &amp; references</h2>
       <ul>
         <li><a href="https://www.nuam.club/stat">NUAM — statistics and catalog</a> (data source for all graphics)</li>
@@ -608,7 +615,6 @@ def main() -> None:
       </ul>
     </footer>
   </article>
-  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 """
 
     tail2 = """
@@ -616,24 +622,28 @@ def main() -> None:
 </html>
 """
 
+    # Each chart block follows its section chart-dek; prose (if any) follows the chart inside the same section.
     full = (
         prose_head
         + story_css
         + "".join(chart_css_parts)
         + middle
         + s1
-        + block2
-        + block4
+        + listeners_followup
         + s3
-        + block6
+        + block4
         + s5
-        + block8
+        + block6
         + s7
-        + tail
+        + block8
         + s9
+        + block_deals_prose
+        + block_money
+        + s10
+        + block_money_close
+        + article_end
         + tail2
     )
-    full = full.replace("</article>", data_scripts + "\n  </article>", 1)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(full, encoding="utf-8")

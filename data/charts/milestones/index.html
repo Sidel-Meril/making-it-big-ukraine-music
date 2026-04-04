@@ -230,7 +230,7 @@
 </head>
 <body>
   <header>
-    <h1>How far artists reach on the Ukrainian scene, across five NUAM-tracked signals</h1>
+    <h1>Five career signals per artist — NUAM’s “sun” glyph</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
@@ -245,8 +245,8 @@
   </div>
 
   <div class="filter-panel" id="listener-filter-panel">
-    <h2>Peak monthly listeners (NUAM history)</h2>
-    <p class="filter-readout" style="margin-top:0">Each artist’s <strong>peak</strong> count is the maximum monthly listeners observed in the scrape. The shaded span is the band you are viewing; artists outside it are hidden until the band includes them.</p>
+    <h2>Peak monthly listeners</h2>
+    <p class="filter-readout" style="margin-top:0"><strong>Peak</strong> = their best month in the scrape. The blue strip is what you’re viewing; widen it to show more artists.</p>
     <div class="listener-dual" id="listener-dual-wrap">
       <div class="listener-track-bg" aria-hidden="true"></div>
       <div class="listener-track-active" id="listener-track-active" aria-hidden="true"></div>
@@ -257,13 +257,13 @@
     <p class="filter-readout" id="listen-summary"></p>
     <div class="gold-note">
       <span class="gold-swatch" aria-hidden="true"></span>
-      <span><strong>Gold frame:</strong> NUAM flags the row as Russian-language content (<code style="color:#ccc">RuLang</code>). That is a catalog field in the sheet, not an independent editorial label.</span>
+      <span><strong>Gold border:</strong> NUAM’s <code style="color:#ccc">RuLang</code> flag in the data — a catalog field, not our editorial call.</span>
     </div>
   </div>
 
   <div class="legend-wrap">
     <p class="legend-lead">
-      <strong>How to read the suns.</strong> This graphic is built for a Ukrainian longform story in the spirit of <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#7eb8ff">The Pudding’s TikTok careers piece</a> (milestone “flowers”). Facts come from <a href="https://www.nuam.club/stat" style="color:#7eb8ff">NUAM’s statistics and artist catalog</a>. Layout: inner disc, listener ring, ticks, then a <strong>triangle per signal</strong> (base on the ring, tip outward), clockwise from the top. A lit ray means that signal is true for the artist; the center counts how many of five are true.
+      <strong>Quick read.</strong> Inspired by <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#7eb8ff">The Pudding’s TikTok “flowers.”</a> Data: <a href="https://www.nuam.club/stat" style="color:#7eb8ff">NUAM</a>. From the top, clockwise: one wedge per milestone. Bright wedge = yes for that artist; the middle number counts how many of the five fired.
     </p>
     <div class="legend-diagram-host" id="legend"></div>
   </div>
@@ -272,8 +272,8 @@
   <p id="grid-footer" class="grid-footer" aria-live="polite"></p>
 
   <p class="note">
-    Working title for the essay: <em>The Unlikely Odds of Making it Big on Ukraine</em>. Visual reference: <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#6eb6ff">The Pudding — emerging artists on TikTok</a>.
-    Data: <a href="https://www.nuam.club/stat" style="color:#6eb6ff">NUAM</a> (scraped artist rows), peak monthly listeners and five boolean milestones for this explorer view.
+    Essay working title: <em>The Unlikely Odds of Making it Big on Ukraine</em>. Look: <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#6eb6ff">The Pudding — TikTok careers</a>.
+    Data: <a href="https://www.nuam.club/stat" style="color:#6eb6ff">NUAM</a> — peak listeners plus five yes/no milestones.
   </p>
 
   <script src="chart-data.js"></script>
@@ -302,14 +302,14 @@
       const N = data.artists.length;
       const exportFloor =
         meta.minPeakListenersInExport != null && meta.minPeakListenersInExport > 0
-          ? ` This export drops anyone whose peak monthly listeners stay below ${Number(meta.minPeakListenersInExport).toLocaleString()}.`
+          ? ` Anyone under ${Number(meta.minPeakListenersInExport).toLocaleString()} peak listeners is dropped from this file.`
           : "";
       const listenersRayNote =
         meta.spotifyListenersThreshold != null
-          ? ` The “1M+ listeners” ray counts as met when peak monthly listeners reach at least ${Number(meta.spotifyListenersThreshold).toLocaleString()}.`
+          ? ` The big-listener ray lights up at ≥${Number(meta.spotifyListenersThreshold).toLocaleString()} peak monthly listeners.`
           : "";
       document.getElementById("subtitle").textContent =
-        `Ukrainian music scene (NUAM catalog). Peak monthly listeners from the scrape, reference month ${ref}; values are each artist’s highest observed month.${exportFloor} Each tile is one artist: five triangular rays for five catalog signals; the center shows how many are true.${listenersRayNote} The grid lists the first thirty tiles for the selected listener band and sort order.`;
+        `NUAM catalog, ref. ${ref}. Peak = each artist’s best month in the scrape.${exportFloor} Each tile: five wedges + center count of hits.${listenersRayNote} Grid shows the first 30 for your band and sort.`;
 
       function legendRayPolygonPoints(ang, ringR, baseHalf, tipLen) {
         const rx = Math.cos(ang);
@@ -340,7 +340,7 @@
           .attr("role", "img")
           .attr(
             "aria-label",
-            "NUAM milestone legend: five triangular rays around the listener ring, matching each artist sun in the grid."
+            "NUAM milestone legend: five triangular rays around the listener ring, matching each artist sun in the grid below."
           );
 
         const ringR = 32;
@@ -520,8 +520,8 @@
 
       function syncListenerSliders() {
         if (!numericListeners.length) {
-          listenValLabels.textContent = "Peak listeners not in this export.";
-          listenSummary.textContent = `All ${N.toLocaleString()} artists are shown; banding by peak listeners is unavailable because counts are missing.`;
+          listenValLabels.textContent = "Peak listeners are missing from this export.";
+          listenSummary.textContent = `Showing all ${N.toLocaleString()} artists — peak listener counts are missing, so the band filter is off.`;
           listenTrackActive.style.left = "0%";
           listenTrackActive.style.width = "100%";
           listenerDualWrap.style.opacity = "0.45";
@@ -545,7 +545,7 @@
           lo = hi;
         }
 
-        listenValLabels.textContent = `Min: ${fmtListen(lo)} · Max: ${fmtListen(hi)}`;
+        listenValLabels.textContent = `Minimum ${fmtListen(lo)} · maximum ${fmtListen(hi)}`;
 
         const span = Math.max(dataMax - dataMin, 1e-9);
         const p0 = (lo - dataMin) / span;
@@ -563,7 +563,7 @@
           return v >= lo && v <= hi;
         });
 
-        listenSummary.textContent = `${filtered.length.toLocaleString()} artist${filtered.length === 1 ? "" : "s"} fall in this peak band (${fmtListen(lo)}–${fmtListen(hi)} monthly listeners). The file contains ${N.toLocaleString()} artists with numeric peaks${noListenerCount ? `; ${noListenerCount.toLocaleString()} rows have no peak and never enter band view.` : "."}`;
+        listenSummary.textContent = `${filtered.length.toLocaleString()} artist${filtered.length === 1 ? "" : "s"} in this band (${fmtListen(lo)}–${fmtListen(hi)} peak listeners). File: ${N.toLocaleString()} with a peak${noListenerCount ? `; ${noListenerCount.toLocaleString()} rows skip the band filter (no peak).` : "."}`;
         return filtered;
       }
 
@@ -601,11 +601,11 @@
         const rest = sorted.length - toShow.length;
 
         if (sorted.length === 0) {
-          gridFooterEl.textContent = "No artists fall in this peak-listener band.";
+          gridFooterEl.textContent = "Nobody in this peak band.";
         } else if (rest > 0) {
-          gridFooterEl.textContent = `${rest.toLocaleString()} additional artist${rest === 1 ? "" : "s"} share this band and the same tile order; they are omitted from the grid above.`;
+          gridFooterEl.textContent = `${rest.toLocaleString()} more in this band share the sort but sit off the grid.`;
         } else {
-          gridFooterEl.textContent = `Every artist in the current band appears above (${sorted.length.toLocaleString()}).`;
+          gridFooterEl.textContent = `All ${sorted.length.toLocaleString()} in this band are above.`;
         }
 
         grid.selectAll("div.card").remove();

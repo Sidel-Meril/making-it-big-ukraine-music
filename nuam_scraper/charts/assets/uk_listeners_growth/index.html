@@ -108,18 +108,15 @@
 </head>
 <body>
   <header>
-    <h1 id="title-main">NUAM roster aggregate keeps adding monthly listener counts (2024–latest)</h1>
+    <h1 id="title-main">NUAM roster: summed Spotify listeners by month</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
   <div class="legend-wrap" id="legend-block">
-    <strong>Why this chart.</strong> Each month we sum Spotify “monthly listeners” across every artist–month row in the export (NUAM’s Ukrainian-music–leaning catalogue). It is <em>not</em> unique national reach — it shows roster scale moving up, which motivates digging into labels, genres, and deals.
+    <strong>What you’re seeing.</strong> We add up Spotify’s “monthly listeners” across the roster in each NUAM snapshot. The same fan can count more than once — so this is <em>not</em> “unique Ukraine reach,” just how big the catalogue looks over time.
     <div class="row" id="legend-lines"></div>
   </div>
   <div class="chart-host"><svg id="chart" role="img" aria-labelledby="title-main"></svg></div>
   <p class="note" id="footnote"></p>
-  <p class="note">
-    Regenerate: <code style="color:#ccc">uv run nuam-chart uk-listeners-growth --sync-html</code>
-  </p>
 
   <script src="chart-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
@@ -142,11 +139,11 @@
       }));
 
       document.getElementById("subtitle").textContent =
-        `${meta.subtitleMetric || "Σ monthly listeners on roster"}. ${pts.length} month(s) from ${d3.timeFormat("%b %Y")(pts[0].t)} through ${d3.timeFormat("%b %Y")(pts[pts.length - 1].t)}.`;
+        `${meta.subtitleMetric || "Σ monthly listeners on roster"} · ${pts.length} months (${d3.timeFormat("%b %Y")(pts[0].t)}–${d3.timeFormat("%b %Y")(pts[pts.length - 1].t)}).`;
 
       document.getElementById("legend-lines").innerHTML =
-        `<span><i class="swatch" style="background:var(--line-pre)"></i>${SPLIT - 1} & earlier</span>` +
-        `<span><i class="swatch" style="background:var(--line-2026)"></i>${SPLIT}+ (current-year segment)</span>`;
+        `<span><i class="swatch" style="background:var(--line-pre)"></i>Up to ${SPLIT - 1}</span>` +
+        `<span><i class="swatch" style="background:var(--line-2026)"></i>${SPLIT}+</span>`;
 
       const W = 900;
       const H = 486;
@@ -201,7 +198,7 @@
         .attr("y", ih + 42)
         .attr("text-anchor", "middle")
         .style("font-size", "11px")
-        .text("Month (export snapshot)");
+        .text("Month");
 
       g.append("text")
         .attr("fill", "#9aa0a6")
@@ -210,7 +207,7 @@
         .attr("y", -56)
         .attr("text-anchor", "middle")
         .style("font-size", "11px")
-        .text("Σ monthly listeners on roster (count)");
+        .text("Total listeners (summed, count)");
 
       const line = d3
         .line()
@@ -276,7 +273,7 @@
           const mo = d3.timeFormat("%Y-%m")(d.t);
           const dlt =
             d.deltaPrev != null && Number.isFinite(d.deltaPrev)
-              ? `\nΔ vs prior month: ${d.deltaPrev >= 0 ? "+" : ""}${d.deltaPrev.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+              ? `\nvs. prior month: ${d.deltaPrev >= 0 ? "+" : ""}${d.deltaPrev.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
               : "";
           return `${mo}\nΣ listeners: ${d.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}${dlt}`;
         });
@@ -368,7 +365,7 @@
         .attr("text-anchor", "end")
         .attr("x", rightTextXClamped)
         .attr("y", -58)
-        .text("Local Ukrainian bands gain listeners");
+        .text("Ukrainian acts still gain listeners");
 
       callLayer
         .append("text")
@@ -376,7 +373,7 @@
         .attr("text-anchor", "end")
         .attr("x", rightTextXClamped)
         .attr("y", -38)
-        .text("NUAM roster sum still rising");
+        .text("Roster total keeps inching up");
 
       callLayer
         .append("text")
@@ -385,7 +382,7 @@
         .attr("x", 12)
         .attr("y", -58)
         .style("font-size", "14px")
-        .text("Listening demand keeps climbing");
+        .text("Demand on Spotify keeps rising");
 
       callLayer
         .append("text")
@@ -393,7 +390,7 @@
         .attr("text-anchor", "start")
         .attr("x", 12)
         .attr("y", -38)
-        .text("Winter 2025 dip on roster sum");
+        .text("Winter 2025 dip visible here");
 
       function measurePartialPathLen(ptsSlice, endVertexIndex) {
         const sl = ptsSlice.slice(0, endVertexIndex + 1);
@@ -513,7 +510,7 @@
       requestAnimationFrame(runIntro);
 
       document.getElementById("footnote").textContent =
-        "Values are summed artist-level monthly listener fields in NUAM (Spotify), not deduplicated unique listeners. Month spacing follows export columns (Слухачів … mm.yy). The vertical scale is trimmed to the plotted range (not zero) so the upward trend is easier to read.";
+        "Summed from NUAM’s Spotify fields — not unique listeners. Axis is cropped (not from zero) so the trend is easier to see.";
     })();
   </script>
 </body>
