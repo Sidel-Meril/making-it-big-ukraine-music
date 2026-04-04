@@ -27,6 +27,9 @@ jobs:
         run: |
           mkdir -p public
           cp data/charts/ukraine-music-story/index.html public/index.html
+          # Fix relative paths: ../chart/chart-data.js → chart/chart-data.js
+          # (index.html is now at the site root, not one level deep)
+          sed -i 's|src="\.\./|src="|g' public/index.html
           for chart in uk_listeners_growth listeners_dist label_rosters milestones genres_popularity signed_deals money_about; do
             mkdir -p public/$chart
             cp data/charts/$chart/chart-data.js public/$chart/chart-data.js
