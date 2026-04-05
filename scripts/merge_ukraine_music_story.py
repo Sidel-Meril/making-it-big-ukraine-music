@@ -492,9 +492,6 @@ def main() -> None:
         <p>
           The distribution is sharply skewed. A large share of artists in the NUAM catalogue attract only a handful of streams; the curve drops off steeply, and only a small slice ever breaks through to significant listener counts. The histogram below makes that shape visible — drag the slider to see where any top‑percentile cutoff lands in actual listener count terms.
         </p>
-        <p>
-          For the analysis in this piece, we focus on artists who’ve crossed the <strong>400,000 monthly listener</strong> mark — a threshold that puts them among the most visible acts in the Ukrainian market today.
-        </p>
       </div>
       <p class="chart-dek">
         Move the slider to watch how the highlighted frame changes — it shows how many artists are included once you set the listener threshold.
@@ -582,9 +579,6 @@ def main() -> None:
           <li><strong>Earned over $300</strong> — showing that your music is generating real streaming income (not just plays)</li>
         </ul>
       </div>
-      <p class="chart-dek">
-        Each tile is one artist. Triangular rays are five catalogue signals; the number in the center is how many are true. A gold border marks Russian-language rows in NUAM. Use the listener band to narrow who appears in the grid.
-      </p>
 """
 
     s5 = chart_blocks[3]

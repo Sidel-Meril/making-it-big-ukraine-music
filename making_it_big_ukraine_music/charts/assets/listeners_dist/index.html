@@ -217,9 +217,7 @@
 
   document.getElementById("chart-subtitle").textContent =
     `${totalArtists.toLocaleString()} artists · ${month.slice(0, 7)} snapshot. `;
-  document.getElementById("chart-note").textContent =
-    "Log scale keeps quiet acts and chart-toppers visible in one view. " +
-    "Drag to shift the highlight band and see where any top-N% cutoff lands in actual listener count.";
+  document.getElementById("chart-note").textContent = "";
 
   /* ── dimensions ── */
   const W = 880, H = 380;
