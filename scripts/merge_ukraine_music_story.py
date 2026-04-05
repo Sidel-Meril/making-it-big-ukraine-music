@@ -731,7 +731,7 @@ def main() -> None:
           There's nothing here but data — just numbers and patterns from the scene.
         </p>
         <p>
-          Huge thanks to <strong>Oleksii Ephymenko</strong> and everyone at <strong>NUAM (New UA Music)</strong> for collecting and organizing this year's data — without their work, this whole analysis wouldn't be possible.
+          Huge thanks to <strong>Oleksii Efimenko</strong> and everyone at <strong>NUAM (New UA Music)</strong> for collecting and organizing this year's data — without their work, this whole analysis wouldn't be possible.
         </p>
       </div>
     </section>
