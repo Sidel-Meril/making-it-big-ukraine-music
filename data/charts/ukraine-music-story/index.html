@@ -2792,18 +2792,25 @@
       </div>
       <div class="prose-block">
         <p>
-          To size up maturity, this piece borrows the spirit of
-          <a href="https://pudding.cool/2022/07/tiktok-story/"><em>The Unlikely Odds of Making it Big on TikTok</em></a>
-          on <strong>Pudding.cool</strong> — a set of milestones for how emerging artists convert attention into a career. Their original list included live shows, deals, charts, playlists, social followings, and streaming scale.
+          To get a sense of what it really means for an artist to move from early attention to a career with some traction,
+          we took inspiration from a fascinating visual essay by
+          <a href="https://pudding.cool/2022/07/tiktok-story/"><em>The Pudding</em></a>.
+          In that piece, the authors looked at a group of artists who went viral on TikTok and checked how many of them
+          hit a set of real‑world milestones that often come with “making it” — things like charting on Spotify,
+          playing live shows, signing record deals, gaining followers on social platforms, or reaching 1 million monthly listeners.
         </p>
-        <p>We don’t have every field they had (live shows, follower counts, etc.), so the NUAM view uses a tighter, data‑available set:</p>
-        <h3>Revised milestones for Ukrainian artists</h3>
+        <p>
+          We wanted to adapt that idea for Ukrainian artists, but we also only have certain kinds of data available for analysis.
+          So instead of tracking eight different milestones, we picked a handful that are meaningful signals for where an artist
+          stands today and that we can actually measure:
+        </p>
         <ul>
-          <li>Signed with a top‑rated label — industry recognition</li>
-          <li>Spotify profile — global distribution</li>
-          <li>Instagram account — basic social presence</li>
-          <li>Debuted within the last three years (2024–2026) — currently rising cohort</li>
-          <li>Spotify monthly listeners ≥ 1M — strong audience (aligned with the original framework)</li>
+          <li><strong>Signed with a top‑rated label</strong> — a signal that other music professionals see promise in your work and that you’ve got access to support from experienced people in the industry — from wider distribution to connections that can help your career grow.</li>
+          <li><strong>Spotify profile</strong> — you’re available to listeners everywhere in the world</li>
+          <li><strong>Instagram account</strong> — you have a social presence where fans can connect with you</li>
+          <li><strong>Debuted in the last three years</strong> — you’re part of the currently rising cohort of musicians</li>
+          <li><strong>Spotify monthly listeners ≥ 1 million</strong> — a clear indicator of audience reach beyond local borders</li>
+          <li><strong>Earned over $300</strong> — showing that your music is generating real streaming income (not just plays)</li>
         </ul>
       </div>
       <p class="chart-dek">
@@ -2821,7 +2828,7 @@
     <select id="ms-sort">
       <option value="achievements-desc">Most milestones</option>
       <option value="achievements-asc">Fewest milestones</option>
-      <option value="listeners-desc">Peak listeners (high → low)</option>
+      <option value="listeners-desc" selected>Peak listeners (high → low)</option>
       <option value="name-asc">Name (A–Z)</option>
     </select>
   </div>
@@ -3068,7 +3075,7 @@
       }
 
       const grid = d3.select("#ms-grid");
-      let mode = "achievements-desc";
+      let mode = "listeners-desc";
 
       const listenMinEl = document.getElementById("ms-listen-min");
       const listenMaxEl = document.getElementById("ms-listen-max");
@@ -3080,7 +3087,7 @@
       const numericListeners = data.artists
         .map((a) => a.listenersMax)
         .filter((v) => v != null && Number.isFinite(v));
-      let dataMin = numericListeners.length ? Math.min(...numericListeners) : 0;
+      let dataMin = 0; /* always start from zero — includes artists with < 1 K listeners */
       let dataMax = numericListeners.length ? Math.max(...numericListeners) : 1;
       const withListenerCount = numericListeners.length;
       const noListenerCount = N - withListenerCount;
@@ -3315,14 +3322,35 @@
         </div>
       </div></div>
       <div class="prose-block">
-        <h3>Milestones distribution — what stands out</h3>
-        <ul>
-          <li><strong>Gold‑framed</strong> tiles still carry Russian in their catalog row — since 2022 most acts have shifted toward Ukrainian or mixed language, but the field is still visible in the data.</li>
-          <li>Artists span a wide listener band (roughly ~70k up to ~1.5M in this view). <strong>Ivan Dorn</strong> and <strong>Okean Elzy</strong> both hit the 1M+ ray — different styles and languages, similar streaming scale.</li>
-        </ul>
         <p>
-          Even without every “classic” marker (festivals, chart history, etc.), you still see people breaking through, getting industry support, and building global audiences.
+          Artists in our listener band view range from about ~240 000 up to around ~1.8 million monthly listeners —
+          and that difference tells a story.
         </p>
+        <p>
+          To make this more interactive for readers, our dynamic visualization lets you configure the listener band yourself.
+          The view highlighted here shows where
+          <a href="https://open.spotify.com/search/Ziferblat/artists" target="_blank" rel="noopener"><strong>Ziferblat</strong></a>
+          sits in the landscape — as a recent Ukrainian representative at the Eurovision Song Contest 2025 with their song
+          “Bird of Pray.”
+        </p>
+        <p>
+          By comparison,
+          <a href="https://open.spotify.com/search/Go_A/artists" target="_blank" rel="noopener"><strong>Go_A</strong></a>,
+          who represented Ukraine at Eurovision in 2021, followed a different growth path. Though they had strong international
+          attention, their listener growth under the conditions of the early 2020s looks different in our data than
+          Ziferblat’s during the broader surge in global interest in Ukrainian music after 2022.
+        </p>
+        <p>
+          Another interesting pattern in the chart is
+          <a href="https://open.spotify.com/search/Carpetman/artists" target="_blank" rel="noopener"><strong>Carpetman</strong></a>,
+          who sits to the left of Ziferblat — meaning he has more monthly listeners in this view. Before launching his
+          solo career, Carpetman was part of
+          <a href="https://open.spotify.com/search/Kalush%20Orchestra/artists" target="_blank" rel="noopener"><strong>Kalush Orchestra</strong></a>,
+          the Ukrainian group that won the Eurovision Song Contest 2022, and both Carpetman and Kalush Orchestra appear
+          in our listener band — though Kalush Orchestra sits with a significantly lower listener rate than Carpetman’s
+          current solo numbers, highlighting how his recent international growth stands apart.
+        </p>
+
       </div>
     </section>
 
@@ -3833,12 +3861,15 @@
         <p>
           I also looked at music from the listeners’ side — in particular <strong>which genres attract the most listeners</strong> and which ones are <em>under‑represented</em> compared to their audience size. Not every genre is proportional: some styles have way more ears listening than artists making that music. Below are genres that <strong>have a lot of listeners but fewer artists creating in them</strong> — one way to spot opportunities on the scene.
         </p>
-        <ul>
-          <li><strong>Ukrainian phonk</strong> shows up with a solid listener base: electronic beats and hip‑hop cadence, strong playlists and platform circulation.</li>
-          <li><strong>Experimental</strong> corners (noise, glitch, dark) pull listeners despite thin rosters — niche, but the audience is there.</li>
-          <li>Classics like <strong>emo, opera, and blues</strong> also appear under‑represented on the supply side; people still tune in.</li>
-        </ul>
-        <p>In short: <strong>big audiences, not always big benches of artists</strong> — a useful map of curiosity versus creative density.</p>
+        <p>
+          One of the most listened‑to but under‑represented genres on our charts is <strong>Ukrainian phonk</strong> — a style rooted in phonk and internet‑driven beats that’s finding real traction with listeners even though there aren’t many artists producing it. This means demand far outpaces the number of creators right now, so phonk shows up strong in listenership compared to its small roster.
+        </p>
+        <p>
+          By contrast, well‑known genres like <strong>rap</strong> have enough artists to satisfy audience demand, so listener attention and streams are spread more evenly across performers and competition is higher in that field.
+        </p>
+        <p>
+          At the same time, experimental corners and classic styles (like <strong>emo, opera, blues</strong>) don’t have a wide market in Ukraine; they’re interesting to specific listeners but don’t attract large audiences here, so their growth potential is limited in this context.
+        </p>
         <aside class="story-aside">
           <p>
             Ukrainian phonk grew out of the global phonk wave — Memphis‑rooted loops and trap energy that blew up on SoundCloud and short‑video feeds — and took on a local accent through collectives such as <strong>Ukrainian Phonk Community</strong>. Today it’s often independent, bass‑heavy, and unmistakably “late night internet,” with listeners both at home and abroad.
@@ -4409,9 +4440,10 @@
           to <strong>each month in the NUAM export</strong>. That yields a rough <em>lower‑bound style</em> estimate — not an official Spotify statement, and not a split between free and premium plays.
         </p>
         <p>
-          The <strong>histogram</strong> asks how concentrated total estimated payouts are across artists (with a shaded band below $300).
-          The <strong>line chart</strong> follows the top earners by month from 2025 onward: use the dual sliders to keep only acts whose
-          <strong>peak monthly listeners</strong> fall in a range, then hover a line — other artists fade to gray and a tooltip shows the <strong>estimated dollars for that month</strong>.
+          The <strong>histogram</strong> doesn’t ask about theory or technical charts — it <strong>reveals how streaming money is actually distributed among artists</strong>. It shows the number of artists earning at each level of total estimated payout from streams, and one thing is clear at a glance: <strong>most artists aren’t making enough to live on</strong>. Approximately <strong>93 % of artists receive less than $300</strong> in total payouts from streaming alone — meaning most have to work full‑time jobs alongside their music.
+        </p>
+        <p>
+          Below that, we’ve treated each artist’s payout trends like a <strong>stock performance chart</strong>, because for many musicians streaming income <em>is like an investment in their own career</em>. You can see how their estimated monthly earnings change over time. If you type, for example, “Кажанна,” you’ll see her journey: from a relatively underpaid artist to one of the rare few who crossed the $300 boundary with her hit <em>“Boy.”</em> Her line rises just like a breakout stock — showing how a viral moment can change an artist’s income dynamics.
         </p>
       </div>
       <p class="chart-dek">

@@ -269,7 +269,7 @@
     <select id="sort">
       <option value="achievements-desc">Most milestones</option>
       <option value="achievements-asc">Fewest milestones</option>
-      <option value="listeners-desc">Peak listeners (high → low)</option>
+      <option value="listeners-desc" selected>Peak listeners (high → low)</option>
       <option value="name-asc">Name (A–Z)</option>
     </select>
   </div>
@@ -519,7 +519,7 @@
       }
 
       const grid = d3.select("#grid");
-      let mode = "achievements-desc";
+      let mode = "listeners-desc";
 
       const listenMinEl = document.getElementById("listen-min");
       const listenMaxEl = document.getElementById("listen-max");
@@ -531,7 +531,7 @@
       const numericListeners = data.artists
         .map((a) => a.listenersMax)
         .filter((v) => v != null && Number.isFinite(v));
-      let dataMin = numericListeners.length ? Math.min(...numericListeners) : 0;
+      let dataMin = 0; /* always start from zero — includes artists with < 1 K listeners */
       let dataMax = numericListeners.length ? Math.max(...numericListeners) : 1;
       const withListenerCount = numericListeners.length;
       const noListenerCount = N - withListenerCount;
