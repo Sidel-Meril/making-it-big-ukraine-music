@@ -336,12 +336,7 @@
         meta.minPeakListenersInExport != null && meta.minPeakListenersInExport > 0
           ? ` Anyone under ${Number(meta.minPeakListenersInExport).toLocaleString()} peak listeners is dropped from this file.`
           : "";
-      const listenersRayNote =
-        meta.spotifyListenersThreshold != null
-          ? ` One ray glows at ≥${Number(meta.spotifyListenersThreshold).toLocaleString()} peak listeners.`
-          : "";
-      document.getElementById("subtitle").textContent =
-        `${ref}. Every slice lights up when an artist hits that milestone — the number in the middle shows how many they’ve reached.${exportFloor}${listenersRayNote} Showing top 30 for your current sort.`;
+      document.getElementById("subtitle").textContent = `${ref}.`;
 
       function legendRayPolygonPoints(ang, ringR, baseHalf, tipLen) {
         const rx = Math.cos(ang);
