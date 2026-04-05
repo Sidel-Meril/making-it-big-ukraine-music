@@ -41,7 +41,7 @@
       padding: 0.5rem;
       overflow-x: auto;
     }
-    .axis text { fill: var(--muted); font-size: 11px; }
+    .axis text { fill: var(--muted); font-size: 13px; }
     .axis line, .axis path { stroke: #444; }
     .grid line { stroke: #2a2a2a; }
     .filter-panel {
@@ -149,7 +149,7 @@
       transform: translateX(-50%);
     }
     .slider-tick .t-bar { width: 2px; height: 5px; background: #FBBF24; border-radius: 1px; }
-    .slider-tick .t-lbl { font-size: 10px; color: #A16207; white-space: nowrap; line-height: 1.4; }
+    .slider-tick .t-lbl { font-size: 12px; color: #A16207; white-space: nowrap; line-height: 1.4; }
     .slider-marker {
       position: absolute;
       transform: translateX(-50%);
@@ -161,7 +161,7 @@
     }
     .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
     .slider-marker .m-lbl {
-      font-size: 10px; font-weight: 700; color: #FDE68A;
+      font-size: 12px; font-weight: 700; color: #FDE68A;
       background: rgba(120,77,0,0.55);
       padding: 0 5px; border-radius: 3px;
       white-space: nowrap; line-height: 1.6;
@@ -352,7 +352,7 @@
     .attr("x", i1w / 2)
     .attr("y", i1h + 40)
     .attr("text-anchor", "middle")
-    .style("font-size", "11px")
+    .style("font-size", "13px")
     .text("Estimated lifetime earnings per artist (USD)");
 
   g1.append("text")
@@ -361,7 +361,7 @@
     .attr("x", -i1h / 2)
     .attr("y", -40)
     .attr("text-anchor", "middle")
-    .style("font-size", "11px")
+    .style("font-size", "13px")
     .text("Artists (count)");
 
   g1.append("text")
@@ -369,7 +369,7 @@
     .attr("x", x1(tLog * 0.45))
     .attr("y", y1(maxC * 0.88))
     .attr("text-anchor", "middle")
-    .style("font-size", "12px")
+    .style("font-size", "15px")
     .text(`Below $${hist.thresholdUsd || 300}: ${pct.toFixed(1)}% of artists`);
 
   /* —— multi-line + peak listener band —— */
@@ -549,7 +549,7 @@
     .attr("x", i2w / 2)
     .attr("y", i2h + 36)
     .attr("text-anchor", "middle")
-    .style("font-size", "11px")
+    .style("font-size", "13px")
     .text("Month");
 
   g2.append("text")
@@ -558,7 +558,7 @@
     .attr("x", -i2h / 2)
     .attr("y", -48)
     .attr("text-anchor", "middle")
-    .style("font-size", "11px")
+    .style("font-size", "13px")
     .text("Estimated payout (USD / month)");
 
   const tip = d3.select("#money-tip");
@@ -749,7 +749,7 @@
           })
           .attr("text-anchor", "middle")
           .attr("fill", (p) => p.delta >= 0 ? "#FBBF24" : "#DC2626")
-          .style("font-size", "9px")
+          .style("font-size", "12px")
           .style("font-weight", "700")
           .style("pointer-events", "none")
           .text((p) => _fmtD(p.delta));
@@ -767,7 +767,7 @@
             .attr("stroke", "#121212")
             .attr("stroke-width", 3.5)
             .attr("stroke-linejoin", "round")
-            .style("font-size", "12px")
+            .style("font-size", "14px")
             .style("font-weight", "700")
             .style("pointer-events", "none")
             .text(activeS.name);

@@ -136,7 +136,7 @@
       align-items: center;
     }
     .slider-tick .t-bar { width: 1px; height: 5px; background: #FBBF24; }
-    .slider-tick .t-lbl { font-size: 9px; color: #A16207; white-space: nowrap; margin-top: 1px; }
+    .slider-tick .t-lbl { font-size: 11px; color: #A16207; white-space: nowrap; margin-top: 1px; }
     .slider-marker {
       position: absolute;
       transform: translateX(-50%);
@@ -148,7 +148,7 @@
     }
     .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
     .slider-marker .m-lbl {
-      font-size: 10px; font-weight: 700; color: #FDE68A;
+      font-size: 12px; font-weight: 700; color: #FDE68A;
       background: rgba(120,77,0,0.55);
       padding: 0 5px; border-radius: 3px;
       white-space: nowrap; line-height: 1.6;
@@ -162,7 +162,7 @@
       padding: 0.5rem;
       overflow-x: auto;
     }
-    .axis text { fill: var(--muted); font-size: 11px; }
+    .axis text { fill: var(--muted); font-size: 13px; }
     .axis line, .axis path { stroke: #444; }
     .note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
   </style>
@@ -281,7 +281,7 @@
       .attr("text-anchor", txtAnchor)
       .attr("dominant-baseline", "middle")
       .attr("fill", "#FDE68A")
-      .style("font-size", "11px")
+      .style("font-size", "13px")
       .style("font-weight", "700")
       .text("1M listeners");
 
@@ -290,7 +290,7 @@
       .attr("text-anchor", txtAnchor)
       .attr("dominant-baseline", "middle")
       .attr("fill", "#9aa0a6")
-      .style("font-size", "9px")
+      .style("font-size", "11px")
       .style("font-weight", "500")
       .text("international achievement");
 
@@ -325,12 +325,12 @@
   /* axis labels */
   g.append("text").attr("fill", "#9aa0a6")
     .attr("x", iw / 2).attr("y", ih + 42)
-    .attr("text-anchor", "middle").style("font-size", "11px")
+    .attr("text-anchor", "middle").style("font-size", "13px")
     .text("Monthly listeners (log scale · labels in real counts)");
   g.append("text").attr("fill", "#9aa0a6")
     .attr("transform", "rotate(-90)")
     .attr("x", -ih / 2).attr("y", -44)
-    .attr("text-anchor", "middle").style("font-size", "11px")
+    .attr("text-anchor", "middle").style("font-size", "13px")
     .text("Number of artists");
 
   /* ── highlight band (rectangle + centred label) ── */
@@ -351,7 +351,7 @@
     .attr("dominant-baseline", "middle")
     .attr("text-anchor", "middle")
     .attr("fill", "#FDE68A")
-    .style("font-size", "13px")
+    .style("font-size", "15px")
     .style("font-weight", "700")
     .style("pointer-events", "none");
   const hlAnnotL2 = hlG.append("text")   // "top Y% · Z artists"
@@ -359,7 +359,7 @@
     .attr("dominant-baseline", "middle")
     .attr("text-anchor", "middle")
     .attr("fill", "#F59E0B")
-    .style("font-size", "10px")
+    .style("font-size", "12px")
     .style("font-weight", "600")
     .style("pointer-events", "none");
   const hlAnnotL3 = hlG.append("text")   // "Est. payout: $Xk/mo"
@@ -367,7 +367,7 @@
     .attr("dominant-baseline", "middle")
     .attr("text-anchor", "middle")
     .attr("fill", "#9CA3AF")
-    .style("font-size", "9px")
+    .style("font-size", "11px")
     .style("font-weight", "500")
     .style("pointer-events", "none");
 
