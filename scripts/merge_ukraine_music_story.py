@@ -622,9 +622,6 @@ def main() -> None:
         <p class="section-label">Section 5 · Genres</p>
         <h2 id="sec-genres">Genres</h2>
       </div>
-      <p class="chart-dek">
-        Circle area reflects the chosen size metric from NUAM; color shows listeners per artist on a logarithmic scale. The gradient key and range sliders sit with the pack.
-      </p>
 """
 
     s7 = chart_blocks[4]
