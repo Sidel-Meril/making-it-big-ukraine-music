@@ -317,7 +317,7 @@
       document.getElementById("metric-name").textContent = metricLabel;
 
       document.getElementById("subtitle").textContent =
-        `${(meta.genreCount != null ? meta.genreCount : raw.genres.length).toLocaleString()} genres · bubble size = ${metricLabel}.`;
+        `${(meta.genreCount != null ? meta.genreCount : raw.genres.length).toLocaleString()} genres.`;
 
       document.getElementById("legend-lead").innerHTML =
         "<strong>Quick read.</strong> Sliders choose <em>who</em> appears. <strong>Size</strong> = the metric above. <strong>Color</strong> = listeners per artist (violet = few, yellow = many). Big genres label inside; small ones sit on the ring. Hover a bubble for detail.";

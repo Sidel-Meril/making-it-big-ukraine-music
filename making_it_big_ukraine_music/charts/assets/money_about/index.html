@@ -290,7 +290,7 @@
   const nArt = hist.artistCount || 0;
 
   document.getElementById("hist-subtitle").textContent =
-    `${nArt.toLocaleString()} artists. X = estimated lifetime payout (USD). Most earn very little — the shaded area is below $${hist.thresholdUsd || 300}.`;
+    `${nArt.toLocaleString()} artists. X = estimated lifetime payout (USD).`;
 
   document.getElementById("hist-note").textContent =
     `${pct.toFixed(1)}% of artists sit below $${hist.thresholdUsd || 300} in estimated lifetime earnings. Numbers are rough — real payouts vary by deal.`;

@@ -216,8 +216,7 @@
   const minLog      = +(raw.minLog    || 0);
 
   document.getElementById("chart-subtitle").textContent =
-    `${totalArtists.toLocaleString()} artists · ${month.slice(0, 7)} snapshot. ` +
-    `The curve drops off sharply — most acts sit in the leftmost bars. X-axis labels show real counts.`;
+    `${totalArtists.toLocaleString()} artists · ${month.slice(0, 7)} snapshot. `;
   document.getElementById("chart-note").textContent =
     "Log scale keeps quiet acts and chart-toppers visible in one view. " +
     "Drag to shift the highlight band and see where any top-N% cutoff lands in actual listener count.";

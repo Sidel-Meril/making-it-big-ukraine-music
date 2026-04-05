@@ -218,8 +218,7 @@
   const _snapDate = new Date(month.slice(0, 7) + "-01");
   const _snapLabel = _snapDate.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
   document.getElementById("chart-subtitle").textContent =
-    `${totalArtists.toLocaleString()} artists · ${_snapLabel} snapshot. ` +
-    `The curve drops off sharply \u2014 most acts sit in the leftmost bars.`;
+    `${totalArtists.toLocaleString()} artists · ${_snapLabel} snapshot. `;
   document.getElementById("chart-note").textContent =
     "Log scale keeps quiet acts and chart-toppers visible in one view. " +
     "Drag to shift the highlight band and see where any top-N% cutoff lands in actual listener count.";

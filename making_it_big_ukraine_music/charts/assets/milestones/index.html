@@ -276,7 +276,7 @@
 
   <div class="legend-wrap">
     <p class="legend-lead">
-      <strong>Quick read.</strong> Inspired by <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#7eb8ff">The Pudding’s TikTok “flowers.”</a> Data: <a href="https://www.nuam.club/stat" style="color:#7eb8ff">NUAM</a>. From the top, clockwise: one wedge per milestone. Bright wedge = yes for that artist; the middle number counts how many of the six fired.
+      <strong>Quick read.</strong> From the top, clockwise: one wedge per milestone. Bright wedge = yes for that artist; the middle number counts how many of the six fired.
     </p>
     <div class="legend-diagram-host" id="legend"></div>
   </div>
@@ -341,7 +341,7 @@
           ? ` One ray glows at ≥${Number(meta.spotifyListenersThreshold).toLocaleString()} peak listeners.`
           : "";
       document.getElementById("subtitle").textContent =
-        `NUAM roster, ${ref}. Every slice lights up when an artist hits that milestone — the number in the middle shows how many they’ve reached.${exportFloor}${listenersRayNote} Showing top 30 for your current sort.`;
+        `${ref}. Every slice lights up when an artist hits that milestone — the number in the middle shows how many they’ve reached.${exportFloor}${listenersRayNote} Showing top 30 for your current sort.`;
 
       function legendRayPolygonPoints(ang, ringR, baseHalf, tipLen) {
         const rx = Math.cos(ang);
@@ -536,15 +536,18 @@
       const withListenerCount = numericListeners.length;
       const noListenerCount = N - withListenerCount;
 
-      const span0 = Math.max(dataMax - dataMin, 0);
-      const step =
-        span0 > 2_000_000
-          ? Math.ceil(span0 / 400)
-          : span0 > 200_000
-            ? Math.max(1, Math.ceil(span0 / 400))
-            : span0 > 20_000
-              ? Math.max(1, Math.ceil(span0 / 400))
-              : 1;
+      /* Log-scale slider — same pattern as the monthly-estimates chart */
+      const N_STEPS = 1000;
+      const _sLog1  = Math.log1p(dataMax);
+      function sliderToListeners(pos) {
+        const t = pos / N_STEPS;
+        return Math.round(Math.expm1(t * _sLog1));
+      }
+      function listenersToSlider(v) {
+        if (_sLog1 <= 0) return 0;
+        const t = Math.log1p(Math.max(0, v)) / _sLog1;
+        return Math.round(Math.max(0, Math.min(N_STEPS, t * N_STEPS)));
+      }
 
       function fmtListen(x) {
         return Math.round(x).toLocaleString();
@@ -572,26 +575,21 @@
         listenMinEl.disabled = false;
         listenMaxEl.disabled = false;
 
-        let lo = +listenMinEl.value;
-        let hi = +listenMaxEl.value;
-        if (lo > hi) {
-          listenMaxEl.value = String(lo);
-          hi = lo;
-        }
-        if (hi < lo) {
-          listenMinEl.value = String(hi);
-          lo = hi;
-        }
+        let sLo = +listenMinEl.value;
+        let sHi = +listenMaxEl.value;
+        if (sLo > sHi) { listenMaxEl.value = String(sLo); sHi = sLo; }
+        if (sHi < sLo) { listenMinEl.value = String(sHi); sLo = sHi; }
+
+        const lo = sliderToListeners(sLo);
+        const hi = sliderToListeners(sHi);
 
         listenValLabels.textContent = `Minimum ${fmtListen(lo)} · maximum ${fmtListen(hi)}`;
 
-        const span = Math.max(dataMax - dataMin, 1e-9);
-        const p0 = (lo - dataMin) / span;
-        const p1 = (hi - dataMin) / span;
+        const p0 = sLo / N_STEPS;
+        const p1 = sHi / N_STEPS;
         const leftPct = 100 * Math.max(0, Math.min(1, p0));
-        let widthPct = 100 * Math.max(0, Math.min(1, p1) - Math.min(1, p0));
-        if (widthPct === 0 && dataMin === dataMax) widthPct = 100;
-        else if (widthPct === 0) widthPct = 0.6;
+        let widthPct = 100 * Math.max(0, Math.min(1, p1 - p0));
+        if (widthPct === 0) widthPct = 0.6;
         listenTrackActive.style.left = `${leftPct}%`;
         listenTrackActive.style.width = `${widthPct}%`;
 
@@ -622,20 +620,11 @@
           return;
         }
 
-        if (dataMin === dataMax) {
-          listenMinEl.min = listenMaxEl.min = String(dataMin);
-          listenMinEl.max = listenMaxEl.max = String(dataMin);
-          listenMinEl.step = "1";
-          listenMaxEl.step = "1";
-          listenMinEl.value = String(dataMin);
-          listenMaxEl.value = String(dataMin);
-        } else {
-          listenMinEl.min = listenMaxEl.min = String(dataMin);
-          listenMinEl.max = listenMaxEl.max = String(dataMax);
-          listenMinEl.step = listenMaxEl.step = String(step);
-          listenMinEl.value = String(Math.max(dataMin, 237480));
-          listenMaxEl.value = String(Math.min(dataMax, 1845544));
-        }
+        listenMinEl.min = listenMaxEl.min = "0";
+        listenMinEl.max = listenMaxEl.max = String(N_STEPS);
+        listenMinEl.step = listenMaxEl.step = "1";
+        listenMinEl.value = String(listenersToSlider(237480));
+        listenMaxEl.value = String(listenersToSlider(Math.min(dataMax, 1845544)));
         syncListenerSliders();
         buildListenAxis();
       }
@@ -644,8 +633,6 @@
         const axEl = document.getElementById("listen-axis");
         if (!axEl || !numericListeners.length || dataMin >= dataMax) return;
         axEl.innerHTML = "";
-
-        const span = dataMax - dataMin;
 
         function addTick(pct, lbl, edge) {
           const div = document.createElement("div");
@@ -657,16 +644,16 @@
           axEl.appendChild(div);
         }
 
-        addTick(0, fmtListenShort(dataMin), "start");
-        addTick(100, fmtListenShort(dataMax), "end");
-
-        const candidates = [10e3, 50e3, 100e3, 500e3, 1e6, 2e6, 5e6];
-        const MIN_GAP_PCT = 8;
-        for (const val of candidates) {
-          if (val <= dataMin || val >= dataMax) continue;
-          const pct = (val - dataMin) / span * 100;
-          if (pct < MIN_GAP_PCT || pct > 100 - MIN_GAP_PCT) continue;
-          addTick(pct, fmtListenShort(val), null);
+        const logTicks = [0, 100, 1000, 10000, 100000, 1000000, 10000000];
+        logTicks.forEach((v, i) => {
+          if (v > dataMax) return;
+          const pos  = listenersToSlider(v);
+          const pct  = pos / N_STEPS * 100;
+          const isEnd = i === logTicks.length - 1 || logTicks[i + 1] > dataMax;
+          addTick(pct, fmtListenShort(v), i === 0 ? "start" : isEnd ? "end" : null);
+        });
+        if (logTicks[logTicks.length - 1] < dataMax) {
+          addTick(100, fmtListenShort(dataMax), "end");
         }
 
         for (const id of ["lo", "hi"]) {
