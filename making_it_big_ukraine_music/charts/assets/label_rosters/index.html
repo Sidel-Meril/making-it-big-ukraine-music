@@ -366,7 +366,7 @@
 
       const grid = d3.select("#grid");
       let mode = "roster-desc";
-      function GRID_VISIBLE_MAX() { return window.matchMedia('(max-width:600px)').matches ? 15 : 27; }
+      function GRID_VISIBLE_MAX() { return window.matchMedia('(pointer: coarse)').matches ? 15 : 60; }
 
       function centerFontSize(total) {
         if (total >= 10000) return "5.5px";
