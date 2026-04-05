@@ -45,10 +45,10 @@ def build_uk_listeners_growth_payload(
 
     monthly = (
         df.groupby(pd.Grouper(key="month", freq="MS"), sort=True)["listeners"]
-        .sum()
+        .agg(**{"total": "sum", "std": "std", "artistCount": "count"})
         .reset_index()
-        .rename(columns={"listeners": "total"})
     )
+    monthly["std"] = monthly["std"].fillna(0.0)
     monthly = monthly.loc[monthly["total"] > 0].reset_index(drop=True)
 
     points: list[dict[str, Any]] = []
@@ -57,12 +57,16 @@ def build_uk_listeners_growth_payload(
         m = r["month"]
         total = float(r["total"])
         delta = None if prev is None else total - prev
+        artist_count = int(r["artistCount"])
+        # 95 % CI half-width for the sum:  z₀.₀₂₅ × σ_sum  where σ_sum = std × √n
+        ci_band = 1.96 * float(r["std"]) * (artist_count ** 0.5)
         points.append(
             {
                 "monthIso": m.isoformat(),
                 "year": int(m.year),
                 "monthIndex": int(m.month),
                 "total": total,
+                "ciBand": round(ci_band),
                 "deltaPrev": delta,
             }
         )

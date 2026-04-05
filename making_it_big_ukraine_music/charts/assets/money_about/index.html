@@ -197,6 +197,31 @@
       width: fit-content;
     }
     .pin-badge:hover { background: rgba(109,40,217,0.32); }
+    .artist-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.7rem;
+    }
+    #artist-search {
+      flex: 1;
+      background: #1c1c1c;
+      border: 1px solid #363636;
+      border-radius: 5px;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-family: var(--font);
+      padding: 0.32rem 0.6rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #artist-search:focus { border-color: var(--accent); }
+    #artist-search::placeholder { color: #666; }
+    #artist-search-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -211,6 +236,13 @@
       <h2 id="lines-title">Monthly estimates — slide the peak band, hover a line</h2>
       <p class="subtitle" id="lines-subtitle"></p>
       <div class="filter-panel" id="listener-filter-panel">
+        <div class="artist-search-wrap">
+          <input type="text" id="artist-search" list="artist-list"
+                 autocomplete="off" spellcheck="false"
+                 placeholder="Jump to artist…" aria-label="Search artist to jump to their listener range" />
+          <datalist id="artist-list"></datalist>
+          <span id="artist-search-hint"></span>
+        </div>
         <h2>Peak monthly listeners</h2>
         <p class="filter-readout" style="margin-top:0">
           <strong>Peak</strong> = artist’s best month. The highlighted strip is what you’re seeing — widen it to bring more lines back.
@@ -345,9 +377,25 @@
   const monthStrs = linesPack.monthExtents || [];
   const lm = linesPack.meta || {};
   const sliderMax = Math.max(100000, +(lm.sliderMaxPeakListeners || 1_500_000));
-  const MAX_DRAW_LINES = 350;
+  const MAX_DRAW_LINES = 100;
   const dataMin = 0;
   const dataMax = sliderMax;
+
+  /* Log-scale slider: N_STEPS integer positions map [0…dataMax] in log space.
+     This spreads ~65 % of the slider travel over the 0–10 k listener range
+     while still reaching the full max — no extra sliders needed.           */
+  const N_STEPS  = 1000;
+  const _sLog0   = 0;                            // Math.log1p(0) = 0
+  const _sLog1   = Math.log1p(dataMax);
+  function sliderToListeners(pos) {
+    const t = pos / N_STEPS;
+    return Math.round(Math.expm1(_sLog0 + t * (_sLog1 - _sLog0)));
+  }
+  function listenersToSlider(v) {
+    if (_sLog1 <= 0) return 0;
+    const t = Math.log1p(Math.max(0, v)) / _sLog1;
+    return Math.round(Math.max(0, Math.min(N_STEPS, t * N_STEPS)));
+  }
 
   const listenMinEl = document.getElementById("listen-min");
   const listenMaxEl = document.getElementById("listen-max");
@@ -367,51 +415,50 @@
     return `${Math.round(x)}`;
   }
 
-  function syncListenerTrack(lo, hi) {
-    const span = Math.max(dataMax - dataMin, 1e-9);
-    const p0 = (lo - dataMin) / span;
-    const p1 = (hi - dataMin) / span;
+  /* sLo / sHi are slider positions (0–N_STEPS); labels show converted values. */
+  function syncListenerTrack(sLo, sHi) {
+    const p0 = sLo / N_STEPS;
+    const p1 = sHi / N_STEPS;
     const leftPct = 100 * Math.max(0, Math.min(1, p0));
     let widthPct = 100 * Math.max(0, Math.min(1, p1) - Math.min(1, p0));
-    if (widthPct === 0 && dataMin === dataMax) widthPct = 100;
-    else if (widthPct === 0) widthPct = 0.6;
+    if (widthPct === 0) widthPct = 0.6;
     listenTrackActive.style.left = `${leftPct}%`;
     listenTrackActive.style.width = `${widthPct}%`;
 
     if (_loMarker && _hiMarker) {
       _loMarker.style.left = `${leftPct.toFixed(1)}%`;
       _hiMarker.style.left = `${(leftPct + widthPct).toFixed(1)}%`;
-      _loMarker.querySelector(".m-lbl").textContent = fmtListenShort(lo);
-      _hiMarker.querySelector(".m-lbl").textContent = fmtListenShort(hi);
+      _loMarker.querySelector(".m-lbl").textContent = fmtListenShort(sliderToListeners(sLo));
+      _hiMarker.querySelector(".m-lbl").textContent = fmtListenShort(sliderToListeners(sHi));
     }
   }
 
   function buildListenAxis() {
     const axEl = document.getElementById("listen-axis");
-    if (!axEl || dataMin >= dataMax) return;
+    if (!axEl) return;
     axEl.innerHTML = "";
 
-    const span = dataMax - dataMin;
-
-    function addTick(pct, lbl, edge) {
+    function addTick(sliderPos, lbl, edge) {
       const div = document.createElement("div");
       div.className = "slider-tick";
-      div.style.left = `${pct.toFixed(1)}%`;
+      div.style.left = `${(sliderPos / N_STEPS * 100).toFixed(1)}%`;
       if (edge === "start") div.style.transform = "translateX(0)";
       else if (edge === "end") div.style.transform = "translateX(-100%)";
       div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
       axEl.appendChild(div);
     }
 
-    addTick(0, fmtListenShort(dataMin), "start");
-    addTick(100, fmtListenShort(dataMax), "end");
-
-    // evenly-spaced linear ticks (4 interior steps at 20%, 40%, 60%, 80%)
-    const N_TICKS = 4;
-    for (let i = 1; i <= N_TICKS; i++) {
-      const val = dataMin + span * (i / (N_TICKS + 1));
-      const pct = (val - dataMin) / span * 100;
-      addTick(pct, fmtListenShort(val), null);
+    /* Log-spaced ticks at powers of 10 that fit within dataMax */
+    const logTicks = [0, 100, 1000, 10000, 100000, 1000000, 10000000];
+    logTicks.forEach((v, i) => {
+      if (v > dataMax) return;
+      const pos   = listenersToSlider(v);
+      const isEnd = i === logTicks.length - 1 || logTicks[i + 1] > dataMax;
+      addTick(pos, fmtListenShort(v), i === 0 ? "start" : isEnd ? "end" : null);
+    });
+    /* Always mark the actual max */
+    if (logTicks[logTicks.length - 1] < dataMax) {
+      addTick(N_STEPS, fmtListenShort(dataMax), "end");
     }
 
     _loMarker = document.createElement("div");
@@ -426,23 +473,12 @@
   }
 
   function initPeakSliders() {
-    // Step of 1 000 lets 10 000 be exactly reachable (10 steps)
-    const step = 1000;
     const DEFAULT_INIT_MAX = 10000;
-
-    if (dataMin === dataMax) {
-      listenMinEl.min = listenMaxEl.min = String(dataMin);
-      listenMinEl.max = listenMaxEl.max = String(dataMin);
-      listenMinEl.step = listenMaxEl.step = "1";
-      listenMinEl.value = String(dataMin);
-      listenMaxEl.value = String(dataMin);
-    } else {
-      listenMinEl.min = listenMaxEl.min = String(dataMin);
-      listenMinEl.max = listenMaxEl.max = String(dataMax);   // full range preserved
-      listenMinEl.step = listenMaxEl.step = String(step);
-      listenMinEl.value = String(dataMin);                    // min starts at 0
-      listenMaxEl.value = String(Math.min(dataMax, DEFAULT_INIT_MAX)); // max starts at 10 000
-    }
+    listenMinEl.min = listenMaxEl.min = "0";
+    listenMinEl.max = listenMaxEl.max = String(N_STEPS);
+    listenMinEl.step = listenMaxEl.step = "1";
+    listenMinEl.value = "0";
+    listenMaxEl.value = String(listenersToSlider(Math.min(dataMax, DEFAULT_INIT_MAX)));
     listenerDualWrap.style.opacity = "1";
     listenMinEl.disabled = false;
     listenMaxEl.disabled = false;
@@ -463,8 +499,8 @@
   const bisectMonth = d3.bisector((d) => d.getTime()).center;
 
   const W2 = 920;
-  const H2 = 420;
-  const m2 = { top: 12, right: 28, bottom: 48, left: 64 };
+  const H2 = 760;
+  const m2 = { top: 16, right: 28, bottom: 48, left: 64 };
   const i2w = W2 - m2.left - m2.right;
   const i2h = H2 - m2.top - m2.bottom;
 
@@ -484,12 +520,27 @@
     .y((d) => y2(d.usd))
     .curve(d3.curveMonotoneX);
 
-  const color = d3.scaleOrdinal([
-    "#8B5CF6","#FBBF24","#A78BFA","#FDE047",
-    "#6D28D9","#FDE68A","#C084FC","#FCD34D",
-    "#7C3AED","#F59E0B"
-  ]);
+  /* Earnings-based color scales ─────────────────────────────────────────────
+     Scales are created once; their domain is recomputed on every redraw to
+     span only the currently visible filtered subset (≤ 350 artists).
+     This way the full gray/color range always maps to the visible spread,
+     making gradation visible no matter how narrow the filter band is.
+     Unselected → gray (dark = low earner, bright = high earner in view).
+     Selected   → project palette: violet (low) → golden (high).
+     Tooltip/axes always show the original dollar values.                    */
+  const _grayScale  = d3.scaleSequentialLog().interpolator(d3.interpolateLab("#2e2e2e", "#d8d8d8"));
+  const _colorScale = d3.scaleSequentialLog().interpolator(d3.interpolateLab("#6D28D9", "#FBBF24"));
+  function _updateColorDomains(vis) {
+    const totals  = vis.map((s) => +(s.totalUsd || 0));
+    const floor   = Math.max(0.01, d3.min(totals.filter((v) => v > 0)) || 0.01);
+    const ceiling = Math.max(floor * 1.001, d3.max(totals) || floor * 2);
+    _grayScale.domain([floor, ceiling]);
+    _colorScale.domain([floor, ceiling]);
+  }
+  function grayForLine(s)  { return _grayScale(Math.max(_grayScale.domain()[0], +(s.totalUsd || 0))); }
+  function colorForLine(s) { return _colorScale(Math.max(_colorScale.domain()[0], +(s.totalUsd || 0))); }
   const pathsG = g2.append("g").attr("class", "paths");
+  const selG   = g2.append("g").attr("class", "sel");
   const gx = g2.append("g").attr("class", "axis").attr("transform", `translate(0,${i2h})`);
   const gy = g2.append("g").attr("class", "axis");
 
@@ -555,18 +606,25 @@
   /** @returns {{ draw: typeof seriesAll, inBandCount: number, capped: boolean }} */
   function computeDraw(updateUi) {
     clampListenerSliders();
-    const lo = +listenMinEl.value;
-    const hi = +listenMaxEl.value;
+    const sLo = +listenMinEl.value;
+    const sHi = +listenMaxEl.value;
+    const lo  = sliderToListeners(sLo);
+    const hi  = sliderToListeners(sHi);
     const inBand = seriesAll.filter((s) => s.peakListeners >= lo && s.peakListeners <= hi);
     let draw = inBand;
     let capped = false;
     if (draw.length > MAX_DRAW_LINES) {
       draw = draw.slice().sort((a, b) => (+(b.totalUsd || 0)) - (+(a.totalUsd || 0))).slice(0, MAX_DRAW_LINES);
       capped = true;
+      /* Always keep the pinned artist visible even if outside top-N earners */
+      if (pinnedId != null && !draw.some((s) => s.id === pinnedId)) {
+        const pinned = inBand.find((s) => s.id === pinnedId);
+        if (pinned) draw = [pinned, ...draw.slice(0, MAX_DRAW_LINES - 1)];
+      }
     }
     if (updateUi) {
       listenValLabels.textContent = `Min: ${fmtListen(lo)} · Max: ${fmtListen(hi)}`;
-      syncListenerTrack(lo, hi);
+      syncListenerTrack(sLo, sHi);
       if (inBand.length === 0) {
         filterNoteEl.textContent = "Nobody in this peak band.";
       } else if (capped) {
@@ -587,6 +645,7 @@
   }
 
   function redrawLinesWithVis(vis) {
+    _updateColorDomains(vis);
     const maxY = d3.max(vis, (s) => d3.max(s.points, (p) => p.usd)) || 1;
     y2.domain([0, maxY * 1.06]).nice();
 
@@ -605,19 +664,125 @@
       .attr("fill", "none")
       .attr("stroke-width", 2)
       .merge(pth)
-      .attr("stroke", (d) => color(String(d.id)))
+      .attr("stroke", (d) => {
+        /* pinned-but-not-focused keeps its color; everything else is gray */
+        if (hId != null && d.id === pinnedId && d.id !== hId) return colorForLine(d);
+        return grayForLine(d);
+      })
       .attr("d", (d) => lineGen(d.points))
       .style("opacity", (d) => {
-        if (hId == null)          return 0.25;
-        if (d.id === hId)         return 1;
-        if (d.id === pinnedId)    return 0.55;  /* pinned but not focused */
-        return 0.07;
+        if (hId == null)          return 0.72;  /* no selection — gray visible */
+        if (d.id === hId)         return 0;     /* selG renders it */
+        if (d.id === pinnedId)    return 0.65;  /* pinned-but-not-focused, colored */
+        return 0.28;                             /* others dimmed gray */
       })
       .style("stroke-width", (d) => {
-        if (d.id === hId)         return 3.8;
-        if (d.id === pinnedId)    return 2.2;
-        return 1.5;
+        if (d.id === pinnedId && d.id !== hId) return 2.2;
+        return 1.4;
       });
+
+    selG.selectAll("*").remove();
+    if (hId != null) {
+      const activeS = vis.find(s => s.id === hId);
+      if (activeS) {
+        const lineColor = colorForLine(activeS);
+
+        /* halo */
+        selG.append("path")
+          .attr("fill", "none")
+          .attr("d", lineGen(activeS.points))
+          .attr("stroke", lineColor)
+          .attr("stroke-width", 12)
+          .attr("stroke-linecap", "round")
+          .attr("stroke-linejoin", "round")
+          .attr("opacity", 0.18);
+        /* main line */
+        selG.append("path")
+          .attr("fill", "none")
+          .attr("d", lineGen(activeS.points))
+          .attr("stroke", lineColor)
+          .attr("stroke-width", 4.5)
+          .attr("stroke-linecap", "round")
+          .attr("stroke-linejoin", "round")
+          .attr("opacity", 1);
+
+        /* dots + delta labels per month */
+        const _pts = activeS.points;
+        const _fmtD = (v) => {
+          const sign = v >= 0 ? "+" : "−";
+          const abs  = Math.abs(v);
+          if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`;
+          if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(abs >= 10000 ? 0 : 1)}k`;
+          if (abs >= 10)  return `${sign}$${Math.round(abs)}`;
+          return `${sign}$${abs.toFixed(2)}`;
+        };
+        const _ptData = _pts.map((d, i) => ({
+          d,
+          cx: x2(new Date(d.month + "T12:00:00")),
+          cy: y2(d.usd),
+          delta: i === 0 ? null : d.usd - _pts[i - 1].usd,
+        }));
+
+        /* dots */
+        selG.selectAll("circle.sel-dot")
+          .data(_ptData)
+          .join("circle")
+          .attr("class", "sel-dot")
+          .attr("cx", (p) => p.cx)
+          .attr("cy", (p) => p.cy)
+          .attr("r", 3.5)
+          .attr("fill", lineColor)
+          .attr("stroke", "#121212")
+          .attr("stroke-width", 1);
+
+        /* delta labels — skip first point (no delta), place above/below to avoid line */
+        const _labelPts = _ptData.filter((p) => p.delta !== null);
+        selG.selectAll("text.sel-delta")
+          .data(_labelPts)
+          .join("text")
+          .attr("class", "sel-delta")
+          .attr("x", (p) => p.cx)
+          .attr("y", (p) => {
+            /* place above when delta positive (line went up), below otherwise */
+            const offset = p.delta >= 0 ? -9 : 14;
+            return Math.max(4, Math.min(i2h - 4, p.cy + offset));
+          })
+          .attr("text-anchor", "middle")
+          .attr("fill", (p) => p.delta >= 0 ? "#FBBF24" : "#DC2626")
+          .style("font-size", "9px")
+          .style("font-weight", "700")
+          .style("pointer-events", "none")
+          .text((p) => _fmtD(p.delta));
+
+        /* Artist name anchored just left of the last data point */
+        const _last = _ptData[_ptData.length - 1];
+        if (_last) {
+          const _nx = _last.cx - 10;
+          const _ny = _last.cy < 22 ? _last.cy + 18 : _last.cy - 18;
+          /* background stroke for readability over other lines */
+          selG.append("text")
+            .attr("x", _nx).attr("y", _ny)
+            .attr("text-anchor", "end")
+            .attr("fill", "#121212")
+            .attr("stroke", "#121212")
+            .attr("stroke-width", 3.5)
+            .attr("stroke-linejoin", "round")
+            .style("font-size", "12px")
+            .style("font-weight", "700")
+            .style("pointer-events", "none")
+            .text(activeS.name);
+          /* foreground label in line color */
+          selG.append("text")
+            .attr("x", _nx).attr("y", _ny)
+            .attr("text-anchor", "end")
+            .attr("fill", lineColor)
+            .style("font-size", "12px")
+            .style("font-weight", "700")
+            .style("pointer-events", "none")
+            .text(activeS.name);
+        }
+      }
+    }
 
     updatePinBadge(vis);
   }
@@ -637,6 +802,20 @@
       const py = y2(pt.usd);
       const dd = (px - mx) ** 2 + (py - my) ** 2;
       if (dd < bestD && dd < 900) { bestD = dd; best = { s, pt, px, py }; }
+    }
+    if (pinnedId != null && best != null && best.s.id !== pinnedId) {
+      const pinSeries = vis.find(s => s.id === pinnedId);
+      if (pinSeries) {
+        const pinPt = valueAtMonth(pinSeries.points, tM);
+        if (pinPt) {
+          const ppx = x2(new Date(pinPt.month + "T12:00:00"));
+          const ppy = y2(pinPt.usd);
+          const pinnedDist = (ppx - mx) ** 2 + (ppy - my) ** 2;
+          if (pinnedDist < 900 && bestD > pinnedDist * 0.25) {
+            best = { s: pinSeries, pt: pinPt, px: ppx, py: ppy };
+          }
+        }
+      }
     }
     return best;
   }
@@ -714,18 +893,16 @@
   listenerDualWrap.addEventListener("mousemove", function (e) {
     const rect = listenerDualWrap.getBoundingClientRect();
     const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const span = Math.max(dataMax - dataMin, 1);
-    const pLo  = (+listenMinEl.value - dataMin) / span;
-    const pHi  = (+listenMaxEl.value - dataMin) / span;
+    const pLo  = +listenMinEl.value / N_STEPS;
+    const pHi  = +listenMaxEl.value / N_STEPS;
     listenMinEl.style.zIndex = Math.abs(pct - pLo) <= Math.abs(pct - pHi) ? 3 : 1;
   });
   listenerDualWrap.addEventListener("touchmove", function (e) {
     const touch = e.touches[0];
     const rect  = listenerDualWrap.getBoundingClientRect();
     const pct   = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
-    const span  = Math.max(dataMax - dataMin, 1);
-    const pLo   = (+listenMinEl.value - dataMin) / span;
-    const pHi   = (+listenMaxEl.value - dataMin) / span;
+    const pLo   = +listenMinEl.value / N_STEPS;
+    const pHi   = +listenMaxEl.value / N_STEPS;
     listenMinEl.style.zIndex = Math.abs(pct - pLo) <= Math.abs(pct - pHi) ? 3 : 1;
   }, { passive: true });
 
@@ -734,8 +911,8 @@
     tip.style("display", "none");
     /* clear pin only if the pinned artist falls outside the new band */
     if (pinnedId != null) {
-      const lo = +listenMinEl.value;
-      const hi = +listenMaxEl.value;
+      const lo = sliderToListeners(+listenMinEl.value);
+      const hi = sliderToListeners(+listenMaxEl.value);
       const stillVisible = seriesAll.some(
         (s) => s.id === pinnedId && s.peakListeners >= lo && s.peakListeners <= hi
       );
@@ -745,6 +922,75 @@
   }
   listenMinEl.addEventListener("input", onSliderInput);
   listenMaxEl.addEventListener("input", onSliderInput);
+
+  /* ── Artist search: live partial-match pin + slider jump ── */
+  (function () {
+    const searchEl = document.getElementById("artist-search");
+    const hintEl   = document.getElementById("artist-search-hint");
+    const listEl   = document.getElementById("artist-list");
+
+    /* Populate datalist once (alphabetical) */
+    [...seriesAll]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s.name;
+        listEl.appendChild(opt);
+      });
+
+    function pinAndJump(artist) {
+      const HALF   = 80;  /* tighter window → fewer in-band artists → pinned always visible */
+      const centre = listenersToSlider(artist.peakListeners);
+      listenMinEl.value = String(Math.max(0, centre - HALF));
+      listenMaxEl.value = String(Math.min(N_STEPS, centre + HALF));
+      pinnedId  = artist.id;
+      activeId  = null;
+      redrawLines();
+    }
+
+    function bestMatch(text) {
+      if (!text) return null;
+      const lc = text.toLowerCase();
+      return (
+        seriesAll.find((s) => s.name.toLowerCase().startsWith(lc)) ||
+        seriesAll.find((s) => s.name.toLowerCase().includes(lc))   ||
+        null
+      );
+    }
+
+    /* Live update on every keystroke */
+    searchEl.addEventListener("input", () => {
+      const name = searchEl.value.trim();
+      if (!name) {
+        /* Input cleared — unpin and reset hint */
+        pinnedId = null;
+        activeId = null;
+        hintEl.textContent = "";
+        redrawLines();
+        return;
+      }
+      const hit = bestMatch(name);
+      if (hit) {
+        pinAndJump(hit);
+        hintEl.textContent = `→ ${hit.name}`;
+        hintEl.style.color = "#9aa0a6";
+      } else {
+        hintEl.textContent = "not found";
+        hintEl.style.color = "#DC2626";
+      }
+    });
+
+    /* Escape clears the search */
+    searchEl.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        searchEl.value = "";
+        pinnedId = null;
+        activeId = null;
+        hintEl.textContent = "";
+        redrawLines();
+      }
+    });
+  })();
 
   redrawLines();
 })();

@@ -231,7 +231,7 @@
         "<strong>About that band.</strong> NUAM only spots a label once someone is on the roster — often while listeners are still tiny. That is not proof the deal signed that week; it’s how often the <em>first snapshot we have</em> is still a small audience, unlike many majors that show up later with bigger numbers.";
 
       document.getElementById("bars-lead").textContent =
-        `Only labels with at least one artist above ${LABEL_MIN.toLocaleString()} listeners are shown. Blue = all signed artists; orange = the low-reach group.`;
+        `Only labels with at least one artist above ${LABEL_MIN.toLocaleString()} listeners are shown. Purple = all signed artists; red portion = strange deals (signed while still under ${STRANGE.toLocaleString()} listeners).`;
 
       document.getElementById("pack-lead").textContent =
         "Bigger bubble = more monthly listeners summed in that genre for this slice only. Same yellow accent as elsewhere on the page.";
@@ -624,7 +624,8 @@
       if (!rows.length) {
         gB.append("text").attr("fill", "#888").text("No labels left after filters.");
       } else {
-        const display = [...rows].reverse();
+        /* Sort by strangeCount desc — most strange deals on top */
+        const display = [...rows].sort((a, b) => b.strangeCount - a.strangeCount || a.label.localeCompare(b.label));
         const xMaxB = d3.max(display, (d) => d.signedCount) || 1;
         const xb = d3.scaleLinear().domain([0, xMaxB]).nice().range([0, ibw]);
         const yb = d3
@@ -658,34 +659,20 @@
           .append("title")
           .text((d) => `${d.label}\nSigned artists: ${d.signedCount}\n“Strange” (peak < ${STRANGE}): ${d.strangeCount}`);
 
-        const linePts = display.map((d) => [xb(d.strangeCount), yb(d.label) + yb.bandwidth() / 2]);
-        const ln = d3
-          .line()
-          .x((p) => p[0])
-          .y((p) => p[1])
-          .curve(d3.curveLinear);
-        gB.append("path")
-          .attr("fill", "none")
-          .attr("stroke", "#FBBF24")
-          .attr("stroke-width", 2)
-          .attr("d", ln(linePts));
-
-        const rScale = d3.scaleSqrt()
-          .domain([0, d3.max(display, (d) => d.strangeCount) || 1])
-          .range([3, 9]);
-
-        gB.selectAll("circle.str")
-          .data(display)
-          .join("circle")
-          .attr("class", "str")
-          .attr("cx", (d) => xb(d.strangeCount))
-          .attr("cy", (d) => yb(d.label) + yb.bandwidth() / 2)
-          .attr("r", (d) => rScale(d.strangeCount))
+        /* Red prefix segment = strange-deal portion, drawn on top of the purple bar */
+        gB.selectAll("rect.strange")
+          .data(display.filter((d) => d.strangeCount > 0))
+          .join("rect")
+          .attr("class", "strange")
+          .attr("x", 0)
+          .attr("y", (d) => yb(d.label))
+          .attr("height", yb.bandwidth())
+          .attr("width", (d) => xb(d.strangeCount))
           .attr("fill", "#DC2626")
-          .attr("stroke", "#FBBF24")
-          .attr("stroke-width", 2.5)
+          .attr("rx", 2)
+          .attr("opacity", 0.88)
           .append("title")
-          .text((d) => `${d.label} — “strange” count: ${d.strangeCount}`);
+          .text((d) => `${d.label} — strange deals: ${d.strangeCount} of ${d.signedCount} signed`);
 
         gB.append("g").attr("class", "axis").call(d3.axisLeft(yb).tickSize(6))
           .call((g) => g.selectAll("text").style("font-size", "14px"));
@@ -709,7 +696,7 @@
           .attr("fill", "#e8e8e8")
           .style("font-size", "16px")
           .style("font-weight", "650")
-          .text("Blue = all signed; orange = low-reach at signing");
+          .text("Purple = all signed · red portion = strange deals");
       }
     })();
   </script>

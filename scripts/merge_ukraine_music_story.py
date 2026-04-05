@@ -446,11 +446,15 @@ def main() -> None:
     block4 = """
       <div class="prose-block">
         <p>
-          For many artists, record labels are a key step in their professional careers. However, in Ukraine, labels don’t function in the same way as the big music industry players elsewhere. <strong>Ukrainian labels don’t guarantee stardom</strong> but serve more as intermediaries between the artist and distributors — pitching to streaming platforms, promotion, community support. They often operate like <strong>local communities</strong>, so signing with one is generally not a difficult hurdle for most artists.
+          For many artists, record labels can be an important step in building a professional career in music. In the global industry, traditional label contracts are legal agreements in which an artist typically grants a label <strong>exclusive rights</strong> to record, market and distribute their music for a defined period of time, often tied to multiple albums or defined contract terms; during that period, artists generally cannot release music through other labels without the original label’s permission.
         </p>
         <p>
-          There are labels that have become known for <strong>creating successful artists</strong> and pushing them into larger markets. We define a <strong>top‑rated label</strong> as one that has released at least <strong>two artists with 400,000+ monthly listeners</strong>.
+          In Ukraine, however, the label ecosystem operates <strong>differently from these dominant international models</strong>. Many local labels function less like exclusive commercial partners and more like <strong>supportive artistic communities</strong> — offering promotion, distribution help, curated releases, shared networks and collaborative audiences without strictly locking artists into traditional exclusivity. Because most agreements are private and governed by nondisclosure clauses, there is no single public standard defining whether an artist is fully bound to one label or free to work with others. Nonetheless, many Ukrainian labels emphasize <strong>support and exposure</strong> — assisting with distribution, sharing audiences between their roster, and sometimes coordinating live events or promotional opportunities — rather than imposing hard legal exclusivity.
         </p>
+        <p>
+          There are labels that have become known for <strong>creating successful artists</strong> and pushing them into larger markets. We define a <strong>top‑rated label</strong> as one that has at least <strong>two artists who each reached 270,960+ monthly Spotify listeners</strong> — roughly <strong>$300</strong> in estimated streaming payout per artist.
+        </p>
+        <p>A few stand out from the rest:</p>
         <ul>
           <li><strong>ENKO Music</strong> — pop releases; artists such as Jerry Hail, Alyona Alyona, KALUSH, YAKTAK, and Шугар; strong Spotify presence.</li>
           <li><strong>PLAN</strong> — very high signing volume (<strong>379 deals in two years</strong>); mainstream breakout still an open story.</li>
@@ -458,10 +462,21 @@ def main() -> None:
         </ul>
         <p>Top‑rated labels on NUAM also include, among others:</p>
         <ul>
-          <li>UA PHONK COMMUNITY, ENKO, BEST MUSIC, YATOMI HOUSE RECORDS, SUNDAY, TAVR Records, CVRSED, pomitni, Comp Music, House of Culture and Дім Звукозапису, RADAR RECORDS, OBNYAV, Phonk Workshop, FoxLab, Berserk Records</li>
+          <li>BEST MUSIC</li>
+          <li>YATOMI HOUSE RECORDS</li>
+          <li>Comp Music</li>
+          <li>МУЛЬТИТРЕК</li>
+          <li>pomitni</li>
+          <li>CVRSED</li>
+          <li>House of Culture and Дім Звукозапису</li>
+          <li>Mayak Music</li>
+          <li>SUNDAY</li>
+          <li>TAVR Records</li>
+          <li>AURORA RECORDS</li>
+          <li style="color:#9aa0a6;list-style:none;padding-top:0.25rem">— and 13 more labels visible on the chart above</li>
         </ul>
         <p>
-          <strong>pomitni</strong> has only been active since <strong>2022</strong> but is already growing quickly, with artists like Nadya Dorofeyeva and Кажанна. Getting a deal with one of these <strong>15 top‑rated labels</strong> is both an opportunity and a signal that an artist is on a credible path.
+          <strong>pomitni</strong> has only been active since <strong>2022</strong> but is already growing quickly, with artists like Nadya Dorofeyeva and Кажанна. Getting a deal with one of these <strong>26 top‑rated labels</strong> is both an opportunity and a signal that an artist is on a credible path.
         </p>
       </div>
     </section>
@@ -561,7 +576,7 @@ def main() -> None:
           Some of the deals you see are what we call <strong>“zero‑shot” deals</strong> — an artist signs with a label and releases music with no real prior background or track record on the platform. It’s a blunt metaphor, but it gets the idea across.
         </p>
         <p>
-          That does not prove the contract closed at that instant; it shows how often the <strong>first NUAM snapshot on a peer‑rated label</strong> still sits in a low‑listener band — worth contrasting with majors that tend to show up after streaming scale. The histogram, genre pack, and label bars in the chart above are there to explore that tail.
+          That does not prove the contract closed at that instant; it shows how often the <strong>first NUAM snapshot on a top‑rated label</strong> still sits in a low‑listener band — worth contrasting with majors that tend to show up after streaming scale. The histogram, genre pack, and label bars in the chart above are there to explore that tail.
         </p>
       </div>
     </section>

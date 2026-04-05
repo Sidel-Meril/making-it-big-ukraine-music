@@ -100,7 +100,11 @@ def _cmd_label_rosters(args: argparse.Namespace) -> None:
         shutil.copyfile(_ASSET_LABEL_ROSTERS_INDEX, out_dir / "index.html")
 
     frames = load_nuam_parquet(args.parquet)
-    listeners_thresh = listeners_threshold_from_quantile(frames.listeners_df, q=args.quantile)
+    listeners_thresh = (
+        int(args.listeners_min)
+        if args.listeners_min is not None and args.listeners_min > 0
+        else listeners_threshold_from_quantile(frames.listeners_df, q=args.quantile)
+    )
     top_ids = top_artist_ids_at_threshold(frames.listeners_df, listeners_thresh)
     entries = build_label_roster_entries(
         frames.labels_df,
@@ -163,6 +167,7 @@ def _cmd_signed_deals(args: argparse.Namespace) -> None:
         frames.listeners_df,
         frames.labels_df,
         quantile=float(args.quantile),
+        listeners_min=float(args.listeners_min) if args.listeners_min is not None else 0.0,
         min_signings=int(args.min_signings),
         strange_max_listeners=float(args.strange_max_listeners),
         label_min_peak_listeners=float(args.label_min_peak_listeners),
@@ -321,6 +326,16 @@ def main(argv: list[str] | None = None) -> None:
     )
     lr.add_argument("--quantile", type=float, default=0.995)
     lr.add_argument(
+        "--listeners-min",
+        type=int,
+        default=270960,
+        help=(
+            "Absolute monthly-listeners threshold for a 'top artist' "
+            "(default: 270960 ≈ $300 streaming payout). "
+            "Set to 0 to fall back to the --quantile-based threshold."
+        ),
+    )
+    lr.add_argument(
         "--min-artists-on-label",
         type=int,
         default=2,
@@ -399,6 +414,16 @@ def main(argv: list[str] | None = None) -> None:
     )
     sd.add_argument("--quantile", type=float, default=0.995)
     sd.add_argument(
+        "--listeners-min",
+        type=int,
+        default=270960,
+        help=(
+            "Absolute monthly-listeners threshold for a 'top-rated label' artist "
+            "(default: 270960 ≈ $300 streaming payout). "
+            "Set to 0 to fall back to the --quantile-based threshold."
+        ),
+    )
+    sd.add_argument(
         "--min-signings",
         type=int,
         default=2,
@@ -417,7 +442,7 @@ def main(argv: list[str] | None = None) -> None:
         help="Bar chart: keep labels with at least one artist at this peak (default 10000)",
     )
     sd.add_argument("--hist-bins", type=int, default=40)
-    sd.add_argument("--label-bar-top", type=int, default=10, help="Top N labels by signed count")
+    sd.add_argument("--label-bar-top", type=int, default=0, help="Top N labels by signed count (0 = all top-rated)")
     sd.add_argument(
         "--sync-html",
         action="store_true",

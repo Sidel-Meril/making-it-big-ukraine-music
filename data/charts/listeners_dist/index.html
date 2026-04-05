@@ -477,10 +477,10 @@
     return "<0.1%";
   }
 
-  /* Initialise default at top-5% (quantile["95"]). */
-  const _q95 = quantiles["95"] != null ? +quantiles["95"] : maxLog * 0.63;
+  /* Initialise default at 10 000 monthly listeners — matches the article text. */
+  const _default10k = Math.log1p(10000);
   const _defV = maxLog > minLog
-    ? Math.round((_q95 - minLog) / (maxLog - minLog) * SLIDER_STEPS)
+    ? Math.round((_default10k - minLog) / (maxLog - minLog) * SLIDER_STEPS)
     : 634;
   slider.value = String(Math.max(0, Math.min(SLIDER_STEPS, _defV)));
 

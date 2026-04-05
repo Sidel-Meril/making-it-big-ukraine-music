@@ -22,6 +22,7 @@ def build_signed_deals_story_payload(
     labels_df: pd.DataFrame,
     *,
     quantile: float = 0.995,
+    listeners_min: float = 0.0,
     min_signings: int = 2,
     strange_max_listeners: float = 1000.0,
     label_min_peak_listeners: float = 10_000.0,
@@ -29,7 +30,11 @@ def build_signed_deals_story_payload(
     label_bar_top_n: int = 10,
 ) -> dict[str, Any]:
     ref_month = listeners_df["month"].max()
-    listeners_thresh = float(listeners_threshold_from_quantile(listeners_df, q=quantile))
+    listeners_thresh = (
+        float(listeners_min)
+        if listeners_min > 0
+        else float(listeners_threshold_from_quantile(listeners_df, q=quantile))
+    )
     top_ids = top_artist_ids_at_threshold(listeners_df, listeners_thresh)
     top_labels_list = compute_top_rated_labels(labels_df, top_ids, min_signings=min_signings)
     top_label_set = set(top_labels_list)
@@ -80,7 +85,7 @@ def build_signed_deals_story_payload(
         n_str = sum(1 for a in aids_on if peak_val(a) < strange_max_listeners)
         bar_rows.append({"label": str(lab), "signedCount": n_sig, "strangeCount": n_str})
     bar_rows.sort(key=lambda r: (-r["signedCount"], r["label"].lower()))
-    bar_top = bar_rows[: int(label_bar_top_n)]
+    bar_top = bar_rows if label_bar_top_n == 0 else bar_rows[: int(label_bar_top_n)]
 
     genres_long = build_genres_long_df(artists_df)
     gl = genres_long[genres_long["artist_id"].isin(strange_ids)]

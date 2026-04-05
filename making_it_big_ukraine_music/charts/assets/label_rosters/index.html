@@ -100,6 +100,17 @@
       font-size: 0.8rem;
       color: var(--muted);
     }
+    .top-rated-callout {
+      border-left: 3px solid var(--accent);
+      background: rgba(220, 38, 38, 0.07);
+      border-radius: 0 6px 6px 0;
+      padding: 0.5rem 0.85rem;
+      margin: 0.65rem 0 0;
+      font-size: 0.84rem;
+      color: #e0e0e0;
+      line-height: 1.5;
+    }
+    .top-rated-callout strong { color: var(--accent); }
     svg { display: block; margin: 0 auto; }
     .name {
       text-align: center;
@@ -135,6 +146,7 @@
     <p class="legend-lead">
       <strong>Quick read.</strong> The number in the center is how many artists are signed to that label. Each spoke is a standout artist with high monthly listeners. <strong>Red</strong> = top-rated label; <strong>gray</strong> = the rest.
     </p>
+    <p class="top-rated-callout" id="top-rated-def"></p>
     <div class="legend-diagram-host" id="legend-host"></div>
   </div>
 
@@ -183,6 +195,11 @@
           : "";
       document.getElementById("subtitle").textContent =
         `Snapshot ${ref}. ${nLabels.toLocaleString()} labels · red = top-rated by NUAM, gray = the rest.`;
+
+      document.getElementById("top-rated-def").innerHTML =
+        `<strong>Top-rated label</strong> — a label where at least ${minA} artists each earn an estimated ` +
+        `<strong>$300 or more from Spotify</strong> in the snapshot month. ` +
+        `Our threshold for an artist who earns meaningfully from streaming.`;
 
       /** Center hole scales with catalog size. Tick tips sit on a fixed outer ring; tick roots sit a fixed gap past the circle edge. */
       const W = 78;
