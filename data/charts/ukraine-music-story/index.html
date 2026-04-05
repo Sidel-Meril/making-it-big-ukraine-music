@@ -2057,6 +2057,66 @@
     .attr("fill", "var(--bar)")
     .attr("opacity", 0.85);
 
+  /* ── 1 M listeners reference line — international achievement threshold ── */
+  const M1_LOG = Math.log1p(1_000_000);
+  if (M1_LOG >= minLog && M1_LOG <= maxLog) {
+    const m1x = x(M1_LOG);
+    const refG = g.append("g").attr("class", "ref-1m");
+
+    refG.append("line")
+      .attr("x1", m1x).attr("x2", m1x)
+      .attr("y1", 0).attr("y2", ih)
+      .attr("stroke", "#FBBF24")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-dasharray", "5,3")
+      .attr("opacity", 0.7);
+
+    /* annotation pill
+       Vertical position: 60 % of inner height keeps the pill well below the
+       highlight-band annotation that occupies y 18–50 at the top of the chart.
+       Side placement decided before text is appended so getBBox is accurate. */
+    const AY         = ih * 0.60;
+    const PILL_PAD   = { x: 7, y: 5 };
+    const APPROX_W   = 140;          // safe upper bound — prevents right-edge clip
+    const placedLeft = (m1x + 10 + APPROX_W) > iw;
+    const txtX       = placedLeft ? m1x - 10 : m1x + 10;
+    const txtAnchor  = placedLeft ? "end" : "start";
+    const pillG      = refG.append("g");
+
+    const pillL1 = pillG.append("text")
+      .attr("x", txtX).attr("y", AY)
+      .attr("text-anchor", txtAnchor)
+      .attr("dominant-baseline", "middle")
+      .attr("fill", "#FDE68A")
+      .style("font-size", "11px")
+      .style("font-weight", "700")
+      .text("1M listeners");
+
+    const pillL2 = pillG.append("text")
+      .attr("x", txtX).attr("y", AY + 16)
+      .attr("text-anchor", txtAnchor)
+      .attr("dominant-baseline", "middle")
+      .attr("fill", "#9aa0a6")
+      .style("font-size", "9px")
+      .style("font-weight", "500")
+      .text("international achievement");
+
+    const b1 = pillL1.node().getBBox();
+    const b2 = pillL2.node().getBBox();
+    const pillW = Math.max(b1.width, b2.width) + PILL_PAD.x * 2;
+    const pillH = (b2.y + b2.height) - b1.y + PILL_PAD.y * 2;
+
+    pillG.insert("rect", "text")
+      .attr("x", Math.min(b1.x, b2.x) - PILL_PAD.x)
+      .attr("y", b1.y - PILL_PAD.y)
+      .attr("width", pillW)
+      .attr("height", pillH)
+      .attr("rx", 4).attr("ry", 4)
+      .attr("fill", "rgba(10,8,22,0.85)")
+      .attr("stroke", "rgba(251,191,36,0.38)")
+      .attr("stroke-width", 1);
+  }
+
   /* axes */
   function fmtTick(v) {
     const orig = Math.expm1(+v);
@@ -2659,7 +2719,7 @@
       <div class="chart-frame"><div class="chart-frame-inner">
         <div class="nuam-ch nuam-ch-ms" id="nuam-b-ms">
 <header>
-    <h1>Each artist as a little sun — five slices of their story</h1>
+    <h1>Each artist as a little sun — six slices of their story</h1>
     <p class="subtitle" id="ms-subtitle"></p>
   </header>
 
@@ -2675,7 +2735,7 @@
 
   <div class="legend-wrap">
     <p class="legend-lead">
-      <strong>Quick read.</strong> Inspired by <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#7eb8ff">The Pudding’s TikTok “flowers.”</a> Data: <a href="https://www.nuam.club/stat" style="color:#7eb8ff">NUAM</a>. From the top, clockwise: one wedge per milestone. Bright wedge = yes for that artist; the middle number counts how many of the five fired.
+      <strong>Quick read.</strong> Inspired by <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#7eb8ff">The Pudding’s TikTok “flowers.”</a> Data: <a href="https://www.nuam.club/stat" style="color:#7eb8ff">NUAM</a>. From the top, clockwise: one wedge per milestone. Bright wedge = yes for that artist; the middle number counts how many of the six fired.
     </p>
     <div class="legend-diagram-host" id="ms-legend"></div>
   </div>
@@ -2704,7 +2764,7 @@
 
   <p class="note">
     Essay working title: <em>The Unlikely Odds of Making it Big on Ukraine</em>. Look: <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#6eb6ff">The Pudding — TikTok careers</a>.
-    Data: <a href="https://www.nuam.club/stat" style="color:#6eb6ff">NUAM</a> — peak listeners plus five yes/no milestones.
+    Data: <a href="https://www.nuam.club/stat" style="color:#6eb6ff">NUAM</a> — peak listeners plus six yes/no milestones.
   </p>
         <script>(function () {
   const root = document.getElementById("nuam-b-ms");
@@ -2768,7 +2828,7 @@
           .attr("role", "img")
           .attr(
             "aria-label",
-            "NUAM milestone legend: five triangular rays around the listener ring, matching each artist sun in the grid below."
+            "NUAM milestone legend: six triangular rays around the listener ring, matching each artist sun in the grid below."
           );
 
         const ringR = 32;

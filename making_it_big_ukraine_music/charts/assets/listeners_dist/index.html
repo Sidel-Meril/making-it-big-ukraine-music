@@ -251,6 +251,66 @@
     .attr("fill", "var(--bar)")
     .attr("opacity", 0.85);
 
+  /* ── 1 M listeners reference line — international achievement threshold ── */
+  const M1_LOG = Math.log1p(1_000_000);
+  if (M1_LOG >= minLog && M1_LOG <= maxLog) {
+    const m1x = x(M1_LOG);
+    const refG = g.append("g").attr("class", "ref-1m");
+
+    refG.append("line")
+      .attr("x1", m1x).attr("x2", m1x)
+      .attr("y1", 0).attr("y2", ih)
+      .attr("stroke", "#FBBF24")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-dasharray", "5,3")
+      .attr("opacity", 0.7);
+
+    /* annotation pill
+       Vertical position: 60 % of inner height keeps the pill well below the
+       highlight-band annotation that occupies y 18–50 at the top of the chart.
+       Side placement decided before text is appended so getBBox is accurate. */
+    const AY         = ih * 0.60;
+    const PILL_PAD   = { x: 7, y: 5 };
+    const APPROX_W   = 140;
+    const placedLeft = (m1x + 10 + APPROX_W) > iw;
+    const txtX       = placedLeft ? m1x - 10 : m1x + 10;
+    const txtAnchor  = placedLeft ? "end" : "start";
+    const pillG      = refG.append("g");
+
+    const pillL1 = pillG.append("text")
+      .attr("x", txtX).attr("y", AY)
+      .attr("text-anchor", txtAnchor)
+      .attr("dominant-baseline", "middle")
+      .attr("fill", "#FDE68A")
+      .style("font-size", "11px")
+      .style("font-weight", "700")
+      .text("1M listeners");
+
+    const pillL2 = pillG.append("text")
+      .attr("x", txtX).attr("y", AY + 16)
+      .attr("text-anchor", txtAnchor)
+      .attr("dominant-baseline", "middle")
+      .attr("fill", "#9aa0a6")
+      .style("font-size", "9px")
+      .style("font-weight", "500")
+      .text("international achievement");
+
+    const b1 = pillL1.node().getBBox();
+    const b2 = pillL2.node().getBBox();
+    const pillW = Math.max(b1.width, b2.width) + PILL_PAD.x * 2;
+    const pillH = (b2.y + b2.height) - b1.y + PILL_PAD.y * 2;
+
+    pillG.insert("rect", "text")
+      .attr("x", Math.min(b1.x, b2.x) - PILL_PAD.x)
+      .attr("y", b1.y - PILL_PAD.y)
+      .attr("width", pillW)
+      .attr("height", pillH)
+      .attr("rx", 4).attr("ry", 4)
+      .attr("fill", "rgba(10,8,22,0.85)")
+      .attr("stroke", "rgba(251,191,36,0.38)")
+      .attr("stroke-width", 1);
+  }
+
   /* axes */
   function fmtTick(v) {
     const orig = Math.expm1(+v);

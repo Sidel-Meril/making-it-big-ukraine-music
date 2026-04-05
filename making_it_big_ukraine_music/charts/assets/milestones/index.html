@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NUAM artist milestones (Pudding-style flower)</title>
+  <title>The Unlikely Odds of Making it Big on Ukraine — milestone sun (NUAM)</title>
   <style>
     :root {
       --bg: #121212;
       --text: #f0f0f0;
       --muted: #9aa0a6;
-      --on: #0072b2;
+      --on: #6D28D9;
       --off-tracked: #4d4d4d;
       --off-untracked: #252525;
-      --accent-lang: #e69f00;
+      --accent-lang: #f59e0b;
       --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     * { box-sizing: border-box; }
@@ -53,30 +53,190 @@
       padding: 0.35rem 0.6rem;
       font: inherit;
     }
-    .legend-wrap {
+    .filter-panel {
       max-width: 72rem;
-      margin: 0 auto 1.5rem;
-      padding: 0.75rem 1rem;
+      margin: 0 auto 1rem;
+      padding: 0.85rem 1rem;
       border: 1px solid #2a2a2a;
       border-radius: 8px;
       background: #181818;
     }
-    .legend-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
-    .legend-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-      gap: 0.35rem 1rem;
-      font-size: 0.78rem;
-      color: #ccc;
+    .filter-panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
-    .legend-item { display: flex; gap: 0.4rem; align-items: baseline; }
-    .legend-item span.idx { color: var(--muted); width: 1.25rem; flex-shrink: 0; }
+    .filter-readout {
+      font-size: 0.82rem;
+      color: #ccc;
+      margin-top: 0.35rem;
+      line-height: 1.35;
+    }
+    .listener-dual {
+      position: relative;
+      height: 36px;
+      margin: 0.65rem 0 0.15rem;
+    }
+    .listener-track-bg {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 15px;
+      height: 5px;
+      background: #333;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .listener-track-active {
+      position: absolute;
+      top: 15px;
+      height: 5px;
+      background: #0072b2;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .listener-dual input[type="range"] {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: 6px;
+      height: 24px;
+      margin: 0;
+      background: none;
+      pointer-events: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .listener-dual input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid #0072b2;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .listener-dual input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      border: 2px solid #0072b2;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .listener-dual input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      background: transparent;
+    }
+    .listener-dual input[type="range"]::-moz-range-track {
+      height: 5px;
+      background: transparent;
+    }
+    .listener-dual #listen-max {
+      z-index: 2;
+    }
+    .listener-dual #listen-min {
+      z-index: 1;
+    }
+    /* ── slider axis row ── */
+    .slider-axis {
+      position: relative;
+      height: 28px;
+      margin-top: 2px;
+    }
+    .slider-tick {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateX(-50%);
+    }
+    .slider-tick .t-bar { width: 2px; height: 5px; background: #FBBF24; border-radius: 1px; }
+    .slider-tick .t-lbl { font-size: 10px; color: #A16207; white-space: nowrap; line-height: 1.4; }
+    .slider-marker {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      transition: left 0.04s linear;
+    }
+    .slider-marker .m-bar { width: 2px; height: 6px; background: #FBBF24; border-radius: 1px; }
+    .slider-marker .m-lbl {
+      font-size: 10px; font-weight: 700; color: #FDE68A;
+      background: rgba(120,77,0,0.55);
+      padding: 0 5px; border-radius: 3px;
+      white-space: nowrap; line-height: 1.6;
+    }
+    .gold-note {
+      margin-top: 0.65rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid #2a2a2a;
+      font-size: 0.78rem;
+      color: #bbb;
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+    .gold-swatch {
+      width: 1.35rem;
+      height: 1.35rem;
+      border: 2px solid #e69f00;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background: transparent;
+    }
+    .legend-wrap {
+      max-width: 72rem;
+      margin: 0 auto 1.5rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #181818;
+    }
+    .legend-lead {
+      font-size: 0.72rem;
+      color: #c4c4c4;
+      margin: 0 0 0.65rem;
+      max-width: 48rem;
+      line-height: 1.45;
+    }
+    .legend-diagram-host {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0.25rem 0 0.15rem;
+      overflow: visible;
+    }
+    .legend-diagram-svg {
+      width: min(440px, 96vw);
+      height: auto;
+      max-height: min(92vw, 440px);
+      display: block;
+    }
+    .legend-diagram-svg text { user-select: none; }
     #grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
       gap: 1.1rem 0.65rem;
       max-width: 72rem;
       margin: 0 auto;
+    }
+    .grid-footer {
+      max-width: 72rem;
+      margin: 1.35rem auto 0;
+      padding: 0 0.5rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.45;
     }
     .note {
       max-width: 72rem;
@@ -100,12 +260,12 @@
 </head>
 <body>
   <header>
-    <h1>Each artist as a little sun — five slices of their story</h1>
+    <h1>Each artist as a little sun — six slices of their story</h1>
     <p class="subtitle" id="subtitle"></p>
   </header>
 
   <div class="controls">
-    <label for="sort">Sort</label>
+    <label for="sort">Order tiles by</label>
     <select id="sort">
       <option value="achievements-desc">Most milestones</option>
       <option value="achievements-asc">Fewest milestones</option>
@@ -115,15 +275,37 @@
   </div>
 
   <div class="legend-wrap">
-    <div class="legend-title">Petals, clockwise from the top (even spacing)</div>
-    <div class="legend-grid" id="legend"></div>
+    <p class="legend-lead">
+      <strong>Quick read.</strong> Inspired by <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#7eb8ff">The Pudding’s TikTok “flowers.”</a> Data: <a href="https://www.nuam.club/stat" style="color:#7eb8ff">NUAM</a>. From the top, clockwise: one wedge per milestone. Bright wedge = yes for that artist; the middle number counts how many of the six fired.
+    </p>
+    <div class="legend-diagram-host" id="legend"></div>
   </div>
 
   <div id="grid"></div>
+  <p id="grid-footer" class="grid-footer" aria-live="polite"></p>
+
+  <div class="filter-panel" id="listener-filter-panel">
+    <h2>Peak monthly listeners</h2>
+    <p class="filter-readout" style="margin-top:0"><strong>Peak</strong> = their best month in the scrape. The blue strip is what you’re viewing; widen it to show more artists.</p>
+    <div class="listener-dual" id="listener-dual-wrap">
+      <div class="listener-track-bg" aria-hidden="true"></div>
+      <div class="listener-track-active" id="listener-track-active" aria-hidden="true"></div>
+      <input type="range" id="listen-min" min="0" max="100" value="0" step="1" aria-label="Lower end of peak listener band shown" />
+      <input type="range" id="listen-max" min="0" max="100" value="100" step="1" aria-label="Upper end of peak listener band shown" />
+    </div>
+    <span id="listen-val-labels" style="display:none" aria-hidden="true">Min: — · Max: —</span>
+    <div class="slider-axis" id="listen-axis" aria-hidden="true"></div>
+    <p class="filter-readout" id="listen-summary"></p>
+    <div class="gold-note">
+      <span class="gold-swatch" aria-hidden="true"></span>
+      <span><strong>Gold border:</strong> NUAM’s <code style="color:#ccc">RuLang</code> flag in the data — a catalog field, not our editorial call.</span>
+    </div>
+  </div>
+
 
   <p class="note">
-    Reference layout and metaphor: <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#6eb6ff">The Pudding — TikTok emerging artists</a>.
-    Data: NUAM artist export with peak monthly listeners and five boolean milestone fields.
+    Essay working title: <em>The Unlikely Odds of Making it Big on Ukraine</em>. Look: <a href="https://pudding.cool/2022/07/tiktok-story/" style="color:#6eb6ff">The Pudding — TikTok careers</a>.
+    Data: <a href="https://www.nuam.club/stat" style="color:#6eb6ff">NUAM</a> — peak listeners plus six yes/no milestones.
   </p>
 
   <script src="chart-data.js"></script>
@@ -131,36 +313,196 @@
   <script>
     (function () {
       const data = window.__NUAM_MILESTONE_DATA__;
+      const gridFooterEl = document.getElementById("grid-footer");
+
       if (!data || !data.artists || !data.milestones) {
         document.getElementById("grid").textContent = "Chart data did not load.";
+        if (gridFooterEl) gridFooterEl.textContent = "";
+        return;
+      }
+
+      if (!data.artists.length) {
+        document.getElementById("grid").textContent = "No artists in this export.";
+        document.getElementById("listener-filter-panel").style.display = "none";
+        if (gridFooterEl) gridFooterEl.textContent = "";
         return;
       }
 
       const meta = data.meta || {};
       const ref = meta.refMonth ? String(meta.refMonth).slice(0, 7) : "—";
       const nPetals = data.milestones.length;
+      const N = data.artists.length;
+      const exportFloor =
+        meta.minPeakListenersInExport != null && meta.minPeakListenersInExport > 0
+          ? ` Anyone under ${Number(meta.minPeakListenersInExport).toLocaleString()} peak listeners is dropped from this file.`
+          : "";
+      const listenersRayNote =
+        meta.spotifyListenersThreshold != null
+          ? ` One ray glows at ≥${Number(meta.spotifyListenersThreshold).toLocaleString()} peak listeners.`
+          : "";
       document.getElementById("subtitle").textContent =
-        `NUAM roster, ${ref}. Every slice lights up when an artist hits that milestone — the number in the middle shows how many they’ve reached${meta.spotifyListenersThreshold != null ? ". One ray glows at \u2265" + Number(meta.spotifyListenersThreshold).toLocaleString() + " peak listeners" : ""}.`;
+        `NUAM roster, ${ref}. Every slice lights up when an artist hits that milestone — the number in the middle shows how many they’ve reached.${exportFloor}${listenersRayNote} Showing top 30 for your current sort.`;
 
-      const legend = d3.select("#legend");
-      data.milestones.forEach((m, i) => {
-        legend
-          .append("div")
-          .attr("class", "legend-item")
-          .html(`<span class="idx">${i + 1}</span><span>${m.label}</span>`);
-      });
+      function legendRayPolygonPoints(ang, ringR, baseHalf, tipLen) {
+        const rx = Math.cos(ang);
+        const ry = Math.sin(ang);
+        const tx = -Math.sin(ang);
+        const ty = Math.cos(ang);
+        const mx = ringR * rx;
+        const my = ringR * ry;
+        const lx = mx - baseHalf * tx;
+        const ly = my - baseHalf * ty;
+        const rxv = mx + baseHalf * tx;
+        const ryv = my + baseHalf * ty;
+        const ax = mx + tipLen * rx;
+        const ay = my + tipLen * ry;
+        return `${lx},${ly} ${rxv},${ryv} ${ax},${ay}`;
+      }
+
+      function buildPuddingStyleLegendDiagram() {
+        const nM = data.milestones.length;
+        const host = d3.select("#legend");
+        host.selectAll("*").remove();
+
+        const vb = 152;
+        const svg = host
+          .append("svg")
+          .attr("class", "legend-diagram-svg")
+          .attr("viewBox", `${-vb} ${-vb} ${2 * vb} ${2 * vb}`)
+          .attr("role", "img")
+          .attr(
+            "aria-label",
+            "NUAM milestone legend: six triangular rays around the listener ring, matching each artist sun in the grid below."
+          );
+
+        const ringR = 32;
+        const innerR = 25;
+        const tipLen = 7.5;
+        const step = (2 * Math.PI) / nM;
+        const baseHalf = Math.min(5.8, ringR * Math.sin(step / 2) * 0.88);
+        const tipR = ringR + tipLen;
+        const foW = 92;
+        const foH = 48;
+        /** Short leader from triangle tip to the box’s inner edge (same for every ray). */
+        const leaderGap = 6;
+
+        svg
+          .append("circle")
+          .attr("r", innerR)
+          .attr("fill", "#222")
+          .attr("stroke", "#383838")
+          .attr("stroke-width", 1);
+        svg
+          .append("circle")
+          .attr("r", ringR)
+          .attr("fill", "none")
+          .attr("stroke", "#737373")
+          .attr("stroke-width", 1.35);
+
+        for (let i = 0; i < nM; i++) {
+          const ang = -Math.PI / 2 + i * step;
+          const cos = Math.cos(ang);
+          const sin = Math.sin(ang);
+          svg
+            .append("line")
+            .attr("x1", (ringR - 2.5) * cos)
+            .attr("y1", (ringR - 2.5) * sin)
+            .attr("x2", (ringR + 3.5) * cos)
+            .attr("y2", (ringR + 3.5) * sin)
+            .attr("stroke", "#9a9a9a")
+            .attr("stroke-width", 1.15);
+        }
+
+        for (let i = 0; i < nM; i++) {
+          const ang = -Math.PI / 2 + i * step;
+          const cos = Math.cos(ang);
+          const sin = Math.sin(ang);
+          const m = data.milestones[i];
+
+          svg
+            .append("polygon")
+            .attr("points", legendRayPolygonPoints(ang, ringR, baseHalf, tipLen))
+            .attr("fill", "#6D28D9")
+            .attr("stroke", "#8B5CF6")
+            .attr("stroke-width", 0.4)
+            .attr("opacity", 0.92);
+
+          const tx = tipR * cos;
+          const ty = tipR * sin;
+          const ac = Math.abs(cos);
+          const as = Math.abs(sin);
+          const halfAlongRay =
+            ac > 1e-6 || as > 1e-6
+              ? Math.min(foW / 2 / Math.max(ac, 1e-6), foH / 2 / Math.max(as, 1e-6))
+              : foH / 2;
+          const innerEdgeR = tipR + leaderGap;
+          const labelCenterR = innerEdgeR + halfAlongRay;
+          const cxLab = labelCenterR * cos;
+          const cyLab = labelCenterR * sin;
+          const lineEndR = Math.max(tipR + 1.5, innerEdgeR - 1);
+          const x2 = lineEndR * cos;
+          const y2 = lineEndR * sin;
+          svg
+            .append("line")
+            .attr("x1", tx)
+            .attr("y1", ty)
+            .attr("x2", x2)
+            .attr("y2", y2)
+            .attr("stroke", "#888")
+            .attr("stroke-width", 0.85);
+
+          const fo = svg
+            .append("foreignObject")
+            .attr("x", cxLab - foW / 2)
+            .attr("y", cyLab - foH / 2)
+            .attr("width", foW)
+            .attr("height", foH);
+          fo
+            .append("xhtml:div")
+            .attr("xmlns", "http://www.w3.org/1999/xhtml")
+            .style("margin", "0")
+            .style("padding", "0 2px")
+            .style("font-size", "9.5px")
+            .style("font-family", "system-ui, -apple-system, Segoe UI, sans-serif")
+            .style("font-weight", "600")
+            .style("line-height", "1.25")
+            .style("text-align", "center")
+            .style("color", "#e8e8e8")
+            .style("word-break", "break-word")
+            .text(m.label);
+        }
+      }
+
+      buildPuddingStyleLegendDiagram();
 
       const W = 88;
       const H = 96;
       const cx = W / 2;
       const cy = H / 2 - 4;
       const pr = 26;
-      const petalR = 5;
+      const rayTipLen = 7;
       const holeR = 14;
+
+      /** Inward-facing base on the sun circle, apex pointing radially outward. */
+      function sunRayPolygonPoints(ang, baseHalf) {
+        const rx = Math.cos(ang);
+        const ry = Math.sin(ang);
+        const tx = -Math.sin(ang);
+        const ty = Math.cos(ang);
+        const mx = cx + pr * rx;
+        const my = cy + pr * ry;
+        const lx = mx - baseHalf * tx;
+        const ly = my - baseHalf * ty;
+        const rxv = mx + baseHalf * tx;
+        const ryv = my + baseHalf * ty;
+        const ax = mx + rayTipLen * rx;
+        const ay = my + rayTipLen * ry;
+        return `${lx},${ly} ${rxv},${ryv} ${ax},${ay}`;
+      }
 
       function petalFill(on) {
         return on
-          ? (getComputedStyle(document.documentElement).getPropertyValue("--on").trim() || "#0072b2")
+          ? (getComputedStyle(document.documentElement).getPropertyValue("--on").trim() || "#6D28D9")
           : (getComputedStyle(document.documentElement).getPropertyValue("--off-tracked").trim() || "#4d4d4d");
       }
 
@@ -179,13 +521,184 @@
       const grid = d3.select("#grid");
       let mode = "achievements-desc";
 
+      const listenMinEl = document.getElementById("listen-min");
+      const listenMaxEl = document.getElementById("listen-max");
+      const listenValLabels = document.getElementById("listen-val-labels");
+      const listenSummary = document.getElementById("listen-summary");
+      const listenTrackActive = document.getElementById("listener-track-active");
+      const listenerDualWrap = document.getElementById("listener-dual-wrap");
+
+      const numericListeners = data.artists
+        .map((a) => a.listenersMax)
+        .filter((v) => v != null && Number.isFinite(v));
+      let dataMin = numericListeners.length ? Math.min(...numericListeners) : 0;
+      let dataMax = numericListeners.length ? Math.max(...numericListeners) : 1;
+      const withListenerCount = numericListeners.length;
+      const noListenerCount = N - withListenerCount;
+
+      const span0 = Math.max(dataMax - dataMin, 0);
+      const step =
+        span0 > 2_000_000
+          ? Math.ceil(span0 / 400)
+          : span0 > 200_000
+            ? Math.max(1, Math.ceil(span0 / 400))
+            : span0 > 20_000
+              ? Math.max(1, Math.ceil(span0 / 400))
+              : 1;
+
+      function fmtListen(x) {
+        return Math.round(x).toLocaleString();
+      }
+
+      function fmtListenShort(x) {
+        if (x >= 1e6) return `${+(x / 1e6).toPrecision(2)}M`;
+        if (x >= 1e3) return `${+(x / 1e3).toPrecision(2)}k`;
+        return `${Math.round(x)}`;
+      }
+
+      function syncListenerSliders() {
+        if (!numericListeners.length) {
+          listenValLabels.textContent = "Peak listeners are missing from this export.";
+          listenSummary.textContent = `Showing all ${N.toLocaleString()} artists — peak listener counts are missing, so the band filter is off.`;
+          listenTrackActive.style.left = "0%";
+          listenTrackActive.style.width = "100%";
+          listenerDualWrap.style.opacity = "0.45";
+          listenMinEl.disabled = true;
+          listenMaxEl.disabled = true;
+          return data.artists.slice();
+        }
+
+        listenerDualWrap.style.opacity = "1";
+        listenMinEl.disabled = false;
+        listenMaxEl.disabled = false;
+
+        let lo = +listenMinEl.value;
+        let hi = +listenMaxEl.value;
+        if (lo > hi) {
+          listenMaxEl.value = String(lo);
+          hi = lo;
+        }
+        if (hi < lo) {
+          listenMinEl.value = String(hi);
+          lo = hi;
+        }
+
+        listenValLabels.textContent = `Minimum ${fmtListen(lo)} · maximum ${fmtListen(hi)}`;
+
+        const span = Math.max(dataMax - dataMin, 1e-9);
+        const p0 = (lo - dataMin) / span;
+        const p1 = (hi - dataMin) / span;
+        const leftPct = 100 * Math.max(0, Math.min(1, p0));
+        let widthPct = 100 * Math.max(0, Math.min(1, p1) - Math.min(1, p0));
+        if (widthPct === 0 && dataMin === dataMax) widthPct = 100;
+        else if (widthPct === 0) widthPct = 0.6;
+        listenTrackActive.style.left = `${leftPct}%`;
+        listenTrackActive.style.width = `${widthPct}%`;
+
+        const loM = document.getElementById("listen-marker-lo");
+        const hiM = document.getElementById("listen-marker-hi");
+        if (loM && hiM) {
+          loM.style.left = `${leftPct.toFixed(1)}%`;
+          hiM.style.left = `${(leftPct + widthPct).toFixed(1)}%`;
+          loM.querySelector(".m-lbl").textContent = fmtListenShort(lo);
+          hiM.querySelector(".m-lbl").textContent = fmtListenShort(hi);
+        }
+
+        const filtered = data.artists.filter((a) => {
+          const v = a.listenersMax;
+          if (v == null || !Number.isFinite(v)) return false;
+          return v >= lo && v <= hi;
+        });
+
+        listenSummary.textContent = `${filtered.length.toLocaleString()} artist${filtered.length === 1 ? "" : "s"} in this band (${fmtListen(lo)}–${fmtListen(hi)} peak listeners). File: ${N.toLocaleString()} with a peak${noListenerCount ? `; ${noListenerCount.toLocaleString()} rows skip the band filter (no peak).` : "."}`;
+        return filtered;
+      }
+
+      function initListenerSliders() {
+        if (!numericListeners.length) {
+          listenMinEl.disabled = true;
+          listenMaxEl.disabled = true;
+          listenerDualWrap.style.opacity = "0.45";
+          return;
+        }
+
+        if (dataMin === dataMax) {
+          listenMinEl.min = listenMaxEl.min = String(dataMin);
+          listenMinEl.max = listenMaxEl.max = String(dataMin);
+          listenMinEl.step = "1";
+          listenMaxEl.step = "1";
+          listenMinEl.value = String(dataMin);
+          listenMaxEl.value = String(dataMin);
+        } else {
+          listenMinEl.min = listenMaxEl.min = String(dataMin);
+          listenMinEl.max = listenMaxEl.max = String(dataMax);
+          listenMinEl.step = listenMaxEl.step = String(step);
+          listenMinEl.value = String(Math.max(dataMin, 237480));
+          listenMaxEl.value = String(Math.min(dataMax, 1845544));
+        }
+        syncListenerSliders();
+        buildListenAxis();
+      }
+
+      function buildListenAxis() {
+        const axEl = document.getElementById("listen-axis");
+        if (!axEl || !numericListeners.length || dataMin >= dataMax) return;
+        axEl.innerHTML = "";
+
+        const span = dataMax - dataMin;
+
+        function addTick(pct, lbl, edge) {
+          const div = document.createElement("div");
+          div.className = "slider-tick";
+          div.style.left = `${pct.toFixed(1)}%`;
+          if (edge === "start") div.style.transform = "translateX(0)";
+          else if (edge === "end") div.style.transform = "translateX(-100%)";
+          div.innerHTML = `<div class="t-bar"></div><div class="t-lbl">${lbl}</div>`;
+          axEl.appendChild(div);
+        }
+
+        addTick(0, fmtListenShort(dataMin), "start");
+        addTick(100, fmtListenShort(dataMax), "end");
+
+        const candidates = [10e3, 50e3, 100e3, 500e3, 1e6, 2e6, 5e6];
+        const MIN_GAP_PCT = 8;
+        for (const val of candidates) {
+          if (val <= dataMin || val >= dataMax) continue;
+          const pct = (val - dataMin) / span * 100;
+          if (pct < MIN_GAP_PCT || pct > 100 - MIN_GAP_PCT) continue;
+          addTick(pct, fmtListenShort(val), null);
+        }
+
+        for (const id of ["lo", "hi"]) {
+          const m = document.createElement("div");
+          m.id = `listen-marker-${id}`;
+          m.className = "slider-marker";
+          m.innerHTML = `<div class="m-bar"></div><div class="m-lbl">—</div>`;
+          axEl.appendChild(m);
+        }
+      }
+
+      const GRID_VISIBLE_MAX = 30;
+
       function draw() {
-        const sorted = sortArtists(mode, data.artists);
+        const windowed = syncListenerSliders();
+        const sorted = sortArtists(mode, windowed);
+        const toShow = sorted.slice(0, GRID_VISIBLE_MAX);
+        const rest = sorted.length - toShow.length;
+
+        if (sorted.length === 0) {
+          gridFooterEl.textContent = "Nobody in this peak band.";
+        } else if (rest > 0) {
+          gridFooterEl.textContent = `${rest.toLocaleString()} more in this band share the sort but sit off the grid.`;
+        } else {
+          gridFooterEl.textContent = `All ${sorted.length.toLocaleString()} in this band are above.`;
+        }
+
         grid.selectAll("div.card").remove();
 
         const cards = grid
           .selectAll("div.card")
-          .data(sorted)
+          .data(toShow)
           .join("div")
           .attr("class", "card");
 
@@ -200,15 +713,12 @@
           const g = svg.append("g");
           const n = data.milestones.length;
           const step = (2 * Math.PI) / n;
+          const baseHalf = Math.min(6.2, pr * Math.sin(step / 2) * 0.92);
           for (let i = 0; i < n; i++) {
             const ang = -Math.PI / 2 + i * step;
-            const px = cx + pr * Math.cos(ang);
-            const py = cy + pr * Math.sin(ang);
             const on = !!d.bits[i];
-            g.append("circle")
-              .attr("cx", px)
-              .attr("cy", py)
-              .attr("r", petalR)
+            g.append("polygon")
+              .attr("points", sunRayPolygonPoints(ang, baseHalf))
               .attr("fill", petalFill(on));
           }
 
@@ -217,7 +727,7 @@
             .attr("cx", cx)
             .attr("cy", cy)
             .attr("r", holeR)
-            .attr("fill", centerOn ? "#0072b2" : "#3a3a3a");
+            .attr("fill", centerOn ? "#6D28D9" : "#3a3a3a");
 
           g.append("text")
             .attr("x", cx)
@@ -241,6 +751,16 @@
         draw();
       });
 
+      listenMinEl.addEventListener("input", () => {
+        if (+listenMinEl.value > +listenMaxEl.value) listenMaxEl.value = listenMinEl.value;
+        draw();
+      });
+      listenMaxEl.addEventListener("input", () => {
+        if (+listenMaxEl.value < +listenMinEl.value) listenMinEl.value = listenMaxEl.value;
+        draw();
+      });
+
+      initListenerSliders();
       draw();
     })();
   </script>

@@ -30,7 +30,7 @@ Every label in NUAM still appears in the roster chart; gray glyphs are simply �
 
 ## Charts
 
-- **Milestones** (`data/charts/milestones/`): five-signal sun (triangular rays).  
+- **Milestones** (`data/charts/milestones/`): six-signal sun (triangular rays).  
 - **Label rosters** (`data/charts/label_rosters/`): **every** NUAM label; **center size and number** = artists on that label; **ticks** = high-listener-pool artists on the imprint; **green** = top-rated (definition in the section *Top-rated labels — how we drew the line*), **gray** otherwise.
 - **Genres popularity** (`data/charts/genres_popularity/`): **circle pack** — **area ∝** export metric (default listeners per artist); **dual slider** (log-scaled listeners/artist) chooses which genres are packed; **d3.pack padding 0** for tight clusters. Default export is **all genres** (`--top 0`). The chart footnote links the R [packcircles](https://www.r-bloggers.com/2017/04/packcircles-version-0-2-0-released/) approach as a related reference.
 

@@ -1,0 +1,126 @@
+---
+alwaysApply: true
+---
+# =========================================================================
+#        Additional MDC Rules for Color Usage and Visual Emphasis
+#  Based on:
+#  * "Make grey your best friend" (VisualisingData) — use neutral greys wisely :contentReference[oaicite:0]{index=0}
+#  * "Practical Rules for Using Color in Charts" (Few, Perceptual Edge) — colour in context :contentReference[oaicite:1]{index=1}
+# =========================================================================
+
+rules:
+
+  - id: neutral_grey_baseline
+    description: |
+      Use neutral grey for most non-highlighted elements. Reserve colour
+      for meaningful encodings only and reduce visual noise.
+    conditions:
+      - intent: default | neutral
+    actions:
+      - set_default_colors:
+          primary: "#888888"
+          secondary: "#cccccc"
+          faint: "#e8e8e8"
+    priority: 800
+
+  - id: consistent_background
+    description: |
+      Ensure that chart backgrounds remain a single neutral colour to
+      maintain consistent perception and avoid misleading contrast shifts.
+    conditions:
+      - element: chart-area
+    actions:
+      - set_color: "#ffffff"
+    priority: 750
+
+  - id: contrast_validation
+    description: |
+      Validate that foreground elements have sufficient contrast against
+      the background to be readable (WCAG ≥ 4.5:1 where applicable).
+    conditions:
+      - element_types: [ data-point, axis-text, label, bar, line ]
+    actions:
+      - require_color_contrast: ">= 4.5:1"
+      - auto_adjust: true
+    priority: 740
+
+  - id: apply_color_intent
+    description: |
+      Only apply a meaningful colour scale when the intent explicitly
+      includes category, highlight, or grouping semantics.
+    conditions:
+      - intent: category | highlight | group
+    actions:
+      - choose_palette_by_intent: true
+    priority: 730
+
+  - id: distinct_category_palette
+    description: |
+      For nominal categories, use an ordinal palette with perceptually
+      distinct colours (i.e., D3 categorical schemes).
+    conditions:
+      - intent: category
+      - category_count: ">1"
+    actions:
+      - set_color_scale:
+          type: ordinal
+          scheme: d3.schemeCategory10
+    priority: 720
+
+  - id: sequential_intensity_palette
+    description: |
+      For ordered/sequential data use a single hue scale with gradually
+      increasing intensity to represent magnitude.
+    conditions:
+      - intent: sequential
+    actions:
+      - set_color_scale:
+          type: sequential
+          interpolator: d3.interpolateBlues
+    priority: 710
+
+  - id: emphasize_highlighted_elements
+    description: |
+      When the cursor highlights or selects elements, increase their
+      relative visual salience via saturation or brightness adjustments.
+    conditions:
+      - state: highlighted
+    actions:
+      - modify_emphasis:
+          saturation_bias: +20%
+          brightness_bias: +10%
+    priority: 700
+
+  - id: discourage_decorative_effects
+    description: |
+      Avoid use of unnecessary stylistic effects like shadows, gradients,
+      and 3D-like embellishments that do not carry data meaning.
+    conditions:
+      - visual_effects: present
+    actions:
+      - remove_effects: [shadow, glare, 3d]
+    priority: 690
+
+  - id: soft_colour_for_low_priority
+    description: |
+      Apply soft/muted colours for low priority or contextual data items.
+    conditions:
+      - intent: contextual | background
+    actions:
+      - set_style:
+          stroke: "#aaaaaa"
+          fill: "#dddddd"
+    priority: 680
+
+  - id: accessibility_safe_palette
+    description: |
+      Enforce colour palettes that avoid common problematic combinations
+      (e.g., red/green) to support common forms of colour vision deficiency.
+    conditions:
+      - intent: category
+    actions:
+      - replace_palette: d3.schemeSet2
+    priority: 670
+
+# =========================================================================
+# End of additional colour and emphasis rules
