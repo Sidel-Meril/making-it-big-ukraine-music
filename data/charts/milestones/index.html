@@ -665,18 +665,19 @@
         }
       }
 
-      const GRID_VISIBLE_MAX = window.matchMedia('(max-width:600px)').matches ? 12 : 20;
+      function GRID_VISIBLE_MAX() { return window.matchMedia('(max-width:600px)').matches ? 15 : 28; }
 
       function draw() {
         const windowed = syncListenerSliders();
         const sorted = sortArtists(mode, windowed);
-        const toShow = sorted.slice(0, GRID_VISIBLE_MAX);
+        const _max = GRID_VISIBLE_MAX();
+        const toShow = sorted.slice(0, _max);
         const rest = sorted.length - toShow.length;
 
         if (sorted.length === 0) {
           gridFooterEl.textContent = "Nobody in this peak band.";
         } else if (rest > 0) {
-          gridFooterEl.textContent = `${rest.toLocaleString()} more in this band share the sort but sit off the grid.`;
+          gridFooterEl.textContent = `${rest.toLocaleString()} more in this band — zoom out or widen the slider to see them.`;
         } else {
           gridFooterEl.textContent = `All ${sorted.length.toLocaleString()} in this band are above.`;
         }
