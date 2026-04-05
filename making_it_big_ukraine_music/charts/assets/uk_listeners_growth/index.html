@@ -112,7 +112,7 @@
     <p class="subtitle" id="subtitle"></p>
   </header>
   <div class="legend-wrap" id="legend-block">
-    <strong>What you’re seeing.</strong> We add up Spotify’s “monthly listeners” across the roster in each NUAM snapshot. The same fan can count more than once — so this is <em>not</em> “unique Ukraine reach,” just how big the catalogue looks over time.
+    <strong>What you’re seeing.</strong> Monthly listeners in Ukrainian Music Market during ‘24–’26
     <div class="row" id="legend-lines"></div>
   </div>
   <div class="chart-host"><svg id="chart" role="img" aria-labelledby="title-main"></svg></div>
@@ -140,7 +140,7 @@
       }));
 
       document.getElementById("subtitle").textContent =
-        `${meta.subtitleMetric || "Σ monthly listeners on roster"} · ${pts.length} months (${d3.timeFormat("%b %Y")(pts[0].t)}–${d3.timeFormat("%b %Y")(pts[pts.length - 1].t)}).`;
+        `${pts.length} months (${d3.timeFormat("%b %Y")(pts[0].t)}–${d3.timeFormat("%b %Y")(pts[pts.length - 1].t)}).`;
 
       document.getElementById("legend-lines").innerHTML =
         `<span><i class="swatch" style="background:var(--line-pre)"></i>Up to ${SPLIT - 1}</span>` +

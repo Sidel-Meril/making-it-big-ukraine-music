@@ -1555,7 +1555,7 @@
     <p class="subtitle" id="uklg-subtitle"></p>
   </header>
   <div class="legend-wrap" id="uklg-legend-block">
-    <strong>What you’re seeing.</strong> We add up Spotify’s “monthly listeners” across the roster in each NUAM snapshot. The same fan can count more than once — so this is <em>not</em> “unique Ukraine reach,” just how big the catalogue looks over time.
+    <strong>What you’re seeing.</strong> Monthly listeners in Ukrainian Music Market during ‘24–’26
     <div class="row" id="uklg-legend-lines"></div>
   </div>
   <div class="chart-host"><svg id="uklg-chart" role="img" aria-labelledby="uklg-title-main"></svg></div>
@@ -1580,7 +1580,7 @@
       }));
 
       document.getElementById("uklg-subtitle").textContent =
-        `${meta.subtitleMetric || "Σ monthly listeners on roster"} · ${pts.length} months (${d3.timeFormat("%b %Y")(pts[0].t)}–${d3.timeFormat("%b %Y")(pts[pts.length - 1].t)}).`;
+        `${pts.length} months (${d3.timeFormat("%b %Y")(pts[0].t)}–${d3.timeFormat("%b %Y")(pts[pts.length - 1].t)}).`;
 
       document.getElementById("uklg-legend-lines").innerHTML =
         `<span><i class="swatch" style="background:var(--line-pre)"></i>Up to ${SPLIT - 1}</span>` +
@@ -3293,7 +3293,7 @@
         }
       }
 
-      const GRID_VISIBLE_MAX = 30;
+      const GRID_VISIBLE_MAX = window.matchMedia('(max-width:600px)').matches ? 12 : 20;
 
       function draw() {
         const windowed = syncListenerSliders();

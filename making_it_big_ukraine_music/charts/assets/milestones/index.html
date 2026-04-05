@@ -665,7 +665,7 @@
         }
       }
 
-      const GRID_VISIBLE_MAX = 30;
+      const GRID_VISIBLE_MAX = window.matchMedia('(max-width:600px)').matches ? 12 : 20;
 
       function draw() {
         const windowed = syncListenerSliders();
