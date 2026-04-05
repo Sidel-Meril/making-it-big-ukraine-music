@@ -2612,10 +2612,6 @@
           <span class="ua-only">Топові українські лейбли</span>
         </h2>
       </div>
-      <p class="chart-dek">
-        <span class="en-only">Each glyph is a label: the center scales with how many artists sit on that imprint; green marks labels with several high-listener acts. Legend and sort sit with the graphic.</span>
-        <span class="ua-only">Кожен гліф — це лейбл: центр масштабується залежно від кількості підписаних артистів; зеленим позначено лейбли з кількома виконавцями з великою аудиторією.</span>
-      </p>
       <div class="chart-frame"><div class="chart-frame-inner">
         <div class="nuam-ch nuam-ch-lr" id="nuam-b-lr">
 <header>
@@ -4252,8 +4248,7 @@
       document.getElementById("sd-anomaly-note").innerHTML =
         "<strong>About that band.</strong> NUAM only spots a label once someone is on the roster — often while listeners are still tiny. That is not proof the deal signed that week; it’s how often the <em>first snapshot we have</em> is still a small audience, unlike many majors that show up later with bigger numbers.";
 
-      document.getElementById("sd-bars-lead").textContent =
-        `Only labels with at least one artist above ${LABEL_MIN.toLocaleString()} listeners are shown. Purple = all signed artists; red portion = strange deals (signed while still under ${STRANGE.toLocaleString()} listeners).`;
+      document.getElementById("sd-bars-lead").textContent = "";
 
       document.getElementById("sd-pack-lead").textContent =
         "Bigger bubble = more monthly listeners summed in that genre for this slice only. Same yellow accent as elsewhere on the page.";

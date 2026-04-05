@@ -617,10 +617,6 @@ def main() -> None:
           <span class="ua-only">Топові українські лейбли</span>
         </h2>
       </div>
-      <p class="chart-dek">
-        <span class="en-only">Each glyph is a label: the center scales with how many artists sit on that imprint; green marks labels with several high-listener acts. Legend and sort sit with the graphic.</span>
-        <span class="ua-only">Кожен гліф — це лейбл: центр масштабується залежно від кількості підписаних артистів; зеленим позначено лейбли з кількома виконавцями з великою аудиторією.</span>
-      </p>
 """
 
     s3 = chart_blocks[2]
