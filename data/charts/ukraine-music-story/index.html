@@ -3099,9 +3099,7 @@
           lrTipEl.classList.remove("pinned");
           lrPinned = null;
         }
-        window.addEventListener("scroll", () => {
-          if (lrPinned) hideLrTip();
-        }, { passive: true });
+        window.addEventListener("scroll", hideLrTip, { passive: true });
 
         cards
           .on("mouseenter", function (event, d) {
@@ -3569,9 +3567,7 @@
         msTipEl.classList.remove("pinned");
         msPinned = null;
       }
-      window.addEventListener("scroll", () => {
-        if (msPinned) hideMsTip();
-      }, { passive: true });
+      window.addEventListener("scroll", hideMsTip, { passive: true });
 
       const listenMinEl = document.getElementById("ms-listen-min");
       const listenMaxEl = document.getElementById("ms-listen-max");
@@ -4303,9 +4299,7 @@
           gpTipEl.classList.remove("pinned");
           gpPinned = null;
         }
-        window.addEventListener("scroll", () => {
-          if (gpPinned) hideTip();
-        }, { passive: true });
+        window.addEventListener("scroll", hideTip, { passive: true });
 
         circles
           .on("mousemove", function (event, d) {
@@ -4940,9 +4934,7 @@
           sdTipEl.classList.remove("pinned");
           sdPinned = null;
         }
-        window.addEventListener("scroll", () => {
-          if (sdPinned) hideSdTip();
-        }, { passive: true });
+        window.addEventListener("scroll", hideSdTip, { passive: true });
 
         circles
           .on("mousemove", function (event, d) {
