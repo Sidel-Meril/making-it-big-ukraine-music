@@ -84,6 +84,8 @@ def _cmd_milestones(args: argparse.Namespace) -> None:
         spotify_listeners_threshold=args.spotify_listeners_min,
         listeners_rank_threshold=listeners_thresh,
         min_peak_listeners_export=min_export if min_export > 0 else None,
+        listeners_df=frames.listeners_df,
+        labels_df=frames.labels_df,
     )
     write_chart_js_bundle(out_js, payload)
     print(f"Wrote {out_js} ({len(payload['artists'])} artists)")

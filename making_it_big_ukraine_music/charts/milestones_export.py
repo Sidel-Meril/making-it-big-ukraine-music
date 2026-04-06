@@ -18,23 +18,42 @@ def achievement_frame_to_chart_payload(
     spotify_listeners_threshold: float,
     listeners_rank_threshold: int | None,
     min_peak_listeners_export: float | None = None,
+    listeners_df: pd.DataFrame | None = None,
+    labels_df: pd.DataFrame | None = None,
 ) -> dict[str, Any]:
+    # Build optional lookup maps for latest listeners and last label per artist
+    latest_listeners_map: dict[int, float] = {}
+    if listeners_df is not None:
+        last_month = listeners_df["month"].max()
+        latest_rows = listeners_df[listeners_df["month"] == last_month][["artist_id", "listeners"]]
+        latest_listeners_map = {int(aid): float(v) for aid, v in zip(latest_rows["artist_id"], latest_rows["listeners"])}
+
+    last_label_map: dict[int, str] = {}
+    if labels_df is not None:
+        last_label_series = labels_df.groupby("artist_id")["label"].last()
+        last_label_map = {int(aid): str(lab) for aid, lab in last_label_series.items() if pd.notna(lab)}
+
     rows: list[dict[str, Any]] = []
     for _, r in df.iterrows():
         bits = [bool(r[c]) for c in MILESTONE_COLUMNS]
         achieved_tracked = sum(bits)
         tracked_total = len(bits)
-        rows.append(
-            {
-                "artistId": int(r["artist_id"]),
-                "name": str(r["artist_name"]),
-                "ruLang": bool(r["ru_lang_flag"]),
-                "listenersMax": float(r["listeners"]) if pd.notna(r["listeners"]) else None,
-                "bits": [1 if b else 0 for b in bits],
-                "achievedTracked": achieved_tracked,
-                "trackedTotal": tracked_total,
-            }
-        )
+        artist_id = int(r["artist_id"])
+        row: dict[str, Any] = {
+            "artistId": artist_id,
+            "name": str(r["artist_name"]),
+            "ruLang": bool(r["ru_lang_flag"]),
+            "listenersMax": float(r["listeners"]) if pd.notna(r["listeners"]) else None,
+            "bits": [1 if b else 0 for b in bits],
+            "achievedTracked": achieved_tracked,
+            "trackedTotal": tracked_total,
+        }
+        if latest_listeners_map:
+            v = latest_listeners_map.get(artist_id)
+            row["latestListeners"] = float(v) if v is not None else None
+        if last_label_map:
+            row["label"] = last_label_map.get(artist_id) or None
+        rows.append(row)
 
     meta: dict[str, Any] = {
         "refMonth": ref_month_iso,
