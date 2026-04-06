@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -1656,7 +1656,7 @@
     }
 
   </style>
-  <script>(function(){if(localStorage.getItem('nuam-lang')==='ua')document.body.classList.add('ua');})()</script>
+  <script>(function(){if(localStorage.getItem('nuam-lang-v2')!=='en')document.body.classList.add('ua');})()</script>
   <script src="../uk_listeners_growth/chart-data.js"></script>
   <script src="../listeners_dist/chart-data.js"></script>
   <script src="../label_rosters/chart-data.js"></script>
@@ -2270,7 +2270,7 @@
           </p>
           <p>Останніми місяцями тренд на локальну музику стабілізувався, але не слід радіти:</p>
           <ol>
-            <li><strong>Зростання кількості артистів.</strong>З початку відстеження NUAM кількість активних українських музикантів різко зросла — понад 16 500 артистів, і більше 9 200 з них випустили музику лише в 2025 році. Стабілізація тренду може бути ознакою закріплення каталогу бази - тоді це ознака що в нас все менше нових гучних гуртів.</li>
+            <li><strong>Зростання кількості артистів.</strong> З початку відстеження NUAM кількість активних українських музикантів різко зросла — понад 16 500 артистів, і більше 9 200 з них випустили музику лише в 2025 році. Стабілізація тренду може бути ознакою закріплення каталогу бази - тоді це ознака що в нас все менше нових гучних гуртів.</li>
             <li><strong>Агрегування даних по артистах.</strong>Я не можу сказати, що ми рахуємо унікальних користувачів. Данні на графіку - сума показника на Spotify за місяць, тож я могла порахувати кого з читачів багато разів.</li>
             <li><strong>Реальне зростання аудиторії.</strong> Якщо ж все таки Олексій автоматично розширює каталог і показник Spotify формується з усередненого числа виключних поціновувачів артиста, ми можемо сказати, що це гарний знак: наш ринок до цього зазнавав катастрофу за катастрофою!</li>
           </ol>
@@ -2345,7 +2345,7 @@
         <p class="en-only">
           The distribution is sharply skewed. A large share of artists in the NUAM catalogue attract only a handful of streams; the curve drops off steeply, and only a small slice ever breaks through to significant listener counts. The histogram below makes that shape visible — drag the slider to see where any top‑percentile cutoff lands in actual listener count terms.
         </p>
-        <p class="ua-only">Це — розподіл артистів за кількістю прослуховувань. Він трошки трансформований, в логарифмічній шкалі, щоб зручніше було його читати. Для того, щоб ви розуміли його оригінальну форму, я додала золоту рамку: більшість артистів навіть не досягає відмітки в 10 000 прослуховувань... артисти, які мають більше 10 000 поціновувачів — це всього 7% від нашої сцени, представленої NUAM!</p>
+        <p class="ua-only">Це — розподіл артистів за кількістю прослуховувань. Він у логарифмічній шкалі, це означає, що кількість артистів у рамці у правій частині графіку значно щільніша, ніж зліва.   Для того, щоб ви розуміли його оригінальну форму, я додала золоту рамку: більшість артистів навіть не досягає відмітки в 10 000 прослуховувань...  більше 10 000 поціновувачів — це всього 7% від нашої сцени, представленої NUAM!</p>
       </div>
       <p class="chart-dek">
         <span class="en-only">Move the slider to watch how the highlighted frame changes — it shows how many artists are included once you set the listener threshold.</span>
@@ -2767,7 +2767,7 @@
       <option value="roster-desc" data-en="Most artists on label first" data-ua="Сортувати за кількістю артистів на лейблі (найбільші спочатку)">Most artists on label first</option>
       <option value="roster-asc" data-en="Fewest artists first" data-ua="Сортувати за кількістю артистів на лейблі (найменші спочатку)">Fewest artists first</option>
       <option value="hits-desc" data-en="Most “big listener” ticks first" data-ua="Сортувати за кількістю артистів, чий дохід з Spotify більше 300$ (найбільші спочатку)">Most “big listener” ticks first</option>
-      <option value="hits-asc" data-en="Fewest ticks first" data-ua="Менше тіків першими">Сортувати за кількістю артистів, чий дохід з Spotify більше 300$ (найменші спочатку)</option>
+      <option value="hits-asc" data-en="Fewest ticks first" data-ua="Сортувати за кількістю артистів, чий дохід з Spotify більше 300$ (найменші спочатку)">Сортувати за кількістю артистів, чий дохід з Spotify більше 300$ (найменші спочатку)</option>
       <option value="name-asc" data-en="Label name (A–Z)" data-ua="Назва лейблу (А–Я)">Label name (A–Z)</option>
     </select>
   </div>
@@ -3911,10 +3911,8 @@
   </header>
 
   <div class="filter-panel" id="gp-lpa-filter-panel">
-    <h2>Listeners per artist</h2>
-    <p class="filter-readout" style="margin-top:0">
-      Sliders pick which genres appear. Bubble <strong>size</strong> still follows <span id="gp-metric-name"></span>. Both small and huge acts are reachable.
-    </p>
+    <h2><span class="en-only">Listeners per artist</span><span class="ua-only">Слухачів на артиста</span></h2>
+    <p class="filter-readout" style="margin-top:0"><span class="en-only">Sliders pick which genres appear. Bubble <strong>size</strong> still follows <span id="gp-metric-name"></span>. Both small and huge acts are reachable.</span><span class="ua-only">Слайдери фільтрують жанри. Розмір бульбашки — це <span id="gp-metric-name-ua"></span>. Доступні і малі, і великі артисти.</span></p>
     <div class="listener-dual" id="gp-lpa-dual-wrap">
       <div class="listener-track-bg" aria-hidden="true"></div>
       <div class="listener-track-active" id="gp-lpa-track-active" aria-hidden="true"></div>
@@ -4613,8 +4611,11 @@
 
       document.getElementById("sd-bars-lead").textContent = "";
 
-      document.getElementById("sd-pack-lead").textContent =
-        "Bigger bubble = more monthly listeners summed in that genre for this slice only. Same yellow accent as elsewhere on the page.";
+      { const _isUA = document.body.classList.contains('ua');
+        const _sdPackEl = document.getElementById("sd-pack-lead");
+        const _en = "Bigger bubble = more monthly listeners summed in that genre for this slice only. Same yellow accent as elsewhere on the page.";
+        const _ua = "Більша бульбашка = більше сумарних місячних слухачів у цьому жанрі. Жовтий акцент — як і всюди на сторінці.";
+        if (_sdPackEl) { _sdPackEl.textContent = _isUA ? _ua : _en; _sdPackEl.dataset.l10nEn = _en; _sdPackEl.dataset.l10nUa = _ua; } }
 
       /* —— 1) Histogram —— */
       const h = raw.histogram;
@@ -4813,7 +4814,9 @@
         emptyPackEl.style.display = "none";
 
         if (!children.length) {
-          emptyPackEl.textContent = "No genres tagged in this slice, or nothing matches.";
+          emptyPackEl.textContent = document.body.classList.contains('ua')
+            ? "Жодного жанру в цьому зрізі або нічого не збіглось."
+            : "No genres tagged in this slice, or nothing matches.";
           emptyPackEl.style.display = "block";
           return;
         }
@@ -6089,8 +6092,9 @@
     document.body.classList.toggle('ua', lang === 'ua');
     if (btnEN) btnEN.classList.toggle('active', lang !== 'ua');
     if (btnUA) btnUA.classList.toggle('active', lang === 'ua');
-    localStorage.setItem('nuam-lang', lang);
+    localStorage.setItem('nuam-lang-v2', lang);
     window.__lang = lang;
+    document.documentElement.lang = lang === 'ua' ? 'uk' : 'en';
     document.dispatchEvent(new CustomEvent('langchange', { detail: lang }));
   };
 })();
@@ -6378,9 +6382,10 @@
 
   window.__translateCharts = translateAll;
   // Apply initial UA translation if language was persisted from previous visit
-  if (document.body.classList.contains('ua')) {
-    setTimeout(function() { translateAll('ua'); }, 0);
-  }
+  setTimeout(function() {
+    var _l = document.body.classList.contains('ua') ? 'ua' : 'en';
+    translateAll(_l);
+  }, 0);
 })();
 </script>
 </body>
