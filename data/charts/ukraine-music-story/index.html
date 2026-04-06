@@ -1121,6 +1121,7 @@
       margin: 0 auto;
       padding: 0;
       min-height: 200px;
+      overflow-x: hidden;
     }
     .pack-host svg {
       display: block;
@@ -1173,16 +1174,16 @@
     .pack-host text.genre-label {
       fill: #ddd;
       font-weight: 600;
-      font-size: 13px;
+      font-size: var(--gp-label-fs, 13px);
       font-family: var(--font);
       pointer-events: none;
       paint-order: stroke fill;
       stroke: #0a0a0a;
-      stroke-width: 0.7px;
+      stroke-width: var(--gp-label-sw, 0.7px);
     }
     .pack-host text.genre-label.genre-label--inside {
       fill: #000000;
-      font-size: 22px;
+      font-size: var(--gp-label-inside-fs, 22px);
       /* Thin halo so black stays legible on darker blue/green fills */
       stroke: rgba(255, 255, 255, 0.88);
       stroke-width: 0.55px;
@@ -4240,6 +4241,13 @@
         const dy = outerPad + innerSize / 2 - root.y;
 
         const svg = host.append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img");
+
+        /* Responsive font sizes: keep labels ~12 px on screen at any container width */
+        { const _cpx = (host.node() && host.node().clientWidth) || W;
+          const _scale = W / Math.max(_cpx, 120);
+          svg.style("--gp-label-fs", `${Math.round(10 * _scale)}px`);
+          svg.style("--gp-label-inside-fs", `${Math.round(17 * _scale)}px`);
+          svg.style("--gp-label-sw", `${(0.9 * _scale).toFixed(1)}px`); }
 
         const g = svg.append("g").attr("transform", `translate(${dx},${dy})`);
 
