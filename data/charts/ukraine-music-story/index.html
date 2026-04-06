@@ -315,9 +315,9 @@
       border-radius: 8px;
       background: #141414;
       padding: 0.75rem 0.75rem 0.5rem;
-      overflow-x: auto;
+      overflow-x: hidden;
     }
-    .chart-host svg { display: block; }
+    .chart-host svg { display: block; width: 100%; height: auto; max-width: 900px; }
     .axis text { fill: var(--muted); font-size: 11px; }
     .axis line, .axis path { stroke: #444; }
     .grid line { stroke: #2a2a2a; }
@@ -1772,9 +1772,13 @@
       _setUklgLeg();
       document.addEventListener('langchange', _setUklgLeg); }
 
-      const W = 900;
-      const H = 486;
-      const m = { top: 78, right: 36, bottom: 52, left: 72 };
+      const _cw = (root && root.offsetWidth) || window.innerWidth || 900;
+      const W = Math.min(900, Math.max(300, _cw));
+      const H = Math.round(W * 486 / 900);
+      const _isMob = W < 520;
+      const m = _isMob
+        ? { top: 52, right: 14, bottom: 38, left: 46 }
+        : { top: 78, right: 36, bottom: 52, left: 72 };
       const iw = W - m.left - m.right;
       const ih = H - m.top - m.bottom;
 
@@ -1797,20 +1801,21 @@
         .nice()
         .range([ih, 0]);
 
-      svg.attr("viewBox", `0 0 ${W} ${H}`).attr("width", W).attr("height", H);
+      svg.attr("viewBox", `0 0 ${W} ${H}`).attr("width", "100%").style("max-width", `${W}px`).attr("height", null);
 
       const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+      const _xTicks = Math.min(pts.length, _isMob ? 6 : 14);
 
       g.append("g")
         .attr("class", "grid")
         .attr("transform", `translate(0,${ih})`)
-        .call(d3.axisBottom(x).ticks(Math.min(pts.length, 14)).tickSize(-ih).tickFormat(""))
+        .call(d3.axisBottom(x).ticks(_xTicks).tickSize(-ih).tickFormat(""))
         .call((s) => s.select(".domain").remove());
 
       g.append("g")
         .attr("class", "axis")
         .attr("transform", `translate(0,${ih})`)
-        .call(d3.axisBottom(x).ticks(Math.min(pts.length, 14)).tickFormat(d3.timeFormat("%b %y")));
+        .call(d3.axisBottom(x).ticks(_xTicks).tickFormat(d3.timeFormat("%b %y")));
 
       g.append("g").attr("class", "axis").call(
         d3
@@ -1822,12 +1827,12 @@
       g.append("text")
         .attr("fill", "#9aa0a6")
         .attr("x", iw / 2)
-        .attr("y", ih + 42)
+        .attr("y", ih + (_isMob ? 30 : 42))
         .attr("text-anchor", "middle")
-        .style("font-size", "11px")
+        .style("font-size", _isMob ? "13px" : "11px")
         .text("Month");
 
-      g.append("text")
+      if (!_isMob) g.append("text")
         .attr("fill", "#9aa0a6")
         .attr("transform", "rotate(-90)")
         .attr("x", -ih / 2)
@@ -2115,10 +2120,11 @@
       if (lastPt && lastPt.deltaPrev != null && Number.isFinite(lastPt.deltaPrev)) {
         const lx = x(lastPt.t);
         const ly = y(lastPt.total);
-        const BW = 182, BH = 72;
+        const BW = _isMob ? Math.max(110, Math.round(iw * 0.52)) : 182;
+        const BH = _isMob ? 52 : 72;
         /* anchor in the bottom-right corner — space under the rising curve */
         const bx = iw - BW - 8;
-        const by = ih - BH - 16;
+        const by = ih - BH - 8;
 
         /* dark pill */
         kpiG.append("rect")
@@ -2138,19 +2144,19 @@
                      : abs >= 1e3 ? `${sign}${(abs/1e3).toFixed(0)}k`
                      : `${sign}${Math.round(abs).toLocaleString()}`;
         kpiG.append("text")
-          .attr("x", bx + 15).attr("y", by + 27)
+          .attr("x", bx + 15).attr("y", by + (_isMob ? 19 : 27))
           .attr("dominant-baseline", "middle")
           .attr("fill", "#FBBF24")
-          .style("font-size", "20px").style("font-weight", "800")
+          .style("font-size", _isMob ? "17px" : "20px").style("font-weight", "800")
           .style("letter-spacing", "-0.5px").style("font-family", "inherit")
           .text(numStr);
         /* sub-label */
         const fmt = d3.timeFormat("%b %Y");
         kpiG.append("text")
-          .attr("x", bx + 15).attr("y", by + 45)
+          .attr("x", bx + 15).attr("y", by + (_isMob ? 33 : 45))
           .attr("dominant-baseline", "middle")
           .attr("fill", "#FDE68A")
-          .style("font-size", "9.5px").style("font-weight", "600")
+          .style("font-size", _isMob ? "8.5px" : "9.5px").style("font-weight", "600")
           .attr('data-l10n-en', `${fmt(lastPt.t)} · vs prior month`)
           .attr('data-l10n-ua', `${fmt(lastPt.t)} · приріст за місяць`)
           .text(`${fmt(lastPt.t)} · ${document.body.classList.contains('ua') ? 'приріст за місяць' : 'vs prior month'}`);
@@ -2159,7 +2165,7 @@
           .attr("x", bx + 15).attr("y", by + 59)
           .attr("dominant-baseline", "middle")
           .attr("fill", "#666")
-          .style("font-size", "8.5px").style("font-style", "italic")
+          .style("font-size", _isMob ? "8px" : "8.5px").style("font-style", "italic")
           .text("listeners \u2260 listenings");
         /* dashed connector to last dot */
         kpiG.append("line")
@@ -3093,6 +3099,11 @@
           lrTipEl.classList.remove("pinned");
           lrPinned = null;
         }
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(entries => {
+            if (!entries[0].isIntersecting) hideLrTip();
+          }, { threshold: 0 }).observe(document.getElementById("nuam-b-lr"));
+        }
 
         cards
           .on("mouseenter", function (event, d) {
@@ -3559,6 +3570,11 @@
         msTipEl.style.display = "none";
         msTipEl.classList.remove("pinned");
         msPinned = null;
+      }
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(entries => {
+          if (!entries[0].isIntersecting) hideMsTip();
+        }, { threshold: 0 }).observe(document.getElementById("nuam-b-ms"));
       }
 
       const listenMinEl = document.getElementById("ms-listen-min");
@@ -4291,6 +4307,11 @@
           gpTipEl.classList.remove("pinned");
           gpPinned = null;
         }
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(entries => {
+            if (!entries[0].isIntersecting) hideTip();
+          }, { threshold: 0 }).observe(document.getElementById("nuam-b-gp"));
+        }
 
         circles
           .on("mousemove", function (event, d) {
@@ -4925,6 +4946,11 @@
           sdTipEl.classList.remove("pinned");
           sdPinned = null;
         }
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(entries => {
+            if (!entries[0].isIntersecting) hideSdTip();
+          }, { threshold: 0 }).observe(document.getElementById("nuam-b-sd"));
+        }
 
         circles
           .on("mousemove", function (event, d) {
@@ -5199,7 +5225,7 @@
         </div>
         <div class="ua-only">
         <p>Багато з нас не задумується чи конвертується наша підписка з стримінгу в гроші улюбленого виконавця. Як це би не було прикро, але левова частка виконавців не може дозволити собі зі свого стримінгового гонорару підписку на цей же стримінг . На заході шириться тренд серед виконавців покидати майданчик із-за <strong> ряду політик Spotify. </strong>Користувачі просто обурені відсутністю якісної модерації <strong>згенерованого ШІ контенту.</strong> Велика доля згенерованої музики перекриває доступ алгоритмам до творів артистів та краде їхню частку прослуховувань. На тлі цього з'являлися <strong> скандальні заголовки </strong> у 2025–2026 роках в міжнародних медіа — гадаю, музиканти пригадають заяву King Gizzard & the Lizard Wizard.</p>
-        <p>Нажче наведені розрахунки за <strong>приблизним показником для України</strong> (~$1,33 за 1 000 платних (преміум) прослуховувань в середньому, взято з Dynamoi)
+        <p>Нижче наведені розрахунки за <strong>приблизним показником для України</strong> (~$1,33 за 1 000 платних (преміум) прослуховувань в середньому, взято з Dynamoi)
           <strong>для кожного місяця за останній рік</strong>. Це дуже груба оцінка <em>нижньої межі</em> — Spotify має плаваючу ставку, тому скільки заробляє артист знає тільки він і його лейбл у своїх акаунтах.</p>
         <p>
           <strong>Гістограма</strong> показує скільки припадає артистів на діапазон виплат з Spotify. <strong>Більшість артистів заробляє недостатньо, щоб прожити</strong>. Приблизно <strong>93% артистів отримують менше $300</strong> загальних виплат від Spotify — це не показник загальної бідності, радше того, що артисти не заробляють з прослуховувань. Для цього є мерч і концерти — такі складаються правила ринку.
