@@ -3099,11 +3099,9 @@
           lrTipEl.classList.remove("pinned");
           lrPinned = null;
         }
-        if ("IntersectionObserver" in window) {
-          new IntersectionObserver(entries => {
-            if (!entries[0].isIntersecting) hideLrTip();
-          }, { threshold: 0 }).observe(document.getElementById("nuam-b-lr"));
-        }
+        window.addEventListener("scroll", () => {
+          if (lrPinned) hideLrTip();
+        }, { passive: true });
 
         cards
           .on("mouseenter", function (event, d) {
@@ -3571,11 +3569,9 @@
         msTipEl.classList.remove("pinned");
         msPinned = null;
       }
-      if ("IntersectionObserver" in window) {
-        new IntersectionObserver(entries => {
-          if (!entries[0].isIntersecting) hideMsTip();
-        }, { threshold: 0 }).observe(document.getElementById("nuam-b-ms"));
-      }
+      window.addEventListener("scroll", () => {
+        if (msPinned) hideMsTip();
+      }, { passive: true });
 
       const listenMinEl = document.getElementById("ms-listen-min");
       const listenMaxEl = document.getElementById("ms-listen-max");
@@ -4307,11 +4303,9 @@
           gpTipEl.classList.remove("pinned");
           gpPinned = null;
         }
-        if ("IntersectionObserver" in window) {
-          new IntersectionObserver(entries => {
-            if (!entries[0].isIntersecting) hideTip();
-          }, { threshold: 0 }).observe(document.getElementById("nuam-b-gp"));
-        }
+        window.addEventListener("scroll", () => {
+          if (gpPinned) hideTip();
+        }, { passive: true });
 
         circles
           .on("mousemove", function (event, d) {
@@ -4946,11 +4940,9 @@
           sdTipEl.classList.remove("pinned");
           sdPinned = null;
         }
-        if ("IntersectionObserver" in window) {
-          new IntersectionObserver(entries => {
-            if (!entries[0].isIntersecting) hideSdTip();
-          }, { threshold: 0 }).observe(document.getElementById("nuam-b-sd"));
-        }
+        window.addEventListener("scroll", () => {
+          if (sdPinned) hideSdTip();
+        }, { passive: true });
 
         circles
           .on("mousemove", function (event, d) {
