@@ -594,7 +594,7 @@ def main() -> None:
           The distribution is sharply skewed. A large share of artists in the NUAM catalogue attract only a handful of streams; the curve drops off steeply, and only a small slice ever breaks through to significant listener counts. The histogram below makes that shape visible — drag the slider to see where any top‑percentile cutoff lands in actual listener count terms.
         </p>
         <p class="ua-only">
-          Розподіл різко скошений.  Велика доля артистів із каталогу NUAM отримує лише одиничні прослуховування; крива різко спадає, і лише невеликий відсоток коли-небудь досягає значної кількості слухачів. Гістограма нижче робить цю форму наочною — перетягніть повзунок, щоб побачити, де будь-який відсотковий поріг опиняється у фактичній кількості слухачів.
+          Розподіл різко скошений.  Велика доля артистів із каталоготримує лише одиничні прослуховування; крива різко спадає, і лише невеликий відсоток коли-небудь досягає значної кількості слухачів. Гістограма нижче робить цю форму наочною — перетягніть повзунок, щоб побачити, де будь-який відсотковий поріг опиняється у фактичній кількості слухачів.
         </p>
       </div>
       <p class="chart-dek">
