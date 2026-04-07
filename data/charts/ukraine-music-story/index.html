@@ -3089,9 +3089,12 @@
         function showLrTip(d, x, y) {
           lrTipEl.innerHTML = buildLrTipHTML(d);
           const W2 = window.innerWidth, H2 = window.innerHeight;
-          const tw = 238, th = 150;
-          lrTipEl.style.left = (x + 14 + tw > W2 ? x - tw - 14 : x + 14) + "px";
-          lrTipEl.style.top  = (y + 14 + th > H2 ? y - th - 10 : y + 14) + "px";
+          const MARGIN = 8;
+          const tw = Math.min(230, W2 - 2 * MARGIN), th = 150;
+          let left = x + 14 + tw > W2 - MARGIN ? x - tw - 14 : x + 14;
+          let top  = y + 14 + th > H2 - MARGIN ? y - th - 10 : y + 14;
+          lrTipEl.style.left = Math.max(MARGIN, Math.min(W2 - tw - MARGIN, left)) + "px";
+          lrTipEl.style.top  = Math.max(MARGIN, top) + "px";
           lrTipEl.style.display = "block";
         }
 
@@ -3557,9 +3560,12 @@
       function showMsTip(d, x, y) {
         msTipEl.innerHTML = buildMsTipHTML(d);
         const W2 = window.innerWidth, H2 = window.innerHeight;
-        const tw = 230, th = 140;
-        msTipEl.style.left = (x + 14 + tw > W2 ? x - tw - 14 : x + 14) + "px";
-        msTipEl.style.top  = (y + 14 + th > H2 ? y - th - 10 : y + 14) + "px";
+        const MARGIN = 8;
+        const tw = Math.min(230, W2 - 2 * MARGIN), th = 140;
+        let left = x + 14 + tw > W2 - MARGIN ? x - tw - 14 : x + 14;
+        let top  = y + 14 + th > H2 - MARGIN ? y - th - 10 : y + 14;
+        msTipEl.style.left = Math.max(MARGIN, Math.min(W2 - tw - MARGIN, left)) + "px";
+        msTipEl.style.top  = Math.max(MARGIN, top) + "px";
         msTipEl.style.display = "block";
       }
 
@@ -4297,11 +4303,12 @@
         function showTip(d, x, y) {
           gpTipEl.innerHTML = buildTipHTML(d);
           const W = window.innerWidth, H = window.innerHeight;
-          const tw = 248, th = 160; // approximate tip size
-          const left = x + 14 + tw > W ? x - tw - 14 : x + 14;
-          const top  = y + 14 + th > H ? y - th - 10 : y + 14;
-          gpTipEl.style.left = left + "px";
-          gpTipEl.style.top  = top  + "px";
+          const MARGIN = 8;
+          const tw = Math.min(240, W - 2 * MARGIN), th = 160;
+          let left = x + 14 + tw > W - MARGIN ? x - tw - 14 : x + 14;
+          let top  = y + 14 + th > H - MARGIN ? y - th - 10 : y + 14;
+          gpTipEl.style.left = Math.max(MARGIN, Math.min(W - tw - MARGIN, left)) + "px";
+          gpTipEl.style.top  = Math.max(MARGIN, top) + "px";
           gpTipEl.style.display = "block";
         }
 
@@ -4934,9 +4941,12 @@
             + `<div class="gt-hint">${isTouch ? T.tapHint : T.clickHint}</div>`;
 
           const W = window.innerWidth, H = window.innerHeight;
-          const tw = 248, th = 170;
-          sdTipEl.style.left = (x + 14 + tw > W ? x - tw - 14 : x + 14) + "px";
-          sdTipEl.style.top  = (y + 14 + th > H ? y - th - 10 : y + 14) + "px";
+          const MARGIN = 8;
+          const tw = Math.min(240, W - 2 * MARGIN), th = 170;
+          let left = x + 14 + tw > W - MARGIN ? x - tw - 14 : x + 14;
+          let top  = y + 14 + th > H - MARGIN ? y - th - 10 : y + 14;
+          sdTipEl.style.left = Math.max(MARGIN, Math.min(W - tw - MARGIN, left)) + "px";
+          sdTipEl.style.top  = Math.max(MARGIN, top) + "px";
           sdTipEl.style.display = "block";
         }
 
@@ -5878,7 +5888,10 @@
           `<strong>${best.s.name}${pinHint}</strong><br/>${mo}<br/>${fmtUsd2.format(best.pt.usd)} <span style="color:#888">est. / month</span>`
           + (pinnedId !== best.s.id ? `<br/><span style="color:#6b7280;font-size:10px">click to pin</span>` : `<br/><span style="color:#6b7280;font-size:10px">click to unpin</span>`)
         );
-      tip.style("left", event.clientX + 14 + "px").style("top", event.clientY + 14 + "px");
+      { const _W = window.innerWidth, _MARGIN = 8, _tw = Math.min(280, _W - 2 * _MARGIN);
+        let _l = event.clientX + 14 + _tw > _W - _MARGIN ? event.clientX - _tw - 14 : event.clientX + 14;
+        tip.style("left", Math.max(_MARGIN, Math.min(_W - _tw - _MARGIN, _l)) + "px")
+           .style("top",  Math.max(_MARGIN, event.clientY + 14) + "px"); }
     })
     .on("mouseleave", () => {
       activeId = null;
