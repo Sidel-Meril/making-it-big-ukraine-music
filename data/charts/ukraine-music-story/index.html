@@ -1936,6 +1936,78 @@
       .attr("fill", "#777").style("font-size", "10px").text(SPLIT + "+");
   }
 
+  /* ── Band labels: values on big/medium/small_hi at Jul-2024 & last pt ─── */
+  (function addBandLabels() {
+    const LABELED = ["big", "medium", "small_hi"];
+    const isUA = document.body.classList.contains("ua");
+
+    /* Find July 2024 point (or nearest) */
+    const julTarget = new Date(2024, 6, 1); // July 1 2024
+    const julPt = pts.reduce((best, p) =>
+      Math.abs(p.t - julTarget) < Math.abs(best.t - julTarget) ? p : best, pts[0]);
+    const lastPt = pts[pts.length - 1];
+
+    /* Compute cumulative offsets for the abs stack at a given point */
+    function bandMidAbs(pt, key) {
+      let cumLo = 0;
+      for (const k of TIER_KEYS) {
+        const v = pt.tiers[k] || 0;
+        if (k === key) return { lo: cumLo, hi: cumLo + v, mid: cumLo + v / 2 };
+        cumLo += v;
+      }
+      return null;
+    }
+
+    const bandLabelG = g.append("g").attr("class", "band-label-layer")
+      .style("pointer-events", "none").style("font-size", _isMob ? "9px" : "10.5px")
+      .style("font-family", "inherit");
+
+    const ANCHORS = [
+      { pt: julPt,  anchor: "middle", dx: 0,  labelEN: "Summer ‘24", labelUA: "Літо ‘24" },
+      { pt: lastPt, anchor: "middle", dx: 0,  labelEN: "Spring ‘26", labelUA: "Весна ‘26" },
+    ];
+
+    ANCHORS.forEach(({ pt, anchor, dx, labelEN, labelUA }) => {
+      const bx = x(pt.t) + dx;
+      const label = isUA ? labelUA : labelEN;
+      const total = pt.total || 1;
+
+      /* Season header tick */
+      bandLabelG.append("line")
+        .attr("x1", bx).attr("x2", bx)
+        .attr("y1", ih).attr("y2", ih + 5)
+        .attr("stroke", "#999").attr("stroke-width", 1);
+
+      /* Season header text — below x-axis */
+      bandLabelG.append("text")
+        .attr("x", bx).attr("y", ih + 16)
+        .attr("text-anchor", anchor)
+        .attr("fill", "#aaa")
+        .style("font-size", _isMob ? "8px" : "9.5px")
+        .text(label);
+
+      /* Value labels on each target band */
+      LABELED.forEach((key) => {
+        const band = bandMidAbs(pt, key);
+        if (!band) return;
+        const bandH = yAbs(band.lo) - yAbs(band.hi); // px height of band
+        if (bandH < (key === "small_hi" ? 7 : 10)) return; // too thin, skip
+        const midY = yAbs(band.mid);
+        const pct = (((pt.tiers[key] || 0) / total) * 100).toFixed(1);
+        bandLabelG.append("text")
+          .attr("x", bx).attr("y", midY + 3.5)
+          .attr("text-anchor", anchor)
+          .attr("fill", key === "small_hi" ? "#fff" : "#fff")
+          .attr("opacity", 0.9)
+          .style("font-weight", key === "small_hi" ? "700" : "500")
+          .text(`${pct}%`);
+      });
+    });
+
+    /* Re-render labels when mode toggles (update y positions) */
+    const _origSetMode = setMode;
+  })();
+
   /* ── Callout: annotate the fastest-growing tier (10K–100K) ────────────── */
   const last = pts[pts.length - 1];
   const firstPt = pts[0];
