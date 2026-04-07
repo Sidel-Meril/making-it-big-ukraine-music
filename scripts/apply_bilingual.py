@@ -895,7 +895,7 @@ NEW_BM = '''    block_money = """
       </div>
       <p class="chart-dek">
         <span class="en-only">Log-scaled payout histogram with a sub-$300 band; interactive monthly payout lines with a peak-listener range (min/max) and hover for exact month estimates.</span>
-        <span class="ua-only">Гістограма виплат із логарифмічною шкалою та смугою нижче $300; інтерактивні лінії місячних виплат із діапазоном піку слухачів і підказками при наведенні.</span>
+        <span class="ua-only"></span>
       </p>
 """'''
 

@@ -2357,7 +2357,7 @@
       </div>
       <p class="chart-dek">
         <span class="en-only">Move the slider to watch how the highlighted frame changes — it shows how many artists are included once you set the listener threshold.</span>
-        <span class="ua-only">Слайдер на графіку встановлює  поріг кількості слухачів. Рамка показує, скільки артистів потрапляє у вибраний поріг та скільки сумарно ці артисти приносять грошей індустрії з Spotify.</span>
+        <span class="ua-only"> </span>
       </p>
       <div class="chart-frame"><div class="chart-frame-inner">
         <div class="nuam-ch nuam-ch-ld" id="nuam-b-ld">
@@ -3657,7 +3657,10 @@
           return v >= lo && v <= hi;
         });
 
-        listenSummary.textContent = `${filtered.length.toLocaleString()} artist${filtered.length === 1 ? "" : "s"} in this band (${fmtListen(lo)}–${fmtListen(hi)} peak listeners). File: ${N.toLocaleString()} with a peak${noListenerCount ? `; ${noListenerCount.toLocaleString()} rows skip the band filter (no peak).` : "."}`;
+        { const _ua = document.body.classList.contains('ua');
+          listenSummary.textContent = _ua
+            ? `${filtered.length.toLocaleString()} артист${filtered.length === 1 ? "" : "ів"} у діапазоні (${fmtListen(lo)}–${fmtListen(hi)} пік). Всього: ${N.toLocaleString()} з піком${noListenerCount ? `; ${noListenerCount.toLocaleString()} рядків без піку (поза фільтром).` : "."}`
+            : `${filtered.length.toLocaleString()} artist${filtered.length === 1 ? "" : "s"} in this band (${fmtListen(lo)}–${fmtListen(hi)} peak listeners). File: ${N.toLocaleString()} with a peak${noListenerCount ? `; ${noListenerCount.toLocaleString()} rows skip the band filter (no peak).` : "."}`; }
         return filtered;
       }
 
@@ -4599,7 +4602,7 @@
     </section>
   </div>
 
-  <p class="note"><span class="en-only">Data: NUAM · “Signed” = on a label that also has ≥2 “big listener” acts (same rule as the milestone chart).</span><span class="ua-only">Дані: NUAM · «Підписаний» = лейбл, на якому також є ≥2 виконавці з великою аудиторією (та сама умова, що й у чарті досягнень).</span></p>
+  <p class="note"><span class="en-only">Data: NUAM · “Signed” = on a label that also has ≥2 “big listener” acts (same rule as the milestone chart).</span><span class="ua-only">Дані: NUAM · </span></p>
         <script>(function () {
   const root = document.getElementById("nuam-b-sd");
   const raw = window.__NUAM_SIGNED_DEALS_STORY__;
@@ -4612,19 +4615,19 @@
       const LABEL_MIN = meta.labelMinPeakListeners;
 
       { const _en_sds = `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} artists were signed to recognized labels — yet ${meta.strangeArtistCount.toLocaleString()} never exceeded ${STRANGE.toLocaleString()} monthly listeners, making up the “strange deal” group`;
-      const _ua_sds = `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} артистів підписані на лейбли — але ${meta.strangeArtistCount.toLocaleString()} ніколи не перевищували ${STRANGE.toLocaleString()} місячних слухачів ("дивні угоди")`;
+      const _ua_sds = `${String(meta.refMonthIso).slice(0, 7)}: ${meta.signedArtistCount.toLocaleString()} артистів підписані на лейбли — але ${meta.strangeArtistCount.toLocaleString()} ніколи не перевищували ${STRANGE.toLocaleString()} місячних слухачів`;
       const _el_sds = document.getElementById("sd-subtitle");
       _el_sds.dataset.l10nEn = _en_sds; _el_sds.dataset.l10nUa = _ua_sds;
       _el_sds.textContent = document.body.classList.contains('ua') ? _ua_sds : _en_sds; }
 
       { const _en_sdh = `One artist per row. Peak = their best month ever. The orange band marks artists still under ${STRANGE.toLocaleString()} listeners at the time of signing.`;
-      const _ua_sdh = `Помаранчева смуга — артисти з менше ніж ${STRANGE.toLocaleString()} слухачів на момент підписання.`;
+      const _ua_sdh = ` `;
       const _el_sdh = document.getElementById("sd-hist-lead");
       _el_sdh.dataset.l10nEn = _en_sdh; _el_sdh.dataset.l10nUa = _ua_sdh;
       _el_sdh.textContent = document.body.classList.contains('ua') ? _ua_sdh : _en_sdh; }
 
       document.getElementById("sd-anomaly-note").innerHTML = document.body.classList.contains('ua')
-        ? "<strong>Про цю смугу.</strong> Тут я показую дивні угоди серед усіх лейблів, але для малих комюніті починати з маленьких прослуховувань на перших угодах має бути нормальною практикою. Проте це певним чином показує цінність в наш час угоди з лейблом, якщо він не має конкретних напрацьованих стратегій для просування."
+        ? "<strong>Зауваження.</strong> Тут я показую дивні угоди серед <strong>усіх</strong> лейблів, але для малих комюніті починати з маленьких прослуховувань на перших угодах має бути нормальною практикою. Проте це певним чином показує цінність в наш час угоди з лейблом, якщо він не має конкретних напрацьованих стратегій для просування."
         : "<strong>About that band.</strong> NUAM only spots a label once someone is on the roster — often while listeners are still tiny. That is not proof the deal signed that week; it’s how often the <em>first snapshot we have</em> is still a small audience, unlike many majors that show up later with bigger numbers.";
 
       document.getElementById("sd-bars-lead").textContent = "";
@@ -4665,8 +4668,8 @@
       (function addBandAnnotation() {
         const bx = (sx(bandEnd) - sx(0)) / 2;   // centre of yellow region
         const _isUA = document.body.classList.contains('ua');
-        const LINE1 = _isUA ? "ніколи не мали 1000 слухачів" : "never hit 1k listeners";
-        const LINE2 = _isUA ? "лейбл підписав із нуля" : "label signed them from scratch";
+        const LINE1 = _isUA ? "Дивні угоди" : "never hit 1k listeners";
+        const LINE2 = _isUA ? "лейбли беруть виконавців з слухачами 1K/міс." : "label signed them from scratch";
         const FONT  = "system-ui,-apple-system,sans-serif";
         const PAD   = { x: 8, y: 5 };
 
@@ -5229,7 +5232,7 @@
       </div>
       <p class="chart-dek">
         <span class="en-only">Log-scaled payout histogram with a sub-$300 band; interactive monthly payout lines with a peak-listener range (min/max) and hover for exact month estimates.</span>
-        <span class="ua-only">Гістограма виплат із логарифмічною шкалою та смугою нижче $300; інтерактивні лінії місячних виплат із діапазоном піку слухачів і підказками при наведенні.</span>
+        <span class="ua-only"></span>
       </p>
       <div class="chart-frame"><div class="chart-frame-inner">
         <div class="nuam-ch nuam-ch-ma" id="nuam-b-ma">
@@ -5301,7 +5304,7 @@
   _el_mah.textContent = document.body.classList.contains('ua') ? _ua_mah : _en_mah; }
 
   { const _en_mahn = `${pct.toFixed(1)}% of artists sit below $${hist.thresholdUsd || 300} in estimated lifetime earnings. Numbers are rough — real payouts vary by deal.`;
-  const _ua_mahn = `${pct.toFixed(1)}% артистів заробили менше $${hist.thresholdUsd || 300} загалом. Числа приблизні.`;
+  const _ua_mahn = `${pct.toFixed(1)}% артистів заробили менше $${hist.thresholdUsd || 300} загалом.`;
   const _el_mahn = document.getElementById("ma-hist-note");
   _el_mahn.dataset.l10nEn = _en_mahn; _el_mahn.dataset.l10nUa = _ua_mahn;
   _el_mahn.textContent = document.body.classList.contains('ua') ? _ua_mahn : _en_mahn; }
@@ -5382,8 +5385,8 @@
     .attr("text-anchor", "middle")
     .style("font-size", "15px")
     .attr('data-l10n-en', `Below $${hist.thresholdUsd || 300}: ${pct.toFixed(1)}% of artists`)
-    .attr('data-l10n-ua', `Менше $${hist.thresholdUsd || 300}: ${pct.toFixed(1)}% артистів`)
-    .text(document.body.classList.contains('ua') ? `Менше $${hist.thresholdUsd || 300}: ${pct.toFixed(1)}% артистів` : `Below $${hist.thresholdUsd || 300}: ${pct.toFixed(1)}% of artists`);
+    .attr('data-l10n-ua', `${pct.toFixed(1)}% артистів заробили менше $${hist.thresholdUsd || 300} загалом.`)
+    .text(document.body.classList.contains('ua') ? `${pct.toFixed(1)}% заробили менше $${hist.thresholdUsd || 300}` : `Below $${hist.thresholdUsd || 300}: ${pct.toFixed(1)}% of artists`);
 
   /* —— multi-line + peak listener band —— */
   const seriesAll = linesPack.series || [];
@@ -5503,7 +5506,7 @@
   const nExported = seriesAll.length;
   const nMeta = lm.artistSeriesCount != null ? +lm.artistSeriesCount : nExported;
   { const _en_mals = `Estimated monthly earnings from ${lm.startMonth || "2025-01"}; ${nMeta.toLocaleString()} artists. Drag the handles to pick a listener band, then hover a line.`;
-  const _ua_mals = `Розрахункові місячні виплати з ${lm.startMonth || "2025-01"}; ${nMeta.toLocaleString()} артистів. Перетягніть слайдер або скористайтесь пошуком за назвою артиста діапазону.`;
+  const _ua_mals = `Розрахункові місячні виплати з ${lm.startMonth || "2025-01"}; ${nMeta.toLocaleString()} артистів. `;
   const _el_mals = document.getElementById("ma-lines-subtitle");
   _el_mals.dataset.l10nEn = _en_mals; _el_mals.dataset.l10nUa = _ua_mals;
   _el_mals.textContent = document.body.classList.contains('ua') ? _ua_mals : _en_mals; }
@@ -6186,7 +6189,7 @@
     'More listeners per artist': 'Більше попит',
     'Ukrainian acts still gain listeners': 'Ми слухаємо дедалі більше українських виконавців',
     'Roster total keeps inching up': 'Загальна кількість слухачів зростає',
-    'Most first snapshots sit left of the band': 'Багато виконавців підписують контракти недосягнувши 1000 слухачів',
+    'Most first snapshots sit left of the band': '* ці артисти так і не перетнули межу в 1К слух./міс.',
     'Signed artists per label': 'Підписаних артистів на лейбл',
     'Purple = all signed \u00b7 red portion = strange deals': 'Фіолетовий = всі підписані \u00b7 червоний = дивні угоди',
     'not found': 'не знайдено',
@@ -6287,7 +6290,7 @@
       setT(ldP.querySelector('h2'), 'Listener threshold', 'Поріг слухачів');
       setH(ldP.querySelector('.filter-readout'),
         'Drag to set the cutoff. The slider moves on a <strong>log scale</strong> \u2014 each step covers more listeners toward the right.',
-        'Повзунок рухається в <strong>логарифмічній шкалі</strong> \u2014 це означає, що кроки на вищих показниках охоплююсть більше артистів.');
+        'Рамка показує, скільки артистів потрапляє у вибраний поріг та скільки сумарно ці артисти приносять грошей індустрії з Spotify.');
     }
     var msP = document.getElementById('ms-listener-filter-panel');
     if (msP) {
@@ -6311,7 +6314,7 @@
     sweepEl(document.getElementById('sd-pack-lead'),   isUA ? EN_UA : UA_EN);
     setH(document.getElementById('sd-anomaly-note'),
       "<strong>About that band.</strong> NUAM only spots a label once someone is on the roster — often while listeners are still tiny. That is not proof the deal signed that week; it’s how often the <em>first snapshot we have</em> is still a small audience, unlike many majors that show up later with bigger numbers.",
-      "<strong>Про цю смугу.</strong> Тут я показую дивні угоди серед усіх лейблів, але для малих комюніті починати з маленьких прослуховувань на перших угодах має бути нормальною практикою. Проте це певним чином показує цінність в наш час угоди з лейблом, якщо він не має конкретних напрацьованих стратегій для просування.");
+      "<strong>Зауваження.</strong> Тут я показую дивні угоди серед <strong>усіх</strong> лейблів, але для малих комюніті починати з маленьких прослуховувань на перших угодах має бути нормальною практикою. Проте це певним чином показує цінність в наш час угоди з лейблом, якщо він не має конкретних напрацьованих стратегій для просування.");
   }
 
   /* ── full sweep of all chart SVGs ── */
