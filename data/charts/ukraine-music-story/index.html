@@ -309,6 +309,24 @@
       border-color: #8B5CF6;
       color: #e0e0e0;
     }
+    .uklg-stat-strip {
+      display: flex; gap: 2.5rem; margin: 1.8rem 0 0.8rem; flex-wrap: wrap;
+    }
+    .uklg-stat { display: flex; flex-direction: column; }
+    .uklg-stat-value {
+      font-size: clamp(2rem, 6vw, 3.2rem); font-weight: 800;
+      line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink);
+      letter-spacing: -0.03em;
+    }
+    .uklg-stat--accent .uklg-stat-value { color: #FBBF24; }
+    .uklg-stat-label {
+      font-size: clamp(0.65rem, 1.5vw, 0.75rem); color: var(--ink-dim);
+      margin-top: 0.3rem; max-width: 14ch; line-height: 1.3;
+    }
+    .uklg-stat-note {
+      font-size: 0.7rem; color: var(--ink-dim); margin-top: 0.6rem;
+      font-style: italic; line-height: 1.4; max-width: 52ch;
+    }
     .delta-label {
       fill: #cfcfcf;
       font-size: 12px;
@@ -1730,7 +1748,23 @@
     </div>
   </div>
   <div class="chart-host"><svg id="uklg-chart" role="img" aria-labelledby="uklg-title-main"></svg></div>
-  <p class="note" id="uklg-footnote"></p>
+  <div class="uklg-stat-strip" id="uklg-stat-strip" aria-hidden="true">
+    <div class="uklg-stat">
+      <span class="uklg-stat-value" id="uklg-stat-streams">…</span>
+      <span class="uklg-stat-label en-only">total listener-months<br>observed (Apr 2024 – Apr 2026)</span>
+      <span class="uklg-stat-label ua-only">слухачів-місяців<br>зафіксовано (кв 2024 – кв 2026)</span>
+    </div>
+    <div class="uklg-stat uklg-stat--accent">
+      <span class="uklg-stat-value" id="uklg-stat-dollars">…</span>
+      <span class="uklg-stat-label en-only">estimated Spotify<br>stream value</span>
+      <span class="uklg-stat-label ua-only">оціночна вартість<br>на Spotify</span>
+    </div>
+  </div>
+  <p class="uklg-stat-note">
+    <span class="en-only">Estimated value of cumulative Spotify listenings by Ukrainian artists tracked by NUAM, at&nbsp;$1.33&nbsp;/&nbsp;1K&nbsp;streams. Reflects growth in audience reach, not artist payout.</span>
+    <span class="ua-only">Оціночна вартість сукупних прослуховувань українських артистів у NUAM на Spotify, з розрахунку $1,33 / 1K стрімів. Відображає зростання охоплення, а не виплати артистам.</span>
+  </p>
+<p class="note" id="uklg-footnote"></p>
         <script>(function () {
   const root = document.getElementById("nuam-b-uklg");
   const raw = window.__NUAM_UK_LISTENERS_GROWTH__;
@@ -1910,7 +1944,30 @@
 
   /* ── Callout: annotate the fastest-growing tier (10K–100K) ────────────── */
   const last = pts[pts.length - 1];
+  const last = pts[pts.length - 1];
   const firstPt = pts[0];
+
+  /* ── Market-value stat strip ─────────────────────────────────────────── */
+  (function () {
+    const RATE = 1.33 / 1000; // $/listener-month
+    const cumulative  = pts.reduce((s, p) => s + p.total, 0);
+    const dollarValue = cumulative * RATE;
+    const fmtBig = v => {
+      if (v >= 1e9) return `${(v / 1e9).toFixed(2)}B`;
+      if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;
+      return `${(v / 1e3).toFixed(0)}K`;
+    };
+    const fmtDollar = v => {
+      if (v >= 1e6) return `$${(v / 1e6).toFixed(2)}M`;
+      if (v >= 1e3) return `$${(v / 1e3).toFixed(0)}K`;
+      return `$${v.toFixed(0)}`;
+    };
+    const elStreams  = document.getElementById("uklg-stat-streams");
+    const elDollars  = document.getElementById("uklg-stat-dollars");
+    if (elStreams)  elStreams.textContent  = fmtBig(cumulative);
+    if (elDollars) elDollars.textContent  = fmtDollar(dollarValue);
+  })();
+
   const hiShareNow   = last.total > 0    ? (last.tiers.small_hi / last.total    * 100) : 0;
   const hiShareFirst = firstPt.total > 0 ? (firstPt.tiers.small_hi / firstPt.total * 100) : 0;
   const hiDelta = hiShareNow - hiShareFirst;  // pp change
@@ -2204,13 +2261,13 @@
           <p>
             <a href="https://www.nuam.club/stat">NUAM</a> — одна з найбільших публічно доступних баз даних українських музикантів, яка зберігає детальні профілі десятків тисяч артистів та їхніх релізів. Платформа дозволяє шукати та фільтрувати музику за жанром, популярністю, датою релізу та іншими параметрами, а також пропонує плейлисти, щорічні чарти та жанрові добірки. Через вебдодаток <strong>NUAM Base</strong> вона надає аналітику як для артистів, так і для слухачів.
           </p>
-          <p>Останніми місяцями тренд на локальну музику стабілізувався, але не слід радіти:</p>
+          <p>Графік вище демонструє, як прослуховування розподіляються між різними категоріями артистів, згрупованими за розміром їхньої місячної аудиторії. Видно, що частка менш відомих виконавців поступово перетягує на себе прослуховування від більш популярних. При загальному тренді на зростання кількості прослуховувань, ця динаміка свідчить про помірне розширення ринку та його внутрішню трансформацію. Проте не слід поспішати з оптимістичними висновками:</p>
           <ol>
-            <li><strong>Зростання кількості артистів.</strong> З початку відстеження NUAM кількість активних українських музикантів різко зросла — понад 16 500 артистів, і більше 9 200 з них випустили музику лише в 2025 році. Стабілізація тренду може бути ознакою закріплення каталогу бази — тоді це ознака, що в нас все менше нових гучних гуртів.</li>
+            <li><strong>Зростання кількості артистів.</strong> З початку відстеження NUAM кількість активних українських музикантів різко зросла — понад 16 500 артистів, і більше 9 200 з них випустили музику лише в 2025 році. Отже, ми можемо бачити не зростання прослуховувань, а розширення каталогу бази даних.</li>
             <li><strong>Агрегування даних по артистах.</strong>Я не можу сказати, що ми рахуємо унікальних користувачів. Дані на графіку —  сума показника на Spotify за місяць, тож я могла порахувати когоcь навіть з читачів багато разів.</li>
             <li><strong>Реальне зростання аудиторії.</strong> Якщо ж все таки Олексій автоматично розширює каталог і показник Spotify формується з усередненого числа виключних поціновувачів артиста, ми можемо сказати, що це гарний знак: наш ринок до цього зазнавав катастрофу за катастрофою!</li>
           </ol>
-          <p>Так що можемо сказати про <strong>наявність інтересу до локальної музики</strong>. Стримінгові платформи — <a href="https://www.spotify.com/">Spotify</a> та <a href="https://www.apple.com/apple-music/">Apple Music</a> — відіграли значну роль у посиленні цього зростання. Особливо коли почали відділяти наш ринок від російського.
+          <p>Все це свідчить про <strong>наявність інтересу до локальної музики</strong>. Стримінгові платформи — <a href="https://www.spotify.com/">Spotify</a> та <a href="https://www.apple.com/apple-music/">Apple Music</a> — відіграли значну роль у посиленні цього зростання. Особливо коли почали відділяти наш ринок від російського.
           </p>
         </div>
       </div>
@@ -2234,7 +2291,7 @@
         <p class="en-only">
           The distribution is sharply skewed. A large share of artists in the NUAM catalogue attract only a handful of streams; the curve drops off steeply, and only a small slice ever breaks through to significant listener counts. The histogram below makes that shape visible — drag the slider to see where any top‑percentile cutoff lands in actual listener count terms.
         </p>
-        <p class="ua-only">Це — розподіл артистів за кількістю прослуховувань. Він у логарифмічній шкалі, це означає, що кількість артистів у рамці у правій частині графіку значно щільніша, ніж зліва.   Для того, щоб ви розуміли його оригінальну форму, я додала золоту рамку: більшість артистів навіть не досягає відмітки в 10 000 прослуховувань...  більше 10 000 поціновувачів — це всього 7% від нашої сцени, представленої NUAM!</p>
+        <p class="ua-only">Це — розподіл артистів за кількістю прослуховувань. Він у логарифмічній шкалі, це означає, що кількість артистів у рамці у правій частині графіку значно щільніша, ніж зліва.   Для того, щоб ви розуміли його оригінальну форму, я додала золоту рамку: більшість артистів навіть не досягає відмітки в 10 000 прослуховувань...  артисти, які мають більше 10 000 поціновувачів — це всього 7% від нашої сцени, представленої NUAM!</p>
       </div>
       <p class="chart-dek">
         <span class="en-only">Move the slider to watch how the highlighted frame changes — it shows how many artists are included once you set the listener threshold.</span>
