@@ -6,6 +6,33 @@ from typing import Any
 
 import pandas as pd
 
+# Audience tier definitions (rank-based per month, descending by listeners)
+TIERS: list[tuple[str, int, int]] = [
+    ("top10",  1,   10),
+    ("mid1",  11,   50),
+    ("mid2",  51,  200),
+    ("rest",  201, 999_999),
+]
+
+
+def _tier_sums(month_df: pd.DataFrame) -> dict[str, float]:
+    """Return summed listeners per tier for a single month's artist rows.
+
+    Artists are ranked by their listeners in that month (highest first).
+    Tier boundaries are rank-based (1-10, 11-50, 51-200, 201+).
+    """
+    ranked = (
+        month_df[month_df["listeners"] > 0]
+        .sort_values("listeners", ascending=False)
+        .reset_index(drop=True)
+    )
+    ranked["rank"] = ranked.index + 1
+    result: dict[str, float] = {}
+    for key, lo, hi in TIERS:
+        mask = (ranked["rank"] >= lo) & (ranked["rank"] <= hi)
+        result[key] = float(ranked.loc[mask, "listeners"].sum())
+    return result
+
 
 def build_uk_listeners_growth_payload(
     listeners_df: pd.DataFrame,
@@ -13,10 +40,10 @@ def build_uk_listeners_growth_payload(
     start_year: int = 2024,
     current_year_split: int = 2026,
 ) -> dict[str, Any]:
-    """Sum ``listeners`` by calendar month (all artist–month rows in export).
+    """Sum ``listeners`` by calendar month with per-tier breakdowns.
 
-    Interprets the series as aggregate monthly-listener counts on the NUAM roster
-    (Ukrainian-music–focused catalog), not unique national listeners.
+    Each point includes a ``tiers`` object with four keys (top10, mid1, mid2,
+    rest) that sum to ``total``.  Tiers are ranked per-month by listener count.
     """
     if listeners_df.empty or "month" not in listeners_df.columns:
         return {
@@ -58,8 +85,8 @@ def build_uk_listeners_growth_payload(
         total = float(r["total"])
         delta = None if prev is None else total - prev
         artist_count = int(r["artistCount"])
-        # 95 % CI half-width for the sum:  z₀.₀₂₅ × σ_sum  where σ_sum = std × √n
         ci_band = 1.96 * float(r["std"]) * (artist_count ** 0.5)
+        tiers = _tier_sums(df[df["month"] == m])
         points.append(
             {
                 "monthIso": m.isoformat(),
@@ -68,6 +95,7 @@ def build_uk_listeners_growth_payload(
                 "total": total,
                 "ciBand": round(ci_band),
                 "deltaPrev": delta,
+                "tiers": {k: round(v) for k, v in tiers.items()},
             }
         )
         prev = total
@@ -79,5 +107,6 @@ def build_uk_listeners_growth_payload(
         "lastMonthIso": pd.Timestamp(last_m).isoformat(),
         "pointCount": len(points),
         "subtitleMetric": "Σ monthly Spotify listener counts on NUAM artist rows (same months as export)",
+        "tiers": [{"key": k, "rankLo": lo, "rankHi": hi} for k, lo, hi in TIERS],
     }
     return {"meta": meta, "points": points}

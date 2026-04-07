@@ -321,6 +321,22 @@
     .axis text { fill: var(--muted); font-size: 11px; }
     .axis line, .axis path { stroke: #444; }
     .grid line { stroke: #2a2a2a; }
+    .uklg-mbtn {
+      background: #1e1e2e;
+      border: 1px solid #333;
+      color: #9aa0a6;
+      border-radius: 4px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .uklg-mbtn--active {
+      background: #2a2a3e;
+      border-color: #8B5CF6;
+      color: #e0e0e0;
+    }
     .delta-label {
       fill: #cfcfcf;
       font-size: 12px;
@@ -333,6 +349,12 @@
       fill: none;
       stroke-linecap: round;
       stroke-linejoin: round;
+    }
+    .tier-area {
+      transition: fill-opacity 0.15s;
+    }
+    .tier-area:hover {
+      fill-opacity: 1 !important;
     }
     .callout-connector {
       fill: none;
@@ -1724,532 +1746,372 @@
     <p class="subtitle" id="uklg-subtitle"></p>
   </header>
   <div class="legend-wrap" id="uklg-legend-block">
-    <strong>What you’re seeing.</strong> Monthly listeners in Ukrainian Music Market during ‘24–’26
+    <strong><span class="en-only">What you’re seeing.</span><span class="ua-only">Що показано.</span></strong> <span class="en-only">Monthly listeners stacked by artist tier (ranked per month). Hover for breakdown.</span><span class="ua-only">Місячні слухачі за рівнями артистів (ранг щомісяця). Наведіть для деталей.</span>
     <div class="row" id="uklg-legend-lines"></div>
+    <div class="uklg-mode-toggle" id="uklg-mode-toggle" style="margin-top:0.55rem;display:flex;gap:0.4rem;align-items:center">
+      <button id="uklg-btn-abs" class="uklg-mbtn uklg-mbtn--active" data-mode="abs">
+        <span class="en-only">Absolute</span><span class="ua-only">Абсолютні</span>
+      </button>
+      <button id="uklg-btn-pct" class="uklg-mbtn" data-mode="pct">
+        <span class="en-only">100% share</span><span class="ua-only">Частка 100%</span>
+      </button>
+    </div>
   </div>
   <div class="chart-host"><svg id="uklg-chart" role="img" aria-labelledby="uklg-title-main"></svg></div>
   <p class="note" id="uklg-footnote"></p>
         <script>(function () {
   const root = document.getElementById("nuam-b-uklg");
   const raw = window.__NUAM_UK_LISTENERS_GROWTH__;
-      const svg = d3.select("#uklg-chart");
-      if (!raw || !raw.points || !raw.points.length) {
-        svg.append("text").attr("x", 20).attr("y", 40).attr("fill", "#888").text("No data for this range.");
-        return;
-      }
+  const svg = d3.select("#uklg-chart");
+  if (!raw || !raw.points || !raw.points.length) {
+    svg.append("text").attr("x", 20).attr("y", 40).attr("fill", "#888").text("No data for this range.");
+    return;
+  }
 
-      const meta = raw.meta || {};
-      const SPLIT = meta.currentYearSplit != null ? +meta.currentYearSplit : 2026;
-      const pts = raw.points.map((p) => ({
-        t: new Date(p.monthIso),
-        total: p.total,
-        ciBand: p.ciBand != null ? p.ciBand : 0,
-        deltaPrev: p.deltaPrev,
-        year: p.year,
-      }));
+  const meta = raw.meta || {};
+  const SPLIT = meta.currentYearSplit != null ? +meta.currentYearSplit : 2026;
 
-      { const _fmtEN = d3.timeFormat("%b %Y");
-        const _fmtUA = function(d) { return new Intl.DateTimeFormat('uk', {month: 'short', year: 'numeric'}).format(d); };
-        const _enSub = `${pts.length} months (${_fmtEN(pts[0].t)}–${_fmtEN(pts[pts.length - 1].t)}).`;
-        const _uaSub = `${pts.length} місяців (${_fmtUA(pts[0].t)}–${_fmtUA(pts[pts.length - 1].t)}).`;
-        const _subEl = document.getElementById("uklg-subtitle");
-        _subEl.dataset.l10nEn = _enSub;
-        _subEl.dataset.l10nUa = _uaSub;
-        _subEl.textContent = document.body.classList.contains('ua') ? _uaSub : _enSub; }
+  /* ── Tier config (bottom → top in stack) ─────────────────────────────── */
+  const TIER_KEYS = ["tiny", "small_lo", "small_hi", "medium", "big", "large", "mega"];
+  const TIER_COLORS = {
+    mega:     "#FBBF24",  // gold   — 1M+
+    large:    "#FCD34D",  // amber  — 500K–1M
+    big:      "#FB923C",  // orange — 250K–500K
+    medium:   "#F97316",  // deep orange — 100K–250K
+    small_hi: "#EF4444",  // RED (accent, fastest growing) — 10K–100K
+    small_lo: "#8B5CF6",  // purple — 1K–10K
+    tiny:     "#5B21B6",  // deep violet — <1K
+  };
+  const TIER_LABELS_EN = {
+    mega:"1M+", large:"500K–1M", big:"250K–500K",
+    medium:"100K–250K", small_hi:"10K–100K", small_lo:"1K–10K", tiny:"<1K",
+  };
+  const TIER_LABELS_UA = {
+    mega:"1M+", large:"500K–1M", big:"250K–500K",
+    medium:"100K–250K", small_hi:"10K–100K", small_lo:"1K–10K", tiny:"<1K",
+  };
 
-      { const _u = (en, ua) => document.body.classList.contains('ua') ? ua : en;
-      const _enLL = () => `<span><i class="swatch" style="background:var(--line-pre)"></i>Up to ${SPLIT - 1}</span>` +
-        `<span><i class="swatch" style="background:var(--line-2026)"></i>${SPLIT}+</span>` +
-        `<span style="display:inline-flex;align-items:center;gap:0.35rem;color:#aaa;font-size:0.8em">` +
-        `<i style="display:inline-block;width:2rem;height:10px;background:var(--line-pre);opacity:0.35;border-radius:2px;vertical-align:middle"></i>` +
-        `95% CI band</span>`;
-      const _uaLL = () => `<span><i class="swatch" style="background:var(--line-pre)"></i>До ${SPLIT - 1}</span>` +
-        `<span><i class="swatch" style="background:var(--line-2026)"></i>${SPLIT}+</span>` +
-        `<span style="display:inline-flex;align-items:center;gap:0.35rem;color:#aaa;font-size:0.8em">` +
-        `<i style="display:inline-block;width:2rem;height:10px;background:var(--line-pre);opacity:0.35;border-radius:2px;vertical-align:middle"></i>` +
-        `95% ДІ смуга</span>`;
-      const _el_uklg_leg = document.getElementById("uklg-legend-lines");
-      const _setUklgLeg = () => { _el_uklg_leg.innerHTML = document.body.classList.contains('ua') ? _uaLL() : _enLL(); };
-      _setUklgLeg();
-      document.addEventListener('langchange', _setUklgLeg); }
+  const _emptyTiers = { mega:0, large:0, big:0, medium:0, small_hi:0, small_lo:0, tiny:0 };
+  const pts = raw.points.map((p) => ({
+    t:         new Date(p.monthIso),
+    total:     p.total,
+    deltaPrev: p.deltaPrev,
+    year:      p.year,
+    tiers:     p.tiers ? Object.assign({}, _emptyTiers, p.tiers) : Object.assign({}, _emptyTiers, { tiny: p.total }),
+  }));
 
-      const _cw = (root && root.offsetWidth) || window.innerWidth || 900;
-      const W = Math.min(900, Math.max(300, _cw));
-      const H = Math.round(W * 486 / 900);
-      const _isMob = W < 520;
-      const m = _isMob
-        ? { top: 52, right: 14, bottom: 38, left: 46 }
-        : { top: 78, right: 36, bottom: 52, left: 72 };
-      const iw = W - m.left - m.right;
-      const ih = H - m.top - m.bottom;
+  /* ── Subtitle ─────────────────────────────────────────────────────────── */
+  { const _fmtEN = d3.timeFormat("%b %Y");
+    const _fmtUA = (d) => new Intl.DateTimeFormat("uk", { month: "short", year: "numeric" }).format(d);
+    const _enSub = `${pts.length} months (${_fmtEN(pts[0].t)}–${_fmtEN(pts[pts.length - 1].t)}).`;
+    const _uaSub = `${pts.length} місяців (${_fmtUA(pts[0].t)}–${_fmtUA(pts[pts.length - 1].t)}).`;
+    const _subEl = document.getElementById("uklg-subtitle");
+    _subEl.dataset.l10nEn = _enSub; _subEl.dataset.l10nUa = _uaSub;
+    _subEl.textContent = document.body.classList.contains("ua") ? _uaSub : _enSub; }
 
-      const x = d3
-        .scaleTime()
-        .domain(d3.extent(pts, (d) => d.t))
-        .range([0, iw]);
+  /* ── Legend ───────────────────────────────────────────────────────────── */
+  { const isUA = () => document.body.classList.contains("ua");
+    const _buildLeg = () => {
+      const labels = isUA() ? TIER_LABELS_UA : TIER_LABELS_EN;
+      return [...TIER_KEYS].reverse().map(k =>
+        `<span><i class="swatch" style="background:${TIER_COLORS[k]};opacity:0.85"></i>${labels[k]}</span>`
+      ).join("");
+    };
+    const _el = document.getElementById("uklg-legend-lines");
+    const _setLeg = () => { _el.innerHTML = _buildLeg(); };
+    _setLeg();
+    document.addEventListener("langchange", _setLeg); }
 
-      const yMinData = d3.min(pts, (d) => d.total - (d.ciBand || 0));
-      const yMaxData = d3.max(pts, (d) => d.total + (d.ciBand || 0));
-      let span = yMaxData - yMinData;
-      if (!Number.isFinite(span) || span <= 0) {
-        span = Math.max(Math.abs(yMaxData) * 0.05, 1);
-      }
-      const padBottom = span * 0.06;
-      const padTop = span * 0.14;
-      const y = d3
-        .scaleLinear()
-        .domain([yMinData - padBottom, yMaxData + padTop])
-        .nice()
-        .range([ih, 0]);
+  /* ── Dimensions ───────────────────────────────────────────────────────── */
+  const _cw = (root && root.offsetWidth) || window.innerWidth || 900;
+  const W = Math.min(900, Math.max(300, _cw));
+  const H = Math.round(W * 486 / 900);
+  const _isMob = W < 520;
+  const m = _isMob
+    ? { top: 52, right: 14, bottom: 38, left: 46 }
+    : { top: 60, right: 36, bottom: 52, left: 72 };
+  const iw = W - m.left - m.right;
+  const ih = H - m.top - m.bottom;
 
-      svg.attr("viewBox", `0 0 ${W} ${H}`).attr("width", "100%").style("max-width", `${W}px`).attr("height", null);
+  /* ── Scales ───────────────────────────────────────────────────────────── */
+  const x = d3.scaleTime()
+    .domain(d3.extent(pts, (d) => d.t))
+    .range([0, iw]);
 
-      const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
-      const _xTicks = Math.min(pts.length, _isMob ? 6 : 14);
+  const yAbs = d3.scaleLinear()
+    .domain([0, d3.max(pts, (d) => d.total) * 1.08])
+    .nice().range([ih, 0]);
 
-      g.append("g")
-        .attr("class", "grid")
-        .attr("transform", `translate(0,${ih})`)
-        .call(d3.axisBottom(x).ticks(_xTicks).tickSize(-ih).tickFormat(""))
-        .call((s) => s.select(".domain").remove());
+  const yPct = d3.scaleLinear()
+    .domain([0, 1]).range([ih, 0]);
 
-      g.append("g")
-        .attr("class", "axis")
-        .attr("transform", `translate(0,${ih})`)
-        .call(d3.axisBottom(x).ticks(_xTicks).tickFormat(d3.timeFormat("%b %y")));
+  let mode = "abs";   // current display mode
+  let yScale = yAbs;
 
-      g.append("g").attr("class", "axis").call(
-        d3
-          .axisLeft(y)
-          .ticks(6)
-          .tickFormat((v) => (v >= 1e9 ? `${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${(v / 1e3).toFixed(0)}k`))
-      );
+  /* ── SVG ──────────────────────────────────────────────────────────────── */
+  svg.attr("viewBox", `0 0 ${W} ${H}`).attr("width", "100%").style("max-width", `${W}px`).attr("height", null);
+  const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+  const _xTicks = Math.min(pts.length, _isMob ? 6 : 14);
 
-      g.append("text")
-        .attr("fill", "#9aa0a6")
-        .attr("x", iw / 2)
-        .attr("y", ih + (_isMob ? 30 : 42))
-        .attr("text-anchor", "middle")
-        .style("font-size", _isMob ? "13px" : "11px")
-        .text("Month");
+  /* Grid */
+  g.append("g").attr("class", "grid")
+    .attr("transform", `translate(0,${ih})`)
+    .call(d3.axisBottom(x).ticks(_xTicks).tickSize(-ih).tickFormat(""))
+    .call((s) => s.select(".domain").remove());
 
-      if (!_isMob) g.append("text")
-        .attr("fill", "#9aa0a6")
-        .attr("transform", "rotate(-90)")
-        .attr("x", -ih / 2)
-        .attr("y", -56)
-        .attr("text-anchor", "middle")
-        .style("font-size", "11px")
-        .text("Total listeners (summed, count)");
+  /* Axes */
+  g.append("g").attr("class", "axis")
+    .attr("transform", `translate(0,${ih})`)
+    .call(d3.axisBottom(x).ticks(_xTicks).tickFormat(d3.timeFormat("%b %y")));
 
-      const line = d3
-        .line()
-        .x((d) => x(d.t))
-        .y((d) => y(d.total))
-        .curve(d3.curveMonotoneX);
+  const fmtYAbs = (v) => v >= 1e9 ? `${(v/1e9).toFixed(1)}B` : v >= 1e6 ? `${(v/1e6).toFixed(1)}M` : `${(v/1e3).toFixed(0)}k`;
+  const fmtYPct = (v) => `${(v * 100).toFixed(0)}%`;
 
-      let i0 = pts.findIndex((d) => d.year >= SPLIT);
-      if (i0 < 0) i0 = pts.length;
+  const yAxisG = g.append("g").attr("class", "axis");
+  function updateYAxis(animated) {
+    const fmt = mode === "pct" ? fmtYPct : fmtYAbs;
+    const call = yAxisG.call(d3.axisLeft(yScale).ticks(5).tickFormat(fmt));
+    return animated ? call.transition().duration(500) : call;
+  }
+  updateYAxis(false);
 
-      const oldPts = pts.slice(0, i0);
-      const newPts = i0 === 0 ? pts : i0 === pts.length ? [] : [pts[i0 - 1], ...pts.slice(i0)];
+  g.append("text").attr("fill", "#9aa0a6").attr("x", iw / 2)
+    .attr("y", ih + (_isMob ? 30 : 42)).attr("text-anchor", "middle")
+    .style("font-size", _isMob ? "13px" : "11px").text("Month");
 
-      /* ── 95 % confidence interval band ─────────────────────────────────── */
-      /* Half-width = 1.96 × std_individual × √n  (z₀.₀₂₅ × σ_sum).
-         Rendered before the lines so the band sits visually behind them.       */
-      const STD_BAND_OPACITY = 0.18;
-      const [yDomLo, yDomHi] = y.domain();
-      const bandArea = d3
-        .area()
-        .x((d) => x(d.t))
-        .y0((d) => y(Math.max(yDomLo, d.total - d.ciBand)))
-        .y1((d) => y(Math.min(yDomHi, d.total + d.ciBand)))
-        .curve(d3.curveMonotoneX);
+  if (!_isMob) g.append("text").attr("fill", "#9aa0a6").attr("transform", "rotate(-90)")
+    .attr("x", -ih / 2).attr("y", -56).attr("text-anchor", "middle")
+    .style("font-size", "11px").attr("id", "uklg-yaxis-label")
+    .text("Total listeners (summed)");
 
-      const bandG = g.append("g").attr("class", "std-band-layer").style("opacity", 0);
-      if (oldPts.length >= 2) {
-        bandG.append("path")
-          .attr("class", "std-band")
-          .attr("d", bandArea(oldPts))
-          .attr("fill", "var(--line-pre)")
-          .attr("stroke", "none");
-      }
-      if (newPts.length >= 2) {
-        bandG.append("path")
-          .attr("class", "std-band")
-          .attr("d", bandArea(newPts))
-          .attr("fill", "var(--line-2026)")
-          .attr("stroke", "none");
-      }
+  /* ── Stack helpers ────────────────────────────────────────────────────── */
+  const stack = d3.stack().keys(TIER_KEYS).value((d, k) => d.tiers[k] || 0);
+  const stackPct = d3.stack().keys(TIER_KEYS).value((d, k) =>
+    d.total > 0 ? (d.tiers[k] || 0) / d.total : 0
+  );
 
-      const lineG = g.append("g").attr("class", "series-layer");
-      let pathPre = null;
-      let pathNew = null;
+  function makeArea(yS) {
+    return d3.area()
+      .x((d) => x(d.data.t))
+      .y0((d) => yS(d[0]))
+      .y1((d) => yS(d[1]))
+      .curve(d3.curveMonotoneX);
+  }
 
-      if (oldPts.length >= 2) {
-        pathPre = lineG
-          .append("path")
-          .attr("class", "series-line")
-          .attr("stroke", "var(--line-pre)")
-          .attr("stroke-width", 2.5)
-          .attr("d", line(oldPts));
-      } else if (oldPts.length === 1 && newPts.length === 0) {
-        pathPre = lineG
-          .append("path")
-          .attr("class", "series-line")
-          .attr("stroke", "var(--line-pre)")
-          .attr("stroke-width", 2.5)
-          .attr("d", line(oldPts));
-      }
+  /* ── Draw stacked areas ───────────────────────────────────────────────── */
+  const stackG = g.append("g").attr("class", "stack-layer").style("opacity", 0);
 
-      if (newPts.length >= 2) {
-        pathNew = lineG
-          .append("path")
-          .attr("class", "series-line")
-          .attr("stroke", "var(--line-2026)")
-          .attr("stroke-width", 2.5)
-          .attr("d", line(newPts));
-      } else if (newPts.length === 1 && oldPts.length === 0) {
-        pathNew = lineG
-          .append("path")
-          .attr("class", "series-line")
-          .attr("stroke", "var(--line-2026)")
-          .attr("stroke-width", 2.5)
-          .attr("d", line(newPts));
-      }
+  const areaPaths = stackG.selectAll("path.tier-area")
+    .data(stack(pts))
+    .join("path")
+    .attr("class", "tier-area")
+    .attr("fill", (d) => TIER_COLORS[d.key])
+    .attr("fill-opacity", (d) => d.key === "tiny" ? 0.72 : 0.82)
+    .attr("stroke", (d) => TIER_COLORS[d.key])
+    .attr("stroke-width", 0.5)
+    .attr("d", makeArea(yAbs));
 
-      const circleSel = g.selectAll("circle.pt")
-        .data(pts)
-        .join("circle")
-        .attr("class", "pt")
-        .attr("cx", (d) => x(d.t))
-        .attr("cy", (d) => y(d.total))
-        .attr("r", 4)
-        .style("opacity", 0)
-        .style("cursor", "pointer")
-        .attr("fill", (d) => (d.year >= SPLIT ? "var(--line-2026)" : "var(--line-pre)"))
-        .attr("stroke", "#0a0a0a")
-        .attr("stroke-width", 1);
+  /* Edge line on top */
+  const totalLine = d3.line().x((d) => x(d.t)).y((d) => yAbs(d.total)).curve(d3.curveMonotoneX);
+  const topLineEl = g.append("path").attr("class", "series-line")
+    .attr("stroke", "#fff").attr("stroke-width", 1).attr("stroke-opacity", 0.2)
+    .attr("fill", "none").attr("d", totalLine(pts)).style("opacity", 0);
 
-      circleSel.append("title")
-        .text((d) => {
-          const mo = d3.timeFormat("%Y-%m")(d.t);
-          const dlt =
-            d.deltaPrev != null && Number.isFinite(d.deltaPrev)
-              ? `\nvs. prior month: ${d.deltaPrev >= 0 ? "+" : ""}${d.deltaPrev.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-              : "";
-          const fmt = (v) => v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : `${(v / 1e3).toFixed(0)}k`;
-          const bnd =
-            d.ciBand > 0
-              ? `\n95% CI  lower: ${fmt(d.total - d.ciBand)}  upper: ${fmt(d.total + d.ciBand)}`
-              : "";
-          return `${mo}\nΣ listeners: ${d.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}${dlt}${bnd}`;
-        });
+  /* 100% reference line (shown in pct mode) */
+  const refLine = g.append("line")
+    .attr("x1", 0).attr("x2", iw)
+    .attr("y1", yPct(1)).attr("y2", yPct(1))
+    .attr("stroke", "#555").attr("stroke-width", 0.8)
+    .attr("stroke-dasharray", "4 3").style("opacity", 0);
 
-      /* ── Per-point 95% CI error bar on hover ──────────────────────────── */
-      const CI_CAP = 8;
-      const hoverErrG = g.append("g")
-        .attr("class", "hover-errbar")
-        .style("pointer-events", "none")
-        .style("opacity", 0);
-      const errBarLine = hoverErrG.append("line")
-        .attr("stroke-width", 1.5)
-        .attr("stroke-linecap", "round");
-      const errCapHi = hoverErrG.append("line").attr("stroke-width", 1.5);
-      const errCapLo = hoverErrG.append("line").attr("stroke-width", 1.5);
+  /* ── Split year marker ────────────────────────────────────────────────── */
+  const splitPt = pts.find((d) => d.year >= SPLIT);
+  if (splitPt) {
+    g.append("line")
+      .attr("x1", x(splitPt.t)).attr("x2", x(splitPt.t))
+      .attr("y1", 0).attr("y2", ih)
+      .attr("stroke", "#555").attr("stroke-width", 1).attr("stroke-dasharray", "4 3");
+    g.append("text")
+      .attr("x", x(splitPt.t) + 5).attr("y", 10)
+      .attr("fill", "#777").style("font-size", "10px").text(SPLIT + "+");
+  }
 
-      circleSel
-        .on("mouseover", function (event, d) {
-          if (!d.ciBand) return;
-          const cx   = x(d.t);
-          const cyHi = y(d.total + d.ciBand);
-          const cyLo = y(d.total - d.ciBand);
-          const col  = d.year >= SPLIT ? "var(--line-2026)" : "var(--line-pre)";
+  /* ── Callout: annotate the fastest-growing tier (10K–100K) ────────────── */
+  const last = pts[pts.length - 1];
+  const firstPt = pts[0];
+  const hiShareNow   = last.total > 0    ? (last.tiers.small_hi / last.total    * 100) : 0;
+  const hiShareFirst = firstPt.total > 0 ? (firstPt.tiers.small_hi / firstPt.total * 100) : 0;
+  const hiDelta = hiShareNow - hiShareFirst;  // pp change
 
-          errBarLine.attr("x1", cx).attr("y1", cyHi).attr("x2", cx).attr("y2", cyLo).attr("stroke", col);
-          errCapHi.attr("x1", cx - CI_CAP).attr("y1", cyHi).attr("x2", cx + CI_CAP).attr("y2", cyHi).attr("stroke", col);
-          errCapLo.attr("x1", cx - CI_CAP).attr("y1", cyLo).attr("x2", cx + CI_CAP).attr("y2", cyLo).attr("stroke", col);
+  const callLayer = g.append("g").attr("class", "callout-layer").style("pointer-events", "none").style("opacity", 0);
 
-          hoverErrG.style("opacity", 0.85);
-          d3.select(this).attr("r", 6);
-        })
-        .on("mouseleave", function () {
-          hoverErrG.style("opacity", 0);
-          d3.select(this).attr("r", 4);
-        });
+  /* Find mid-y of small_hi band at the LAST point in abs mode */
+  const _seriesAll = stack(pts);
+  const _hiSeries  = _seriesAll.find((s) => s.key === "small_hi");
+  const _hiLast    = _hiSeries ? _hiSeries[pts.length - 1] : null;
+  const _hiMidY    = _hiLast ? yAbs((_hiLast[0] + _hiLast[1]) / 2) : ih / 2;
+  const _annX      = x(last.t) - 10;
 
-      function fmtDelta(dv) {
-        if (dv == null || !Number.isFinite(dv)) return "";
-        const sign = dv >= 0 ? "+" : "";
-        const a = Math.abs(dv);
-        if (a >= 1e6) return `${sign}${(dv / 1e6).toFixed(2)}M`;
-        if (a >= 1e3) return `${sign}${(dv / 1e3).toFixed(0)}k`;
-        return `${sign}${Math.round(dv).toLocaleString()}`;
-      }
+  callLayer.append("text").attr("class", "callout-headline")
+    .attr("fill", "#EF4444")
+    .attr("text-anchor", "end").attr("x", _annX).attr("y", _isMob ? -36 : -44)
+    .text("10K–100K grows fastest");
+  callLayer.append("text").attr("class", "callout-sub")
+    .attr("text-anchor", "end").attr("x", _annX).attr("y", _isMob ? -20 : -26)
+    .text(`${hiShareFirst.toFixed(1)}% → ${hiShareNow.toFixed(1)}% of total (+${hiDelta.toFixed(1)} pp)`);
 
-      const callLayer = g.append("g").attr("class", "callout-layer").style("pointer-events", "none").style("opacity", 0);
+  /* Connector line from callout to mid of the red band */
+  callLayer.append("line")
+    .attr("x1", _annX).attr("y1", _isMob ? -15 : -20)
+    .attr("x2", _annX).attr("y2", _hiMidY)
+    .attr("stroke", "#EF4444").attr("stroke-width", 1)
+    .attr("stroke-dasharray", "3 2").attr("opacity", 0.7);
 
-      function shortenToward(tx, ty, sx, sy, dist) {
-        const dx = tx - sx;
-        const dy = ty - sy;
-        const len = Math.hypot(dx, dy) || 1;
-        const k = Math.min(dist, len - 2);
-        return { x: tx - (dx / len) * k, y: ty - (dy / len) * k };
-      }
+  /* ── Mode toggle logic ────────────────────────────────────────────────── */
+  function setMode(newMode, animate) {
+    mode = newMode;
+    const isPct = mode === "pct";
+    yScale = isPct ? yPct : yAbs;
+    const DURATION = animate ? 500 : 0;
+    const ease = d3.easeCubicInOut;
 
-      const lastPt = pts[pts.length - 1];
-      const lx = x(lastPt.t);
-      const ly = y(lastPt.total);
+    /* Update area paths */
+    const seriesData = isPct ? stackPct(pts) : stack(pts);
+    const areaFn = makeArea(yScale);
+    areaPaths
+      .data(seriesData)
+      .transition().duration(DURATION).ease(ease)
+      .attr("d", areaFn);
 
-      const rightTextX = Math.min(lx - 72, iw - 120);
-      const rightTextXClamped = Math.max(iw * 0.22 + 48, rightTextX);
-      const yElbow = -28;
-      const xLegRight = Math.min(Math.max(52, lx - 40), lx - 16);
-      const tipLast = shortenToward(lx, ly, xLegRight, yElbow, 18);
+    /* Top edge line */
+    if (!isPct) {
+      topLineEl.transition().duration(DURATION).ease(ease)
+        .attr("d", totalLine(pts)).style("opacity", 1);
+    } else {
+      topLineEl.transition().duration(DURATION / 2).style("opacity", 0);
+    }
 
-      const rightPoly = [
-        { x: rightTextXClamped, y: yElbow },
-        { x: xLegRight, y: yElbow },
-        { x: xLegRight, y: tipLast.y },
-        { x: tipLast.x, y: tipLast.y },
-      ];
+    /* 100% reference line */
+    refLine.transition().duration(DURATION / 2)
+      .attr("y1", yPct(1)).attr("y2", yPct(1))
+      .style("opacity", isPct ? 0.7 : 0);
 
-      function appendCalloutArrowCap(parent, poly) {
-        const q = poly.filter((pt, i) => i === 0 || pt.x !== poly[i - 1].x || pt.y !== poly[i - 1].y);
-        if (q.length < 2) return;
-        const b = q[q.length - 2];
-        const t = q[q.length - 1];
-        const ang = (Math.atan2(t.y - b.y, t.x - b.x) * 180) / Math.PI;
-        parent
-          .append("path")
-          .attr("class", "callout-arrow-cap")
-          .attr("transform", `translate(${t.x},${t.y}) rotate(${ang})`)
-          .attr("d", "M0,0 L-7.5,-3.1 L-7.5,3.1 Z")
-          .attr("fill", "#2ecc71");
-      }
+    /* Y axis */
+    const fmt = isPct ? fmtYPct : fmtYAbs;
+    yAxisG.transition().duration(DURATION).ease(ease)
+      .call(d3.axisLeft(yScale).ticks(5).tickFormat(fmt));
 
-      callLayer
-        .append("path")
-        .attr("class", "callout-connector")
-        .attr(
-          "d",
-          `M${rightTextXClamped},${yElbow}L${xLegRight},${yElbow}L${xLegRight},${tipLast.y}L${tipLast.x},${tipLast.y}`
-        );
+    /* Y label */
+    const yLabelEl = document.getElementById("uklg-yaxis-label");
+    if (yLabelEl) yLabelEl.textContent = isPct ? "Share of total" : "Total listeners (summed)";
 
-      appendCalloutArrowCap(callLayer, rightPoly);
+    /* Button states */
+    document.getElementById("uklg-btn-abs").classList.toggle("uklg-mbtn--active", !isPct);
+    document.getElementById("uklg-btn-pct").classList.toggle("uklg-mbtn--active", isPct);
+  }
 
-      callLayer
-        .append("text")
-        .attr("class", "callout-headline")
-        .attr("text-anchor", "end")
-        .attr("x", rightTextXClamped)
-        .attr("y", -58)
-        .text("Ukrainian acts still gain listeners");
+  document.getElementById("uklg-btn-abs").addEventListener("click", () => setMode("abs", true));
+  document.getElementById("uklg-btn-pct").addEventListener("click", () => setMode("pct", true));
 
-      callLayer
-        .append("text")
-        .attr("class", "callout-sub")
-        .attr("text-anchor", "end")
-        .attr("x", rightTextXClamped)
-        .attr("y", -38)
-        .text("Roster total keeps inching up");
+  /* ── Hover tooltip ────────────────────────────────────────────────────── */
+  const bisect = d3.bisector((d) => d.t).left;
+  const hoverG = g.append("g").style("opacity", 0).style("pointer-events", "none");
+  const hoverLine = hoverG.append("line")
+    .attr("y1", 0).attr("y2", ih)
+    .attr("stroke", "#aaa").attr("stroke-width", 1).attr("stroke-dasharray", "3 2");
 
-      function measurePartialPathLen(ptsSlice, endVertexIndex) {
-        const sl = ptsSlice.slice(0, endVertexIndex + 1);
-        if (sl.length < 2) return 0;
-        const tmp = lineG
-          .append("path")
-          .attr("d", line(sl))
-          .attr("fill", "none")
-          .style("visibility", "hidden");
-        const len = tmp.node().getTotalLength();
-        tmp.remove();
-        return len;
-      }
+  const tipEl = document.createElement("div");
+  tipEl.className = "uklg-hover-tip";
+  tipEl.style.cssText = "display:none;position:fixed;background:#1a1a2e;border:1px solid #333;border-radius:6px;padding:0.55rem 0.75rem;font-size:12px;color:#eee;pointer-events:none;z-index:1000;line-height:1.5;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,0.5)";
+  document.body.appendChild(tipEl);
 
-      function prepPathDash(sel) {
-        const node = sel && sel.node ? sel.node() : null;
-        if (!node) return 0;
-        const L = node.getTotalLength();
-        if (!Number.isFinite(L) || L <= 0) return 0;
-        sel.attr("stroke-dasharray", `${L} ${L}`).attr("stroke-dashoffset", L);
-        return L;
-      }
+  function fmtY(v) { return v >= 1e9 ? `${(v/1e9).toFixed(1)}B` : v >= 1e6 ? `${(v/1e6).toFixed(1)}M` : `${(v/1e3).toFixed(0)}k`; }
 
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const L1 = pathPre ? prepPathDash(pathPre) : 0;
-      const L2 = pathNew ? prepPathDash(pathNew) : 0;
-      const Lsum = L1 + L2 || 1;
-      const lineEase = d3.easeCubicInOut;
-      const lineMs = 2400;
-      const dur1 = L1 > 0 ? lineMs * (L1 / Lsum) : 0;
-      const dur2 = L2 > 0 ? lineMs * (L2 / Lsum) : 0;
+  function showHoverTip(event) {
+    const [mx] = d3.pointer(event, g.node());
+    const t = x.invert(mx);
+    const i = Math.min(bisect(pts, t), pts.length - 1);
+    const d = pts[i];
+    hoverG.style("opacity", 1);
+    hoverLine.attr("x1", x(d.t)).attr("x2", x(d.t));
 
-      function lineDrawDelayForPointIndex(j) {
-        if (j < 1) return 0;
-        if (i0 === 0) {
-          if (!pathNew || L2 <= 0) return 0;
-          return dur2 * (measurePartialPathLen(newPts, j) / L2);
-        }
-        if (j < i0) {
-          if (!pathPre || L1 <= 0) return 0;
-          return dur1 * (measurePartialPathLen(oldPts, j) / L1);
-        }
-        const k = j - (i0 - 1);
-        if (!pathNew || L2 <= 0) return dur1;
-        return dur1 + dur2 * (measurePartialPathLen(newPts, k) / L2);
-      }
+    const isUA = document.body.classList.contains("ua");
+    const labels = isUA ? TIER_LABELS_UA : TIER_LABELS_EN;
+    const fmtM = isUA
+      ? new Intl.DateTimeFormat("uk", { month: "short", year: "numeric" }).format(d.t)
+      : d3.timeFormat("%b %Y")(d.t);
 
-      const deltaRows = pts
-        .map((d, j) => ({ d, j }))
-        .filter(({ d, j }) => d.deltaPrev != null && Number.isFinite(d.deltaPrev) && j < pts.length - 1 && (j % 2 === 0 || (d.year === 2026 && d.monthIndex === 1)));
+    const isPct = mode === "pct";
+    const rows = [...TIER_KEYS].reverse().map(k => {
+      const v = d.tiers[k] || 0;
+      const pct = d.total > 0 ? (v / d.total * 100) : 0;
+      const display = isPct ? `${pct.toFixed(1)}%` : `${fmtY(v)} <span style="color:#888;font-size:10px">${pct.toFixed(1)}%</span>`;
+      return `<div style="display:flex;justify-content:space-between;gap:1rem;align-items:center">
+        <span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${TIER_COLORS[k]};margin-right:5px;vertical-align:middle"></i>${labels[k]}</span>
+        <span>${display}</span>
+      </div>`;
+    }).join("");
 
-      g.selectAll("text.delta-label")
-        .data(deltaRows)
-        .join("text")
-        .attr("class", ({ d }) =>
-          d.deltaPrev > 0 ? "delta-label delta-label--pos" : "delta-label delta-label--neg"
-        )
-        .attr("text-anchor", "middle")
-        .attr("x", ({ d }) => x(d.t))
-        .attr("y", ({ d }) => y(d.total) - 10)
-        .style("opacity", 0)
-        .text(({ d }) => fmtDelta(d.deltaPrev));
+    const totalLine2 = isPct
+      ? `<span>100%</span>`
+      : `<span>${fmtY(d.total)}</span>`;
 
-      /* ── Latest-month KPI badge ── */
-      const kpiG = g.append("g").attr("class", "latest-kpi").style("opacity", 0);
-      if (lastPt && lastPt.deltaPrev != null && Number.isFinite(lastPt.deltaPrev)) {
-        const lx = x(lastPt.t);
-        const ly = y(lastPt.total);
-        const BW = _isMob ? Math.max(110, Math.round(iw * 0.52)) : 182;
-        const BH = _isMob ? 52 : 72;
-        /* anchor in the bottom-right corner — space under the rising curve */
-        const bx = iw - BW - 8;
-        const by = ih - BH - 8;
+    tipEl.innerHTML = `<div style="font-weight:700;margin-bottom:0.3rem;color:#FBBF24">${fmtM}</div>`
+      + rows
+      + `<div style="border-top:1px solid #333;margin-top:0.35rem;padding-top:0.3rem;display:flex;justify-content:space-between">
+           <span>${isUA ? "Разом" : "Total"}</span>${totalLine2}</div>`;
 
-        /* dark pill */
-        kpiG.append("rect")
-          .attr("x", bx).attr("y", by)
-          .attr("width", BW).attr("height", BH)
-          .attr("rx", 5).attr("fill", "rgba(10,8,22,0.85)")
-          .attr("stroke", "rgba(251,191,36,0.38)").attr("stroke-width", 1);
-        /* yellow left accent stripe */
-        kpiG.append("rect")
-          .attr("x", bx).attr("y", by + 9)
-          .attr("width", 3).attr("height", BH - 18)
-          .attr("rx", 1.5).attr("fill", "#FBBF24");
-        /* big metric number */
-        const sign = lastPt.deltaPrev >= 0 ? "+" : "\u2212";
-        const abs  = Math.abs(lastPt.deltaPrev);
-        const numStr = abs >= 1e6 ? `${sign}${(abs/1e6).toFixed(2)}M`
-                     : abs >= 1e3 ? `${sign}${(abs/1e3).toFixed(0)}k`
-                     : `${sign}${Math.round(abs).toLocaleString()}`;
-        kpiG.append("text")
-          .attr("x", bx + 15).attr("y", by + (_isMob ? 19 : 27))
-          .attr("dominant-baseline", "middle")
-          .attr("fill", "#FBBF24")
-          .style("font-size", _isMob ? "17px" : "20px").style("font-weight", "800")
-          .style("letter-spacing", "-0.5px").style("font-family", "inherit")
-          .text(numStr);
-        /* sub-label */
-        const fmt = d3.timeFormat("%b %Y");
-        kpiG.append("text")
-          .attr("x", bx + 15).attr("y", by + (_isMob ? 33 : 45))
-          .attr("dominant-baseline", "middle")
-          .attr("fill", "#FDE68A")
-          .style("font-size", _isMob ? "8.5px" : "9.5px").style("font-weight", "600")
-          .attr('data-l10n-en', `${fmt(lastPt.t)} · vs prior month`)
-          .attr('data-l10n-ua', `${fmt(lastPt.t)} · приріст за місяць`)
-          .text(`${fmt(lastPt.t)} · ${document.body.classList.contains('ua') ? 'приріст за місяць' : 'vs prior month'}`);
-        /* footnote with ≠ */
-        kpiG.append("text")
-          .attr("x", bx + 15).attr("y", by + 59)
-          .attr("dominant-baseline", "middle")
-          .attr("fill", "#666")
-          .style("font-size", _isMob ? "8px" : "8.5px").style("font-style", "italic")
-          .text("listeners \u2260 listenings");
-        /* dashed connector to last dot */
-        kpiG.append("line")
-          .attr("x1", bx + BW * 0.75).attr("y1", by)
-          .attr("x2", lx).attr("y2", ly)
-          .attr("stroke", "#FBBF24").attr("stroke-width", 1)
-          .attr("stroke-dasharray", "3,3").attr("opacity", 0.5);
-      }
+    const MARGIN = 8;
+    const tw = Math.min(220, window.innerWidth - 2 * MARGIN);
+    const th = 200;
+    const ex = event.clientX, ey = event.clientY;
+    let left = ex + 14 + tw > window.innerWidth - MARGIN ? ex - tw - 14 : ex + 14;
+    let top  = ey + 14 + th > window.innerHeight - MARGIN ? ey - th - 10 : ey + 14;
+    tipEl.style.left = Math.max(MARGIN, Math.min(window.innerWidth - tw - MARGIN, left)) + "px";
+    tipEl.style.top  = Math.max(MARGIN, top) + "px";
+    tipEl.style.display = "block";
+  }
 
-      function revealPositiveDeltasWithLine() {
-        g.selectAll("text.delta-label--pos").each(function (row) {
-          const delay = lineDrawDelayForPointIndex(row.j);
-          d3.select(this)
-            .transition()
-            .delay(delay)
-            .duration(200)
-            .ease(d3.easeCubicOut)
-            .style("opacity", 1);
-        });
-      }
+  const overlay = g.append("rect")
+    .attr("width", iw).attr("height", ih)
+    .attr("fill", "none").attr("pointer-events", "all").style("cursor", "crosshair");
+  overlay
+    .on("mousemove touchmove", showHoverTip)
+    .on("mouseleave touchend", () => { hoverG.style("opacity", 0); tipEl.style.display = "none"; });
+  window.addEventListener("scroll", () => { tipEl.style.display = "none"; }, { passive: true });
 
-      function runIntro() {
-        if (reduceMotion) {
-          if (pathPre) pathPre.attr("stroke-dashoffset", 0);
-          if (pathNew) pathNew.attr("stroke-dashoffset", 0);
-          bandG.style("opacity", STD_BAND_OPACITY);
-          g.selectAll("circle.pt").style("opacity", 1);
-          g.selectAll("text.delta-label").style("opacity", 1);
-          callLayer.style("opacity", 1);
-          kpiG.style("opacity", 1);
-          return;
-        }
+  /* ── Footnote ─────────────────────────────────────────────────────────── */
+  { const _en = "Summed from NUAM's Spotify fields — not unique listeners. Tiers are fixed listener-count thresholds.";
+    const _ua = "Сумовані дані з полів Spotify NUAM — не унікальні слухачі. Тири — фіксовані порогові значення кількості слухачів.";
+    const _el = document.getElementById("uklg-footnote");
+    _el.dataset.l10nEn = _en; _el.dataset.l10nUa = _ua;
+    _el.textContent = document.body.classList.contains("ua") ? _ua : _en; }
 
-        revealPositiveDeltasWithLine();
+  /* ── Animation ────────────────────────────────────────────────────────── */
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function runIntro() {
+    if (reduceMotion) {
+      stackG.style("opacity", 1); topLineEl.style("opacity", 1); callLayer.style("opacity", 1);
+      return;
+    }
+    stackG.transition().duration(900).ease(d3.easeCubicOut).style("opacity", 1)
+      .end().then(() => {
+        topLineEl.transition().duration(400).style("opacity", 1);
+        callLayer.transition().duration(500).delay(200).ease(d3.easeCubicOut).style("opacity", 1);
+      }).catch(() => {});
+  }
 
-        let t = Promise.resolve();
-        if (pathPre && dur1 > 0) {
-          t = pathPre.transition().duration(dur1).ease(lineEase).attr("stroke-dashoffset", 0).end();
-        } else if (pathPre) {
-          pathPre.attr("stroke-dashoffset", 0);
-        }
-        t = t.then(() => {
-          if (pathNew && dur2 > 0) {
-            return pathNew.transition().duration(dur2).ease(lineEase).attr("stroke-dashoffset", 0).end();
-          }
-          if (pathNew) pathNew.attr("stroke-dashoffset", 0);
-        });
-        t.then(() => {
-          g.selectAll("circle.pt").transition().duration(380).ease(d3.easeCubicOut).style("opacity", 1);
-          g.selectAll("text.delta-label--neg")
-            .transition().duration(420).delay(90).ease(d3.easeCubicOut).style("opacity", 1);
-          /* band fades in once the lines have finished drawing */
-          bandG.transition().duration(700).delay(80).ease(d3.easeCubicOut).style("opacity", STD_BAND_OPACITY);
-          callLayer
-            .transition().duration(520).delay(220).ease(d3.easeCubicOut).style("opacity", 1);
-          /* KPI badge pops in last — after dots + callouts have settled */
-          kpiG
-            .transition().duration(500).delay(900).ease(d3.easeBackOut.overshoot(1.4))
-            .style("opacity", 1);
-        });
-      }
-
-      // Fire animation when the chart scrolls into view (not on page load)
-      const _introTarget = svg.node();
-      if ("IntersectionObserver" in window) {
-        const _io = new IntersectionObserver((entries, obs) => {
-          if (entries[0].isIntersecting) {
-            obs.disconnect();
-            requestAnimationFrame(runIntro);
-          }
-        }, { threshold: 0.2 });
-        _io.observe(_introTarget);
-      } else {
-        // Fallback for very old browsers
-        requestAnimationFrame(runIntro);
-      }
-
-      { const _en_fn = "Summed from NUAM’s Spotify fields — not unique listeners. Axis is cropped (not from zero) so the trend is easier to see.";
-      const _ua_fn = "Сумовані дані з полів Spotify NUAM — не унікальні слухачі. Вісь обрізана (не від нуля) для кращої читабельності тренду.";
-      const _el_fn = document.getElementById("uklg-footnote");
-      _el_fn.dataset.l10nEn = _en_fn; _el_fn.dataset.l10nUa = _ua_fn;
-      _el_fn.textContent = document.body.classList.contains('ua') ? _ua_fn : _en_fn; }
+  if ("IntersectionObserver" in window) {
+    const _io = new IntersectionObserver((entries, obs) => {
+      if (entries[0].isIntersecting) { obs.disconnect(); requestAnimationFrame(runIntro); }
+    }, { threshold: 0.2 });
+    _io.observe(svg.node());
+  } else {
+    requestAnimationFrame(runIntro);
+  }
     })();</script>
+
+
         </div>
       </div></div>
       <div class="prose-block">
@@ -6282,21 +6144,7 @@
     setT(document.getElementById('gp-ramp-low'),  'Fewer listeners per artist', 'Менше попит');
     setT(document.getElementById('gp-ramp-high'), 'More listeners per artist',  'Більше попит');
 
-    var uklg = document.getElementById('uklg-legend-block');
-    if (uklg) {
-      var st = uklg.querySelector('strong');
-      if (st) setT(st, "What you\u2019re seeing.", 'Що ви бачите.');
-      var wk = document.createTreeWalker(uklg, NodeFilter.SHOW_TEXT);
-      while (wk.nextNode()) {
-        var nd = wk.currentNode;
-        if (nd.parentNode === uklg) {
-          if (isUA  && nd.textContent.indexOf('Monthly listeners') !== -1)
-            nd.textContent = " Місячні слухачі на українській музичній сцені за '24\u2013'26\n    ";
-          if (!isUA && nd.textContent.indexOf('Місячні слухачі') !== -1)
-            nd.textContent = " Monthly listeners in Ukrainian Music Market during '24\u2013'26\n    ";
-        }
-      }
-    }
+    /* uklg legend now uses .en-only/.ua-only spans — no JS swap needed */
     setH(document.querySelector('.nuam-ch-lr .legend-lead'),
       '<strong>Quick read.</strong> The number in the center is how many artists are signed to that label. Each spoke is a standout artist with high monthly listeners. <strong>Red</strong> = top-rated label; <strong>gray</strong> = the rest.',
       '<strong>Як читати.</strong> Розмір круга та число всередині відображають кількість артистів на цьому лейблі. Кожен промінь — артист з доходом більше 300$ з Spotify. <strong>Червоний</strong> = Топ - лейбл; <strong>сірий</strong> = інші.');
