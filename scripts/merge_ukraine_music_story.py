@@ -491,21 +491,21 @@ def main() -> None:
     listeners_followup = """
       <div class="prose-block">
         <div class="en-only">
-          <p>
-            The chart illustrates the growth in total listeners in the Ukrainian music scene from 2024 to early 2026, based on data from <strong>NUAM (New UA Music)</strong> — a leading Ukrainian online music resource. The dataset, with a snapshot from April 2026, shows a steady rise in listener engagement, reflecting the ongoing transformation of the local music market.
-          </p>
-          <p>
-            <a href="https://www.nuam.club/stat">NUAM</a> is one of the largest publicly accessible databases of Ukrainian musicians, maintaining detailed profiles of tens of thousands of artists and their releases. It allows users to explore and filter music by genre, popularity, release date, and more. The platform also provides playlists, yearly charts, and genre collections. Through its web app, <strong>NUAM Base</strong>, it offers analytics for both artists and fans.
-          </p>
-          <p>In recent months, the number of listeners has been consistently growing. Several factors may explain this trend:</p>
-          <ol>
-            <li><strong>Increasing number of artists.</strong> As more artists join the scene and release music, the total number of listeners naturally increases. Since NUAM began tracking the platform, the number of active Ukrainian musicians has surged, with over 16,500 artists and more than 9,200 releasing music in 2025 alone.</li>
-            <li><strong>Aggregation across artists.</strong> The listener count aggregates data across all artists, which means that if the same listener discovers multiple artists, this could inflate the total listener count.</li>
-            <li><strong>Genuine growth in audience.</strong> If the listener bases of artists significantly do not overlap, the chart might reflect real growth in the number of unique listeners.</li>
-          </ol>
-          <p>
-            Regardless of these technical nuances, all signs point to a <strong>growing interest in local music</strong>. The rise of streaming platforms such as <a href="https://www.spotify.com/">Spotify</a> and <a href="https://www.apple.com/apple-music/">Apple Music</a> has played a significant role in amplifying this growth.
-          </p>
+        <p>
+          The chart illustrates the growth in total listeners in the Ukrainian music scene from 2024 to early 2026, based on data from <strong>NUAM (New UA Music)</strong> — a leading Ukrainian online music resource. The dataset, with a snapshot from April 2026, shows a steady rise in listener engagement, reflecting the ongoing transformation of the local music market.
+        </p>
+        <p>
+          <a href="https://www.nuam.club/stat">NUAM</a> is one of the largest publicly accessible databases of Ukrainian musicians, maintaining detailed profiles of tens of thousands of artists and their releases. It allows users to explore and filter music by genre, popularity, release date, and more. The platform also provides playlists, yearly charts, and genre collections. Through its web app, <strong>NUAM Base</strong>, it offers analytics for both artists and fans.
+        </p>
+        <p>In recent months, the number of listeners has been consistently growing. Several factors may explain this trend:</p>
+        <ol>
+          <li><strong>Increasing number of artists.</strong> As more artists join the scene and release music, the total number of listeners naturally increases. Since NUAM began tracking the platform, the number of active Ukrainian musicians has surged, with over 16,500 artists and more than 9,200 releasing music in 2025 alone.</li>
+          <li><strong>Aggregation across artists.</strong> The listener count aggregates data across all artists, which means that if the same listener discovers multiple artists, this could inflate the total listener count.</li>
+          <li><strong>Genuine growth in audience.</strong> If the listener bases of artists significantly do not overlap, the chart might reflect real growth in the number of unique listeners.</li>
+        </ol>
+        <p>
+          Regardless of these technical nuances, all signs point to a <strong>growing interest in local music</strong>. The rise of streaming platforms such as <a href="https://www.spotify.com/">Spotify</a> and <a href="https://www.apple.com/apple-music/">Apple Music</a> has played a significant role in amplifying this growth.
+        </p>
         </div>
         <div class="ua-only">
           <p>
@@ -730,7 +730,7 @@ def main() -> None:
           <li><strong>Spotify monthly listeners ≥ 1 million</strong> — a clear indicator of audience reach beyond local borders</li>
           <li><strong>Earned over $300</strong> — showing that your music is generating real streaming income (not just plays)</li>
         </ul>
-        </div>
+      </div>
         <div class="ua-only">
         <p>
           Щоб зрозуміти, що насправді означає для артиста перехід від першої уваги до кар'єри з певним імпульсом,
@@ -904,7 +904,7 @@ def main() -> None:
         <p>
           Most of these so‑called strange deals aren't hidden in niche corners of the music scene. <strong>They actually lie within mainstream genres</strong> like <strong>pop, rap, indie, or rock</strong>, where there are already plenty of artists and competition. That makes it even more curious why some low‑listener artists still end up signed. It suggests that <strong>getting a label connection isn't only about big listener numbers anymore</strong>, and there may be other factors in play behind the scenes.<sup class="ref"><a href="https://liroom.com.ua/news/zvuchyt-vypusk-6" id="ref1-back">[1]</a></sup>
         </p>
-        </div>
+      </div>
         <div class="ua-only">
         <p>
           Якщо перейти до вигляду, де <strong>"кожен артист — маленьке сонце"</strong> і встановити діапазон слухачів <strong>0–100</strong> із сортуванням за <strong>досягненнями</strong>, помічаєш щось цікаве: у цій групі з малою аудиторією все одно є купа артистів із <strong>підписаними угодами</strong> — попри невелику кількість стримів.

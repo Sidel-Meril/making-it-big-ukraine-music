@@ -6,31 +6,28 @@ from typing import Any
 
 import pandas as pd
 
-# Audience tier definitions (rank-based per month, descending by listeners)
-TIERS: list[tuple[str, int, int]] = [
-    ("top10",  1,   10),
-    ("mid1",  11,   50),
-    ("mid2",  51,  200),
-    ("rest",  201, 999_999),
+# Audience tier definitions — fixed listener-count thresholds (lo inclusive, hi exclusive).
+# Listed top-to-bottom; stack order in the chart is bottom-to-top (reversed).
+TIERS: list[tuple[str, int, int | None]] = [
+    ("mega",      1_000_000, None),        # 1 M+
+    ("large",       500_000, 1_000_000),   # 500 K – 1 M
+    ("big",         250_000,   500_000),   # 250 K – 500 K
+    ("medium",      100_000,   250_000),   # 100 K – 250 K
+    ("small_hi",     10_000,   100_000),   # 10 K – 100 K
+    ("small_lo",      1_000,    10_000),   # 1 K – 10 K
+    ("tiny",              0,     1_000),   # < 1 K
 ]
 
 
 def _tier_sums(month_df: pd.DataFrame) -> dict[str, float]:
-    """Return summed listeners per tier for a single month's artist rows.
-
-    Artists are ranked by their listeners in that month (highest first).
-    Tier boundaries are rank-based (1-10, 11-50, 51-200, 201+).
-    """
-    ranked = (
-        month_df[month_df["listeners"] > 0]
-        .sort_values("listeners", ascending=False)
-        .reset_index(drop=True)
-    )
-    ranked["rank"] = ranked.index + 1
+    """Return summed listeners per fixed-threshold tier for a single month."""
     result: dict[str, float] = {}
+    listeners = month_df["listeners"]
     for key, lo, hi in TIERS:
-        mask = (ranked["rank"] >= lo) & (ranked["rank"] <= hi)
-        result[key] = float(ranked.loc[mask, "listeners"].sum())
+        mask = listeners >= lo
+        if hi is not None:
+            mask &= listeners < hi
+        result[key] = float(listeners[mask].sum())
     return result
 
 
@@ -107,6 +104,6 @@ def build_uk_listeners_growth_payload(
         "lastMonthIso": pd.Timestamp(last_m).isoformat(),
         "pointCount": len(points),
         "subtitleMetric": "Σ monthly Spotify listener counts on NUAM artist rows (same months as export)",
-        "tiers": [{"key": k, "rankLo": lo, "rankHi": hi} for k, lo, hi in TIERS],
+        "tiers": [{"key": k, "minListeners": lo, "maxListeners": hi} for k, lo, hi in TIERS],
     }
     return {"meta": meta, "points": points}
