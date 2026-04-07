@@ -169,7 +169,7 @@ NEW_S1 = '''      <div class="prose-block" style="padding-bottom:1rem">
       </div>
       <p class="chart-dek">
         <span class="en-only">Summed monthly listeners across artists in NUAM. The vertical scale is trimmed to the visible range (not zero); month-to-month change is labeled on the chart.</span>
-        <span class="ua-only">Сума місячних слухачів усіх артистів у NUAM. Вертикальна шкала обрізана до видимого діапазону; помісячна зміна позначена на графіку.</span>
+        <span class="ua-only"></span>
       </p>'''
 
 assert OLD_S1 in src, "section 1 header not found"
