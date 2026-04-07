@@ -1944,7 +1944,6 @@
 
   /* ── Callout: annotate the fastest-growing tier (10K–100K) ────────────── */
   const last = pts[pts.length - 1];
-  const last = pts[pts.length - 1];
   const firstPt = pts[0];
 
   /* ── Market-value stat strip ─────────────────────────────────────────── */
@@ -1968,35 +1967,7 @@
     if (elDollars) elDollars.textContent  = fmtDollar(dollarValue);
   })();
 
-  const hiShareNow   = last.total > 0    ? (last.tiers.small_hi / last.total    * 100) : 0;
-  const hiShareFirst = firstPt.total > 0 ? (firstPt.tiers.small_hi / firstPt.total * 100) : 0;
-  const hiDelta = hiShareNow - hiShareFirst;  // pp change
-
   const callLayer = g.append("g").attr("class", "callout-layer").style("pointer-events", "none").style("opacity", 0);
-
-  /* Find mid-y of small_hi band at the LAST point in abs mode */
-  const _seriesAll = stack(pts);
-  const _hiSeries  = _seriesAll.find((s) => s.key === "small_hi");
-  const _hiLast    = _hiSeries ? _hiSeries[pts.length - 1] : null;
-  const _hiMidY    = _hiLast ? yAbs((_hiLast[0] + _hiLast[1]) / 2) : ih / 2;
-  const _annX      = x(last.t) - 10;
-
-  callLayer.append("text").attr("class", "callout-headline")
-    .attr("fill", "#EF4444")
-    .attr("text-anchor", "end").attr("x", _annX).attr("y", _isMob ? -36 : -44)
-    .text(document.body.classList.contains("ua") ? "10K–100K зростає найшвидше" : "10K–100K grows fastest");
-  callLayer.append("text").attr("class", "callout-sub")
-    .attr("text-anchor", "end").attr("x", _annX).attr("y", _isMob ? -20 : -26)
-    .text(document.body.classList.contains("ua")
-      ? `${hiShareFirst.toFixed(1)}% → ${hiShareNow.toFixed(1)}% від загального (+${hiDelta.toFixed(1)} пп)`
-      : `${hiShareFirst.toFixed(1)}% → ${hiShareNow.toFixed(1)}% of total (+${hiDelta.toFixed(1)} pp)`);
-
-  /* Connector line from callout to mid of the red band */
-  callLayer.append("line")
-    .attr("x1", _annX).attr("y1", _isMob ? -15 : -20)
-    .attr("x2", _annX).attr("y2", _hiMidY)
-    .attr("stroke", "#EF4444").attr("stroke-width", 1)
-    .attr("stroke-dasharray", "3 2").attr("opacity", 0.7);
 
   /* ── Mode toggle logic ────────────────────────────────────────────────── */
   function setMode(newMode, animate) {
@@ -6077,37 +6048,6 @@
   };
 })();
 </script>
-<script>
-(function () {
-  var CREDIT = [
-    "",
-    "―――",
-    "Source: “The unlikely odds of making it big in Ukraine”",
-    "by Kateryna Siomina (Data Scientist & Artists Manager)",
-    "https://t.me/sidel_meril  ·  https://www.instagram.com/sidel_meril/",
-    "© 2026 — original work, please credit when sharing.",
-    "―――"
-  ].join("\n");
-
-  document.addEventListener("copy", function (e) {
-    var selection = window.getSelection();
-    if (!selection || selection.isCollapsed) return;
-    var text = selection.toString();
-    if (text.length < 20) return; /* ignore single-word copies */
-    e.preventDefault();
-    e.clipboardData.setData("text/plain", text + CREDIT);
-    e.clipboardData.setData("text/html",
-      "<p>" + text.replace(/\n/g, "<br>") + "</p>" +
-      "<p style=\"color:#888;font-size:0.85em\">" +
-        "Source: <em>The unlikely odds of making it big in Ukraine</em> " +
-        "by <a href=\"https://t.me/sidel_meril\">Kateryna Siomina</a>. " +
-        "&copy; 2026 &mdash; please credit when sharing." +
-      "</p>"
-    );
-  });
-})();
-</script>
-
 <script>
 (function () {
   function syncSelectLang(lang) {
