@@ -1774,13 +1774,13 @@
   /* ── Tier config (bottom → top in stack) ─────────────────────────────── */
   const TIER_KEYS = ["tiny", "small_lo", "small_hi", "medium", "big", "large", "mega"];
   const TIER_COLORS = {
-    mega:     "#FBBF24",  // gold   — 1M+
-    large:    "#FCD34D",  // amber  — 500K–1M
-    big:      "#FB923C",  // orange — 250K–500K
-    medium:   "#F97316",  // deep orange — 100K–250K
+    mega:     "#4C1D95",  // deep violet (project color) — 1M+
+    large:    "#6D28D9",  // violet — 500K–1M
+    big:      "#8B5CF6",  // medium purple — 250K–500K
+    medium:   "#C4B5FD",  // light purple — 100K–250K
     small_hi: "#EF4444",  // RED (accent, fastest growing) — 10K–100K
-    small_lo: "#8B5CF6",  // purple — 1K–10K
-    tiny:     "#5B21B6",  // deep violet — <1K
+    small_lo: "#FCD34D",  // amber — 1K–10K
+    tiny:     "#FEF08A",  // light yellow — <1K
   };
   const TIER_LABELS_EN = {
     mega:"1M+", large:"500K–1M", big:"250K–500K",
@@ -1955,10 +1955,12 @@
   callLayer.append("text").attr("class", "callout-headline")
     .attr("fill", "#EF4444")
     .attr("text-anchor", "end").attr("x", _annX).attr("y", _isMob ? -36 : -44)
-    .text("10K–100K grows fastest");
+    .text(document.body.classList.contains("ua") ? "10K–100K зростає найшвидше" : "10K–100K grows fastest");
   callLayer.append("text").attr("class", "callout-sub")
     .attr("text-anchor", "end").attr("x", _annX).attr("y", _isMob ? -20 : -26)
-    .text(`${hiShareFirst.toFixed(1)}% → ${hiShareNow.toFixed(1)}% of total (+${hiDelta.toFixed(1)} pp)`);
+    .text(document.body.classList.contains("ua")
+      ? `${hiShareFirst.toFixed(1)}% → ${hiShareNow.toFixed(1)}% від загального (+${hiDelta.toFixed(1)} пп)`
+      : `${hiShareFirst.toFixed(1)}% → ${hiShareNow.toFixed(1)}% of total (+${hiDelta.toFixed(1)} pp)`);
 
   /* Connector line from callout to mid of the red band */
   callLayer.append("line")
@@ -2092,13 +2094,35 @@
   function runIntro() {
     if (reduceMotion) {
       stackG.style("opacity", 1); topLineEl.style("opacity", 1); callLayer.style("opacity", 1);
+      setMode("abs", false);
       return;
     }
-    stackG.transition().duration(900).ease(d3.easeCubicOut).style("opacity", 1)
+    /* Phase 1: fade in abs view (700ms) */
+    setMode("abs", false);
+    stackG.style("opacity", 0);
+    topLineEl.style("opacity", 0);
+    callLayer.style("opacity", 0);
+
+    stackG.transition().duration(700).ease(d3.easeCubicOut).style("opacity", 1)
       .end().then(() => {
+        /* Phase 2: switch to normalized (600ms, after 300ms pause) */
+        return new Promise(res => setTimeout(res, 300));
+      }).then(() => {
+        setMode("pct", true);
+        return new Promise(res => setTimeout(res, 900));
+      }).then(() => {
+        /* Phase 3: switch back to absolute — final state (600ms) */
+        setMode("abs", true);
+        return new Promise(res => setTimeout(res, 800));
+      }).then(() => {
         topLineEl.transition().duration(400).style("opacity", 1);
-        callLayer.transition().duration(500).delay(200).ease(d3.easeCubicOut).style("opacity", 1);
-      }).catch(() => {});
+        callLayer.transition().duration(500).delay(150).ease(d3.easeCubicOut).style("opacity", 1);
+      }).catch(() => {
+        /* fallback: ensure final state is correct */
+        setMode("abs", false);
+        topLineEl.style("opacity", 1);
+        callLayer.style("opacity", 1);
+      });
   }
 
   if ("IntersectionObserver" in window) {
