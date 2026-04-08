@@ -34,6 +34,8 @@ jobs:
             mkdir -p public/$chart
             cp data/charts/$chart/chart-data.js public/$chart/chart-data.js
           done
+          # Copy OG preview image to site root
+          cp data/charts/ukraine-music-story/og-preview.jpg public/og-preview.jpg
 
       - uses: actions/upload-pages-artifact@v3
         with:
